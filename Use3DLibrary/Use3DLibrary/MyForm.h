@@ -1,4 +1,5 @@
 #pragma once
+#include "lpnatgen.h"
 
 namespace Use3DLibrary {
 
@@ -36,7 +37,6 @@ namespace Use3DLibrary {
 			}
 		}
 	private: System::Windows::Forms::Button^ CreateModel;
-	private: System::Windows::Forms::PictureBox^ PreView;
 	private: System::Windows::Forms::ComboBox^ ChooseModel;
 	private: System::Windows::Forms::Label^ ModelType;
 	private: System::Windows::Forms::Label^ ModelSize;
@@ -49,6 +49,8 @@ namespace Use3DLibrary {
 	private: System::Windows::Forms::TextBox^ SeedNumTextBox;
 	private: System::Windows::Forms::TextBox^ SizeNumTextBox;
 	private: System::Windows::Forms::TextBox^ FileNameTextBox;
+	private: System::Windows::Forms::Button^ SaveModel;
+	private: System::Windows::Forms::Button^ Test;
 
 	private:
 		/// <summary>
@@ -64,7 +66,6 @@ namespace Use3DLibrary {
 		void InitializeComponent(void)
 		{
 			this->CreateModel = (gcnew System::Windows::Forms::Button());
-			this->PreView = (gcnew System::Windows::Forms::PictureBox());
 			this->ChooseModel = (gcnew System::Windows::Forms::ComboBox());
 			this->ModelType = (gcnew System::Windows::Forms::Label());
 			this->ModelSize = (gcnew System::Windows::Forms::Label());
@@ -77,28 +78,21 @@ namespace Use3DLibrary {
 			this->SeedNumTextBox = (gcnew System::Windows::Forms::TextBox());
 			this->SizeNumTextBox = (gcnew System::Windows::Forms::TextBox());
 			this->FileNameTextBox = (gcnew System::Windows::Forms::TextBox());
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->PreView))->BeginInit();
+			this->SaveModel = (gcnew System::Windows::Forms::Button());
+			this->Test = (gcnew System::Windows::Forms::Button());
 			this->SuspendLayout();
 			// 
 			// CreateModel
 			// 
 			this->CreateModel->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 14.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(204)));
-			this->CreateModel->Location = System::Drawing::Point(249, 264);
+			this->CreateModel->Location = System::Drawing::Point(153, 264);
 			this->CreateModel->Name = L"CreateModel";
 			this->CreateModel->Size = System::Drawing::Size(101, 39);
 			this->CreateModel->TabIndex = 8;
 			this->CreateModel->Text = L"Create";
 			this->CreateModel->UseVisualStyleBackColor = true;
-			this->CreateModel->Click += gcnew System::EventHandler(this, &MyForm::CreateModel_Click);
-			// 
-			// PreView
-			// 
-			this->PreView->Location = System::Drawing::Point(369, 12);
-			this->PreView->Name = L"PreView";
-			this->PreView->Size = System::Drawing::Size(199, 291);
-			this->PreView->TabIndex = 1;
-			this->PreView->TabStop = false;
+			this->CreateModel->Click += gcnew System::EventHandler(this, &MyForm::Test_Click);
 			// 
 			// ChooseModel
 			// 
@@ -218,11 +212,35 @@ namespace Use3DLibrary {
 			this->FileNameTextBox->Size = System::Drawing::Size(160, 31);
 			this->FileNameTextBox->TabIndex = 5;
 			// 
+			// SaveModel
+			// 
+			this->SaveModel->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 14.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+				static_cast<System::Byte>(204)));
+			this->SaveModel->Location = System::Drawing::Point(260, 264);
+			this->SaveModel->Name = L"SaveModel";
+			this->SaveModel->Size = System::Drawing::Size(101, 39);
+			this->SaveModel->TabIndex = 9;
+			this->SaveModel->Text = L"Save";
+			this->SaveModel->UseVisualStyleBackColor = true;
+			// 
+			// Test
+			// 
+			this->Test->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 14.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+				static_cast<System::Byte>(204)));
+			this->Test->Location = System::Drawing::Point(87, 264);
+			this->Test->Name = L"Test";
+			this->Test->Size = System::Drawing::Size(60, 39);
+			this->Test->TabIndex = 10;
+			this->Test->Text = L"Test";
+			this->Test->UseVisualStyleBackColor = true;
+			// 
 			// MyForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(580, 315);
+			this->ClientSize = System::Drawing::Size(366, 315);
+			this->Controls->Add(this->Test);
+			this->Controls->Add(this->SaveModel);
 			this->Controls->Add(this->FileNameTextBox);
 			this->Controls->Add(this->SizeNumTextBox);
 			this->Controls->Add(this->SeedNumTextBox);
@@ -234,19 +252,31 @@ namespace Use3DLibrary {
 			this->Controls->Add(this->ModelSize);
 			this->Controls->Add(this->ModelType);
 			this->Controls->Add(this->ChooseModel);
-			this->Controls->Add(this->PreView);
 			this->Controls->Add(this->CreateModel);
 			this->MaximizeBox = false;
 			this->Name = L"MyForm";
 			this->Text = L"3DCreator";
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->PreView))->EndInit();
 			this->ResumeLayout(false);
 			this->PerformLayout();
 
 		}
 #pragma endregion
+	private: lpng::GenerateObject* obj = nullptr;
+
 	private: System::Void CreateModel_Click(System::Object^ sender, System::EventArgs^ e)
 	{}
+	private: System::Void SaveModel_Click(System::Object^ sender, System::EventArgs^ e)
+	{
+		if (obj)
+			obj->SaveModel();
+	}
+	private: System::Void Test_Click(System::Object^ sender, System::EventArgs^ e)
+	{
+		lpng::GenerateObjectTest test_obj(1.0f, "test_object", "D:\\");
+		obj = &test_obj;
+		obj->Generate();
+		obj->ShowModel();
+	}
 	private: System::Void ChooseModel_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e)
 	{}
   private: System::Void ModelSeed_CheckedChanged(System::Object^ sender, System::EventArgs^ e)

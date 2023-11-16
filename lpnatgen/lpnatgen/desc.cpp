@@ -5,6 +5,11 @@ inline std::ostream& lpng::operator<<(std::ostream& out, const lpng::float3& v)
   return out << v.x << ' ' << v.y << ' ' << v.z << "\n";
 }
 
+inline std::ostream& lpng::operator<<(std::ostream& out, const lpng::float2& v)
+{
+  return out << v.x << ' ' << v.y << "\n";
+}
+
 inline std::ostream& lpng::operator<<(std::ostream& out, const lpng::Vertex& v)
 {
   return out << v.vi << '/' << v.vti << '/' << v.vni;

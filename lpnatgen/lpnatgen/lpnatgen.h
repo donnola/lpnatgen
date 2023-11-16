@@ -22,7 +22,7 @@ namespace lpng
       float size, 
       std::string file_name, 
       std::string save_path, 
-      float seed = -1) : objectSize(size), fileName(file_name), savePath(save_path)
+      int seed = -1) : objectSize(size), fileName(file_name), savePath(save_path)
     {
       if (seed > 0)
         objectSeed = seed;
@@ -32,15 +32,18 @@ namespace lpng
 
     void AddObject(Object& obj);
     virtual void GenerateMesh() = 0;
-    virtual void GenerateTextureCoords() = 0;
+    virtual void GenerateTextureCoords();
+    void PolygonDecomposition();
     void GenerateNormals();
-    void Write() const;
+    void SaveModel() const;
+    void Generate();
+    void ShowModel();
 
   private:
-    float objectSize;
-    int objectSeed;
-    std::string fileName;
-    std::string savePath;
+    float objectSize = 0;
+    int objectSeed = 0;
+    std::string fileName = "temp.obj";
+    std::string savePath = "D:\\";
 
     std::vector<Object> model;
   };
@@ -52,37 +55,50 @@ namespace lpng
       float size,
       std::string file_name,
       std::string save_path,
-      float seed = -1) : GenerateObject(size, file_name, save_path, seed) {}
+      int seed = -1) : GenerateObject(size, file_name, save_path, seed) {}
 
     void GenerateMesh() override;
     void GenerateTextureCoords() override;
   };
 
-  class GenerateObjectBush : GenerateObject
+  class GenerateObjectBush : public GenerateObject
   {
   public:
     GenerateObjectBush(
       float size,
       std::string file_name,
       std::string save_path,
-      float seed = -1) : GenerateObject(size, file_name, save_path, seed)
+      int seed = -1) : GenerateObject(size, file_name, save_path, seed)
     {}
 
     void GenerateMesh() override;
     void GenerateTextureCoords() override;
   };
 
-  class GenerateObjectStone : GenerateObject
+  class GenerateObjectStone : public GenerateObject
   {
   public:
     GenerateObjectStone(
       float size,
       std::string file_name,
       std::string save_path,
-      float seed = -1) : GenerateObject(size, file_name, save_path, seed)
+      int seed = -1) : GenerateObject(size, file_name, save_path, seed)
     {}
 
     void GenerateMesh() override;
     void GenerateTextureCoords() override;
+  };
+
+  class GenerateObjectTest : public GenerateObject
+  {
+  public:
+    GenerateObjectTest(
+      float size,
+      std::string file_name,
+      std::string save_path,
+      int seed = -1) : GenerateObject(size, file_name, save_path, seed)
+    {}
+
+    void GenerateMesh() override {};
   };
 }
