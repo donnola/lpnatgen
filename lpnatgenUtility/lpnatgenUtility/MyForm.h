@@ -1,7 +1,7 @@
 #pragma once
 #include "lpnatgen.h"
 
-namespace Use3DLibrary {
+namespace lpnatgenUtility {
 
 	using namespace System;
 	using namespace System::ComponentModel;
@@ -34,6 +34,10 @@ namespace Use3DLibrary {
 			if (components)
 			{
 				delete components;
+			}
+			if (obj)
+			{
+				delete obj;
 			}
 		}
 	private: System::Windows::Forms::Button^ CreateModel;
@@ -264,7 +268,9 @@ namespace Use3DLibrary {
 	private: lpng::GenerateObject* obj = nullptr;
 
 	private: System::Void CreateModel_Click(System::Object^ sender, System::EventArgs^ e)
-	{}
+	{
+		delete obj;
+	}
 	private: System::Void SaveModel_Click(System::Object^ sender, System::EventArgs^ e)
 	{
 		if (obj)
@@ -272,10 +278,10 @@ namespace Use3DLibrary {
 	}
 	private: System::Void Test_Click(System::Object^ sender, System::EventArgs^ e)
 	{
-		lpng::GenerateObjectTest test_obj(1.0f, "test_object", "D:\\");
-		obj = &test_obj;
+		delete obj;
+		obj = new lpng::GenerateObjectTest();
 		obj->Generate();
-		obj->ShowModel();
+		//obj->ShowModel();
 	}
 	private: System::Void ChooseModel_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e)
 	{}

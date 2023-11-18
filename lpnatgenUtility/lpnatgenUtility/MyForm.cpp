@@ -1,7 +1,7 @@
 #include "MyForm.h"
 
 #include <Windows.h>
-using namespace Use3DLibrary; // Название проекта
+using namespace lpnatgenUtility; // Название проекта
 [STAThread]
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {

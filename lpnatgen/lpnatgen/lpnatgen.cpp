@@ -1,5 +1,5 @@
 #include "lpnatgen.h"
-#include <iostream>
+#include <filesystem>
 
 void lpng::GenerateObject::Generate()
 {
@@ -11,6 +11,32 @@ void lpng::GenerateObject::Generate()
 
 void lpng::GenerateObject::GenerateNormals()
 {
+  for (Object& obj : model)
+  {
+    std::vector<float3> normals(obj.vertexCoords.size());
+    for (Face& f : obj.faces)
+    {
+      float3 a = obj.vertexCoords[f[2].vi - 1] - obj.vertexCoords[f[1].vi - 1];
+      float3 b = obj.vertexCoords[f[0].vi - 1] - obj.vertexCoords[f[1].vi - 1];
+      float3 normal = Cross(a, b);
+      for (size_t i = 0; i < 3; ++i)
+      {
+        normals[f[i].vi - 1] += normal;
+      }
+    }
+    for (float3& n : normals)
+    {
+      n.Normalize();
+    }
+    obj.vertexNormals = std::move(normals);
+    for (Face& f : obj.faces)
+    {
+      for (size_t i = 0; i < 3; ++i)
+      {
+        f[i].vni = f[i].vi;
+      }
+    }
+  }
 }
 
 void lpng::GenerateObject::GenerateTextureCoords()
@@ -25,7 +51,7 @@ void lpng::GenerateObject::GenerateTextureCoords()
     {
       for (size_t i = 0; i < 3; ++i)
       {
-        f[i].vti = i+1;
+        f[i].vti = i + 1;
       }
     }
   }
@@ -56,7 +82,7 @@ void lpng::GenerateObject::PolygonDecomposition()
         float3 mean_vertex_coord;
         for (Vertex& v : f)
         {
-          mean_vertex_coord += obj.vertexCoords[v.vi];
+          mean_vertex_coord += obj.vertexCoords[v.vi - 1];
         }
         obj.vertexCoords.push_back(mean_vertex_coord);
         size_t center_index = obj.vertexCoords.size();
@@ -71,17 +97,18 @@ void lpng::GenerateObject::PolygonDecomposition()
   }
 }
 
-void lpng::GenerateObject::SaveModel() const
+void lpng::GenerateObject::SaveModel(std::string file_name, std::string save_path) const
 {
 
+}
+
+void lpng::GenerateObject::SaveModel() const
+{
+  std::string file_name = "test_object";
+  std::string save_path = std::filesystem::current_path().string();
 }
 
 void lpng::GenerateObject::AddObject(Object& obj)
 {
   model.push_back(std::move(obj));
-}
-
-void lpng::GenerateObject::ShowModel()
-{
-
 }

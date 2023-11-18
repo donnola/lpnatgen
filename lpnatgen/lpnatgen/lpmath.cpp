@@ -129,16 +129,16 @@ double lpng::Distance(const lpng::float3& l, const lpng::float3& r)
   return t.Magnitude();
 }
 
-lpng::float3 lpng::Project(const lpng::float3& length, const lpng::float3& direction)
+lpng::float3 lpng::Project(const lpng::float3& dirA, const lpng::float3& dirB)
 {
-  double dot = Dot(length, direction);
-  double magSq = direction.MagnitudeSq();
-  return direction * (dot / magSq);
+  double dot = Dot(dirA, dirB);
+  double magSq = dirB.MagnitudeSq();
+  return dirB * (dot / magSq);
 }
 
-inline lpng::float3 lpng::Perpendicular(const lpng::float3& len, const lpng::float3& dir)
+inline lpng::float3 lpng::Perpendicular(const lpng::float3& dirA, const lpng::float3& dirB)
 {
-  return len - Project(len, dir);
+  return dirA - Project(dirA, dirB);
 }
 
 lpng::float3 lpng::Reflection(const lpng::float3& vec, const lpng::float3& normal)
