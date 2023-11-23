@@ -1,3 +1,3 @@
 [submodule "lpnatgenUtility/3rdParty/raylib"]
-	path = 3rdParty/raylib
+	path = lpnatgenUtility/3rdParty/raylib
 	url = https://github.com/raysan5/raylib.git
