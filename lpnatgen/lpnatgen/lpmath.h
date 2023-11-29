@@ -1,57 +1,19 @@
 #pragma once
+#include <cmath>
+#include "desc.h"
 
 namespace lpng
 {
 #define CMP(x, y)  (fabs(x - y) <= FLT_EPSILON * fmax(1.0, fmax(fabs(x), fabs(y))))
-#define ABSOLUTE(x, y) (fabs(x - y) <= FLT_EPSILON)
-#define RELATIVE(x, y) (fabs(x - y) <= FLT_EPSILON * Max(fabs(x), fabs(y)))
+#define ABSOLUTE_CMP(x, y) (fabs(x - y) <= FLT_EPSILON)
+#define RELATIVE_CMP(x, y) (fabs(x - y) <= FLT_EPSILON * Max(fabs(x), fabs(y)))
 #define RAD2DEG(x) ((x) * 57.295754f)
 #define DEG2RAD(x) ((x) * 0.0174533f)
 
-  struct float2
+  struct Quat
   {
-    float x;
-    float y;
 
-    float2(float a, float b) : x(a), y(b) {}
   };
-
-  struct float3
-  {
-    float x;
-    float y;
-    float z;
-
-    float3() : x(0), y(0), z(0) {}
-    float3(float a, float b, float c) : x(a), y(b), z(c) {}
-
-    float3& operator+=(const float3& r);
-    float3& operator-=(const float3& r);
-    float3& operator*=(const float3& r);
-    float3& operator*=(double r);
-    float3& operator/=(double r);
-
-    double Magnitude() const;
-    double MagnitudeSq() const;
-    void Normalize();
-    float3 Normalized() const;
-  };
-
-  float3 operator+(const float3& l, const float3& r);
-
-  float3 operator-(const float3& l, const float3& r);
-
-  float3 operator*(const float3& l, const float3& r);
-
-  float3 operator*(const float3& l, double r);
-
-  float3 operator*(double l, const float3& r);
-
-  float3 operator/(const float3& l, double r);
-
-  bool operator==(const float3& l, const float3& r);
-
-  bool operator!=(const float3& l, const float3& r);
 
   inline double Dot(const float3& l, const float3& r);
 
@@ -66,4 +28,12 @@ namespace lpng
   float3 Perpendicular(const float3& len, const float3& dir);
 
   float3 Reflection(const float3& vec, const float3& normal);
+
+  void Extrude(Object& obj, const std::vector<int>& facesIds, float dist, const float3& direction);
+  void Extrude(Object& obj, const std::vector<int>& facesIds, float dist);
+  void Extrude(Object& obj, float dist, const float3& direction);
+  void Extrude(Object& obj, float dist);
+
+  void MoveFaces(Object& obj, const std::vector<int>& facesIds, const float3& vector);
+  void RotateFaces(Object& obj, const std::vector<int>& facesIds, const Quat& quat, const float3& point);
 }

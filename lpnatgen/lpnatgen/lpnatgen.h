@@ -34,6 +34,7 @@ namespace lpng
     void SaveModel(std::string file_name, std::string save_path) const;
     void SaveModel() const;
     void Generate();
+    std::vector<Object> GetModel();
 
   private:
     float objectSize = 0;

@@ -1,7 +1,17 @@
 #pragma once
-#include "lpnatgen.h"
+//#include "lpnatgen.h"
+//namespace raylib
+//{
+//#ifdef __cplusplus
+//	extern "C" {
+//#endif
+//#include "raylib.h"
+//#ifdef __cplusplus
+//	}
+//#endif
+//}
 
-namespace lpnatgenUtility {
+namespace lpnatgenUtilityTemp{
 
 	using namespace System;
 	using namespace System::ComponentModel;
@@ -35,11 +45,12 @@ namespace lpnatgenUtility {
 			{
 				delete components;
 			}
-			if (obj)
-			{
-				delete obj;
-			}
+			//if (obj != nullptr)
+			//{
+			//	delete obj;
+			//}
 		}
+
 	private: System::Windows::Forms::Button^ CreateModel;
 	private: System::Windows::Forms::ComboBox^ ChooseModel;
 	private: System::Windows::Forms::Label^ ModelType;
@@ -265,22 +276,34 @@ namespace lpnatgenUtility {
 
 		}
 #pragma endregion
-	private: lpng::GenerateObject* obj = nullptr;
+	//private: lpng::GenerateObject* obj = nullptr;
 
 	private: System::Void CreateModel_Click(System::Object^ sender, System::EventArgs^ e)
 	{
-		delete obj;
+		//delete obj;
 	}
 	private: System::Void SaveModel_Click(System::Object^ sender, System::EventArgs^ e)
 	{
-		if (obj)
-			obj->SaveModel();
+		//if (obj != nullptr)
+		//	obj->SaveModel();
 	}
 	private: System::Void Test_Click(System::Object^ sender, System::EventArgs^ e)
 	{
-		delete obj;
-		obj = new lpng::GenerateObjectTest();
-		obj->Generate();
+		//delete obj;
+		//obj = new lpng::GenerateObjectTest();
+		//obj->Generate();
+
+		//raylib::InitWindow(800, 450, "raylib [core] example - basic window");
+
+		//while (!raylib::WindowShouldClose())
+		//{
+		//	raylib::BeginDrawing();
+		//	raylib::ClearBackground(raylib::RAYWHITE);
+		//	raylib::DrawText("Congrats! You created your first window!", 190, 200, 20, raylib::LIGHTGRAY);
+		//	raylib::EndDrawing();
+		//}
+
+		//raylib::CloseWindow();
 		//obj->ShowModel();
 	}
 	private: System::Void ChooseModel_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e)

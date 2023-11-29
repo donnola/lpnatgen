@@ -1,5 +1,12 @@
 #include "lpnatgen.h"
+#include "lpmath.h"
 #include <filesystem>
+
+std::vector<lpng::Object> lpng::GenerateObject::GetModel()
+{
+  PolygonDecomposition();
+  return model;
+}
 
 void lpng::GenerateObject::Generate()
 {
