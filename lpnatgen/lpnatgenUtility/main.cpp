@@ -13,11 +13,6 @@ int main(void)
 
   InitWindow(screenWidth, screenHeight, "lpnatgenUtility : object generation");
 
-  // We generate a checked image for texturing
-  Image checked = GenImageChecked(2, 2, 1, 1, RED, GREEN);
-  Texture2D texture = LoadTextureFromImage(checked);
-  UnloadImage(checked);
-
   // Define the camera to look into our 3d world
   Camera camera = { 0 };
   camera.position = { 10.0f, 10.0f, 10.0f }; // Camera position
@@ -38,7 +33,6 @@ int main(void)
   obj->Generate();
   std::vector<lpng::Object> generatedModel = obj->GetModel();
   Model model = LoadModelFromMesh(GenMesh(generatedModel));
-  model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
 
   // Main game loop
   while (!WindowShouldClose())        // Detect window close button or ESC key
@@ -59,7 +53,7 @@ int main(void)
 
     BeginMode3D(camera);
 
-    DrawModel(model, modelPosition, 1.0f, WHITE);
+    DrawModel(model, modelPosition, 1.0f, RED);
     DrawModelWires(model, modelPosition, 1.0f, DARKPURPLE);
 
     DrawGrid(10, 1.0f);
@@ -71,7 +65,6 @@ int main(void)
     EndDrawing();
   }
 
-  UnloadTexture(texture);
   UnloadModel(model);
   delete obj;
 

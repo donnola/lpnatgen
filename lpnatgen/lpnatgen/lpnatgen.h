@@ -2,28 +2,20 @@
 
 #include "desc.h"
 
+#include <cstdlib>
+#include <ctime>
 #include <string>
 #include <vector>
 
 
 namespace lpng
 {
-  enum class ObjectTypes
-  {
-    TREE,
-    BUSH,
-    STONE
-  };
-
   class GenerateObject
   {
   public:
-    GenerateObject(float size, int seed = -1) : objectSize(size)
+    GenerateObject(float size) : objectSize(size)
     {
-      if (seed > 0)
-        objectSeed = seed;
-      else
-        objectSeed = 1;
+      std::srand(std::time(0));
     }
 
     void AddObject(Object& obj);
@@ -36,38 +28,41 @@ namespace lpng
     void Generate();
     std::vector<Object> GetModel();
 
-  private:
-    float objectSize = 0;
-    int objectSeed = 0;
-    std::string fileFormat = ".obj";
+  protected:
+    const float objectSize = 0;
     std::vector<Object> model;
+    std::string fileFormat = ".obj";
   };
 
   class GenerateObjectTree: public GenerateObject
   {
   public:
-    GenerateObjectTree(float size, int seed = -1) : GenerateObject(size, seed) {}
+    GenerateObjectTree(float size) : GenerateObject(size) {}
 
     void GenerateMesh() override;
-    void GenerateTextureCoords() override;
+    //void GenerateTextureCoords() override;
   };
 
   class GenerateObjectBush : public GenerateObject
   {
   public:
-    GenerateObjectBush(float size, int seed = -1) : GenerateObject(size, seed) {}
+    GenerateObjectBush(float size) : GenerateObject(size) {}
 
     void GenerateMesh() override;
-    void GenerateTextureCoords() override;
+    //void GenerateTextureCoords() override; 
   };
 
   class GenerateObjectStone : public GenerateObject
   {
   public:
-    GenerateObjectStone(float size, int seed = -1) : GenerateObject(size, seed) {}
+    GenerateObjectStone(float size) : GenerateObject(size) {}
 
     void GenerateMesh() override;
-    void GenerateTextureCoords() override;
+    //void GenerateTextureCoords() override;
+  private:
+    void GenerateUniformPoints(Object& obj);
+    void GenerateRandomConvexHull();
+    void AddFreeVertexesToModel(Object& obj);
   };
 
   class GenerateObjectTest : public GenerateObject

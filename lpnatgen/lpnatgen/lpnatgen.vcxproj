@@ -143,6 +143,7 @@
     <ClCompile Include="lpmath.cpp" />
     <ClCompile Include="lpnatgen.cpp" />
     <ClCompile Include="lpnatgen_test.cpp" />
+    <ClCompile Include="plnatgen_stone.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

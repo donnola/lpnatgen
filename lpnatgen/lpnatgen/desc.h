@@ -27,12 +27,15 @@ namespace lpng
     float3& operator*=(const float3& r);
     float3& operator*=(double r);
     float3& operator/=(double r);
-
-    double Magnitude() const;
-    double MagnitudeSq() const;
-    void Normalize();
-    float3 Normalized() const;
   };
+
+  double Magnitude(const float3& vec);
+
+  double MagnitudeSq(const float3& vec);
+
+  void Normalize(float3& vec);
+
+  float3 Normalized(const float3& vec);
 
   float3 operator+(const float3& l, const float3& r);
 
@@ -62,6 +65,27 @@ namespace lpng
   };
 
   using Face = std::vector<Vertex>;
+  using Edge = std::pair<int, int>;
+
+  bool operator==(const Face& l, const Face& r);
+  bool operator==(const Edge& l, const Edge& r);
+  bool IsEdgeInFace(const Edge& edge, const Face& face);
+
+  enum class ObjectTypes
+  {
+    NONE = -1,
+    TREE = 0,
+    BUSH = 1,
+    STONE = 2
+  };
+
+  enum class MaterialTypes
+  {
+    NONE,
+    WOOD,
+    GRASS,
+    STONE
+  };
 
   struct Object
   {
@@ -69,6 +93,8 @@ namespace lpng
     std::vector<float3> vertexCoords;
     std::vector<float2> vertexTextCoords;
     std::vector<float3> vertexNormals;
+
+    MaterialTypes matType = MaterialTypes::NONE;
   };
 
   std::ostream& operator<<(std::ostream& out, const float3& v);

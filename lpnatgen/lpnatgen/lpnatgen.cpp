@@ -33,7 +33,7 @@ void lpng::GenerateObject::GenerateNormals()
     }
     for (float3& n : normals)
     {
-      n.Normalize();
+      Normalize(n);
     }
     obj.vertexNormals = std::move(normals);
     for (Face& f : obj.faces)
@@ -77,7 +77,7 @@ void lpng::GenerateObject::PolygonDecomposition()
       }
       if (f.size() == 3)
       {
-        new_faces.push_back(f);
+        new_faces.push_back(std::move(f));
       }
       else if (f.size() == 4)
       {

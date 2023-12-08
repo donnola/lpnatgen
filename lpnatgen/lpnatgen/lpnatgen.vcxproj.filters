@@ -38,5 +38,8 @@
     <ClCompile Include="lpnatgen_test.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="plnatgen_stone.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

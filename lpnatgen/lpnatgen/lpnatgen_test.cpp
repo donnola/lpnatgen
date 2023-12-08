@@ -23,7 +23,7 @@ void lpng::GenerateObjectTest::GenerateMesh()
   int rootId = cylinder.vertexCoords.size();
   for (int i = 0; i < rootId - 1; ++i)
   {
-    cylinder.faces.push_back(Face({ Vertex(i + 1), Vertex((i + 1) % 6 + 1), Vertex(rootId) }));
+    cylinder.faces.push_back(Face({ i + 1, (i + 1) % 6 + 1, rootId }));
   }
 
   // here must be extrude, but it's not realized
@@ -45,5 +45,5 @@ void lpng::GenerateObjectTest::GenerateMesh()
     cylinder.faces.push_back(Face({ f_b[0], f_t[2], f_t[1],  f_b[1] }));
   }
 
-  AddObject(cylinder);
+  model.push_back(std::move(cylinder));
 }
