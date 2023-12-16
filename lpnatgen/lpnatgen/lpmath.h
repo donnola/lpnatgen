@@ -34,19 +34,20 @@ namespace lpng
 
   void SplitFaceMithPoint(Object& obj, const int faceId, const int pointId);
 
-  void SetPeripheryFacesIds(
+  void SetPeripheryEdges(
     const Object& obj, const std::vector<int>& facesIds, 
-    std::vector<int>& peripheryFacesIds, std::vector<std::pair<int, int>>& peripheryEdges
+    std::vector<Edge>& peripheryEdges
   );
 
   void Scale(Object& obj, const float3& vec);
 
-  void ExtrudeWithCap(Object& obj, const std::vector<int>& facesIds, const float3& vec);
-  void ExtrudeWithCap(Object& obj, const std::vector<int>& facesIds, float dist);
-  void Extrude(Object& obj, const std::vector<int>& facesIds, const float3& vec);
-  void Extrude(Object& obj, const std::vector<int>& facesIds, float dist);
+  std::vector<int> ExtrudeWithCap(Object& obj, const std::vector<int>& facesIds, const float3& vec);
+  std::vector<int> Extrude(Object& obj, const std::vector<int>& facesIds, const float3& vec);
 
   void MoveFaces(Object& obj, const std::vector<int>& facesIds, const float3& vector);
   void MovePivot(Object& obj, const float3& vec);
+  void MoveObj(Object& obj, const float3& vec);
   void RotateFaces(Object& obj, const std::vector<int>& facesIds, const Quat& quat, const float3& point);
+  std::vector<float3> CalculateObjNormals(const Object& obj);
+  void DecomposeObj(Object& obj);
 }

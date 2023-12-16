@@ -20,21 +20,8 @@ void lpng::GenerateObject::GenerateNormals()
 {
   for (Object& obj : model)
   {
-    std::vector<float3> normals(obj.vertexCoords.size());
-    for (Face& f : obj.faces)
-    {
-      float3 a = obj.vertexCoords[f[2].vi - 1] - obj.vertexCoords[f[1].vi - 1];
-      float3 b = obj.vertexCoords[f[0].vi - 1] - obj.vertexCoords[f[1].vi - 1];
-      float3 normal = Cross(a, b);
-      for (size_t i = 0; i < 3; ++i)
-      {
-        normals[f[i].vi - 1] += normal;
-      }
-    }
-    for (float3& n : normals)
-    {
-      Normalize(n);
-    }
+    std::vector<float3> normals = CalculateObjNormals(obj);
+
     obj.vertexNormals = std::move(normals);
     for (Face& f : obj.faces)
     {
@@ -68,39 +55,7 @@ void lpng::GenerateObject::PolygonDecomposition()
 {
   for (Object& obj : model)
   {
-    std::vector<Face> new_faces;
-    for (Face& f : obj.faces)
-    {
-      if (f.size() < 3)
-      {
-        continue;
-      }
-      if (f.size() == 3)
-      {
-        new_faces.push_back(std::move(f));
-      }
-      else if (f.size() == 4)
-      {
-        new_faces.push_back(Face({f[0], f[1], f[2]}));
-        new_faces.push_back(Face({f[2], f[3], f[0]}));
-      }
-      else
-      {
-        float3 mean_vertex_coord;
-        for (Vertex& v : f)
-        {
-          mean_vertex_coord += obj.vertexCoords[v.vi - 1];
-        }
-        obj.vertexCoords.push_back(mean_vertex_coord);
-        size_t center_index = obj.vertexCoords.size();
-        Vertex mean_vertex(center_index);
-        for (int i = 0; i < f.size(); ++i)
-        {
-          new_faces.push_back(Face({f[i], f[(i+1) % f.size()], mean_vertex}));
-        }
-      }
-    }
-    obj.faces = std::move(new_faces);
+    DecomposeObj(obj);
   }
 }
 

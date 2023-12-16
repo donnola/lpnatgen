@@ -95,6 +95,7 @@ namespace lpng
     std::vector<float3> vertexNormals;
 
     MaterialTypes matType = MaterialTypes::NONE;
+    float3 pivot = float3(0,0,0);
   };
 
   std::ostream& operator<<(std::ostream& out, const float3& v);

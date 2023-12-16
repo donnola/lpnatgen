@@ -16,7 +16,7 @@ void lpng::GenerateObjectTest::GenerateMesh()
   
   for (int i = 0; i < segments_num; ++i)
   {
-    float3 vertex = root + float3(sin(-i * segment_angle), 0, cos(-i * segment_angle));
+    float3 vertex = root + float3(sin(i * segment_angle), 0, cos(i * segment_angle));
     cylinder.vertexCoords.push_back(vertex);
   }
   cylinder.vertexCoords.push_back(root);
@@ -26,24 +26,7 @@ void lpng::GenerateObjectTest::GenerateMesh()
     cylinder.faces.push_back(Face({ i + 1, (i + 1) % 6 + 1, rootId }));
   }
 
-  // here must be extrude, but it's not realized
-  int culinderBaseFacesNum = cylinder.faces.size();
-  for (int i = 0; i < rootId; ++i)
-  {
-    cylinder.vertexCoords.push_back(cylinder.vertexCoords[i] + dir * height);
-  }
-  for (int i = 0; i < culinderBaseFacesNum; ++i)
-  {
-    Face f_t = cylinder.faces[i];
-    std::reverse(f_t.begin(), f_t.end());
-    for (Vertex& v : f_t)
-    {
-      v.vi += rootId;
-    }
-    cylinder.faces.push_back(f_t);
-    Face f_b = cylinder.faces[i];
-    cylinder.faces.push_back(Face({ f_b[0], f_t[2], f_t[1],  f_b[1] }));
-  }
+  ExtrudeWithCap(cylinder, { 0, 1, 2, 3, 4, 5 }, dir * height);
 
   model.push_back(std::move(cylinder));
 }

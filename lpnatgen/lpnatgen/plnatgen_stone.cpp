@@ -7,18 +7,20 @@
 
 void lpng::GenerateObjectStone::GenerateMesh()
 {
-  GenerateRandomConvexHull();
+  Object stone;
+  stone.matType = MaterialTypes::STONE;
+  GenerateRandomConvexHull(stone);
+  model.push_back(std::move(stone));
 }
 
-void lpng::GenerateObjectStone::GenerateUniformPoints(Object& obj)
+void lpng::GenerateObjectStone::GenerateUniformPoints(Object& obj, int pointsNum)
 {
-  int N = 10;
   float from = -objectSize * 0.5;
   float to = objectSize * 0.5;
   double radiusSq = to * to;
   double halfRadiusSq = to * to * 0.25;
   float eps = objectSize * 0.1;
-  while (obj.vertexCoords.size() < N)
+  while (obj.vertexCoords.size() < pointsNum)
   {
     float x = from + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (objectSize)));
     float y = from + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (objectSize)));
@@ -38,17 +40,15 @@ void lpng::GenerateObjectStone::GenerateUniformPoints(Object& obj)
   }
 }
 
-void lpng::GenerateObjectStone::GenerateRandomConvexHull()
+void lpng::GenerateObjectStone::GenerateRandomConvexHull(Object& obj, const float3& size)
 {
-  Object stone;
-  GenerateUniformPoints(stone);
-  stone.matType = MaterialTypes::STONE;
+  GenerateUniformPoints(obj);
   std::stack<Edge> freeEdges;
 
 
 
-  AddFreeVertexesToModel(stone);
-  model.push_back(std::move(stone));
+  AddFreeVertexesToModel(obj);
+  Scale(obj, size);
 }
 
 void lpng::GenerateObjectStone::AddFreeVertexesToModel(Object& obj)
@@ -70,7 +70,7 @@ void lpng::GenerateObjectStone::AddFreeVertexesToModel(Object& obj)
       for (int j = 0; j < obj.faces.size(); ++j)
       {
         double dist = DistFromPointToFace(obj, obj.faces[j], obj.vertexCoords[i]);
-        if (dist> 0 && dist < minDisToFace)
+        if (dist > 0 && dist < minDisToFace)
         {
           minDisToFace = dist;
           nearesFaceId = j;

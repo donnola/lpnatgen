@@ -60,8 +60,8 @@ namespace lpng
     void GenerateMesh() override;
     //void GenerateTextureCoords() override;
   private:
-    void GenerateUniformPoints(Object& obj);
-    void GenerateRandomConvexHull();
+    void GenerateUniformPoints(Object& obj, int pointsNum = 10);
+    void GenerateRandomConvexHull(Object& obj, const float3& size = float3(1,1,1));
     void AddFreeVertexesToModel(Object& obj);
   };
 
