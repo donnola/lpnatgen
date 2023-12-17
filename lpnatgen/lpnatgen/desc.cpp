@@ -1,5 +1,6 @@
 #include "desc.h"
 
+
 inline std::ostream& lpng::operator<<(std::ostream& out, const lpng::float3& v)
 {
   return out << v.x << ' ' << v.y << ' ' << v.z << "\n";

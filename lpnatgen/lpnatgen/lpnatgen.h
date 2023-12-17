@@ -13,7 +13,7 @@ namespace lpng
   class GenerateObject
   {
   public:
-    GenerateObject(float size) : objectSize(size)
+    GenerateObject(float3 size) : objectSize(size)
     {
       std::srand(std::time(0));
     }
@@ -26,10 +26,12 @@ namespace lpng
     void SaveModel(std::string file_name, std::string save_path) const;
     void SaveModel() const;
     void Generate();
+    std::vector<Face> GenerateMinConvexHull(const std::vector<float3>& points);
+    std::vector<Face> GenerateConvexHullFull(const std::vector<float3>& points);
     std::vector<Object> GetModel();
 
   protected:
-    const float objectSize = 0;
+    const float3 objectSize = float3(1,1,1);
     std::vector<Object> model;
     std::string fileFormat = ".obj";
   };
@@ -37,7 +39,7 @@ namespace lpng
   class GenerateObjectTree: public GenerateObject
   {
   public:
-    GenerateObjectTree(float size) : GenerateObject(size) {}
+    GenerateObjectTree(float3 size) : GenerateObject(size) {}
 
     void GenerateMesh() override;
     //void GenerateTextureCoords() override;
@@ -46,7 +48,7 @@ namespace lpng
   class GenerateObjectBush : public GenerateObject
   {
   public:
-    GenerateObjectBush(float size) : GenerateObject(size) {}
+    GenerateObjectBush(float3 size) : GenerateObject(size) {}
 
     void GenerateMesh() override;
     //void GenerateTextureCoords() override; 
@@ -55,21 +57,20 @@ namespace lpng
   class GenerateObjectStone : public GenerateObject
   {
   public:
-    GenerateObjectStone(float size) : GenerateObject(size) {}
+    GenerateObjectStone(float3 size) : GenerateObject(size) {}
 
     void GenerateMesh() override;
     //void GenerateTextureCoords() override;
-  private:
-    void GenerateUniformPoints(Object& obj, int pointsNum = 10);
-    void GenerateRandomConvexHull(Object& obj, const float3& size = float3(1,1,1));
-    void AddFreeVertexesToModel(Object& obj);
   };
 
   class GenerateObjectTest : public GenerateObject
   {
   public:
-    GenerateObjectTest() : GenerateObject(1.f) {}
+    GenerateObjectTest(float3 size = float3(1, 2, 1)) : GenerateObject(size) {}
 
     void GenerateMesh() override;
   };
+
+
+  std::vector<float3> GenerateEllipsoidUniformPoints(const float3& size, int pointsNum = 10);
 }

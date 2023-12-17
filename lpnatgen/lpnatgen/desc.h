@@ -3,6 +3,7 @@
 #include <vector>
 #include <ostream>
 
+
 namespace lpng
 {
   struct float2
@@ -25,6 +26,7 @@ namespace lpng
     float3& operator+=(const float3& r);
     float3& operator-=(const float3& r);
     float3& operator*=(const float3& r);
+    float3& operator/=(const float3& r);
     float3& operator*=(double r);
     float3& operator/=(double r);
   };
@@ -42,6 +44,8 @@ namespace lpng
   float3 operator-(const float3& l, const float3& r);
 
   float3 operator*(const float3& l, const float3& r);
+
+  float3 operator/(const float3& l, const float3& r);
 
   float3 operator*(const float3& l, double r);
 

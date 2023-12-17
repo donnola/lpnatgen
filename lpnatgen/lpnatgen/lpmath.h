@@ -2,6 +2,7 @@
 #include <cmath>
 #include "desc.h"
 
+
 namespace lpng
 {
 #define CMP(x, y)  (fabs(x - y) <= FLT_EPSILON * fmax(1.0, fmax(fabs(x), fabs(y))))
@@ -29,17 +30,18 @@ namespace lpng
 
   float3 Reflection(const float3& vec, const float3& normal);
 
-  double DistFromPointToFace(const Object& obj, const Face& face, const float3& point);
+  double DistFromPointToFace(const float3& point, const float3& a, const float3& b, const float3& c);
   bool IsPointInTriangle(const float3& point, const float3& a, const float3& b, const float3& c);
 
-  void SplitFaceMithPoint(Object& obj, const int faceId, const int pointId);
+  void SplitFaceMithPoint(std::vector<Face>& faces, const int faceId, const int pointId);
 
   void SetPeripheryEdges(
     const Object& obj, const std::vector<int>& facesIds, 
     std::vector<Edge>& peripheryEdges
   );
 
-  void Scale(Object& obj, const float3& vec);
+  void ScaleWorldCoord(Object& obj, const float3& vec);
+  void ScaleLocalCoord(Object& obj, const float3& vec);
 
   std::vector<int> ExtrudeWithCap(Object& obj, const std::vector<int>& facesIds, const float3& vec);
   std::vector<int> Extrude(Object& obj, const std::vector<int>& facesIds, const float3& vec);

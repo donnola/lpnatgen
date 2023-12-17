@@ -6,27 +6,39 @@
 #include <map>
 #include <algorithm>
 
-lpng::float3& lpng::float3::operator+=(const lpng::float3& r)
+
+lpng::float3& lpng::float3::operator+=(const float3& r)
 {
   x += r.x;
   y += r.y;
   z += r.z;
   return *this;
 }
-lpng::float3& lpng::float3::operator-=(const lpng::float3& r)
+
+lpng::float3& lpng::float3::operator-=(const float3& r)
 {
   x -= r.x;
   y -= r.y;
   z -= r.z;
   return *this;
 }
-lpng::float3& lpng::float3::operator*=(const lpng::float3& r)
+
+lpng::float3& lpng::float3::operator*=(const float3& r)
 {
   x *= r.x;
   y *= r.y;
   z *= r.z;
   return *this;
 }
+
+lpng::float3& lpng::float3::operator/=(const float3& r)
+{
+  x /= r.x;
+  y /= r.y;
+  z /= r.z;
+  return *this;
+}
+
 lpng::float3& lpng::float3::operator*=(double r)
 {
   x *= r;
@@ -34,6 +46,7 @@ lpng::float3& lpng::float3::operator*=(double r)
   z *= r;
   return *this;
 }
+
 lpng::float3& lpng::float3::operator/=(double r)
 {
   x /= r;
@@ -77,6 +90,11 @@ lpng::float3 lpng::operator-(const lpng::float3& l, const lpng::float3& r)
 lpng::float3 lpng::operator*(const lpng::float3& l, const lpng::float3& r)
 {
   return lpng::float3(l.x * r.x, l.y * r.y, l.z * r.z);
+}
+
+lpng::float3 lpng::operator/(const float3& l, const float3& r)
+{
+  return lpng::float3(l.x / r.x, l.y / r.y, l.z / r.z);
 }
 
 lpng::float3 lpng::operator*(const lpng::float3& l, double r)
@@ -195,7 +213,16 @@ bool lpng::IsEdgeInFace(const Edge& edge, const Face& face)
   return false;
 }
 
-void lpng::Scale(Object& obj, const float3& vec)
+void lpng::ScaleWorldCoord(Object& obj, const float3& vec)
+{
+  for (float3& v : obj.vertexCoords)
+  {
+    v *= vec;
+  }
+  obj.pivot *= vec;
+}
+
+void lpng::ScaleLocalCoord(Object& obj, const float3& vec)
 {
   for (float3& v : obj.vertexCoords)
   {
@@ -310,18 +337,19 @@ void lpng::MoveObj(Object& obj, const float3& vec)
   {
     v += vec;
   }
+  obj.pivot += vec;
 }
 
-void lpng::SplitFaceMithPoint(Object& obj, const int faceId, const int pointId)
+void lpng::SplitFaceMithPoint(std::vector<Face>& faces, const int faceId, const int pointId)
 {
-  if (faceId == -1)
+  if (faceId == -1 || pointId == -1)
     return;
-  const Face& f = obj.faces[faceId];
+  const Face& f = faces[faceId];
   for (int i = 0; i < f.size(); ++i)
   {
-    obj.faces.push_back(Face({f[i].vi, f[(i + 1) % f.size()].vi, pointId}));
+    faces.push_back(Face({f[i].vi, f[(i + 1) % f.size()].vi, pointId}));
   }
-  obj.faces.erase(obj.faces.begin() + faceId);
+  faces.erase(faces.begin() + faceId);
 }
 
 bool lpng::IsPointInTriangle(const float3& point, const float3& a, const float3& b, const float3& c)
@@ -361,11 +389,8 @@ bool lpng::IsPointInTriangle(const float3& point, const float3& a, const float3&
   return true;
 }
 
-double lpng::DistFromPointToFace(const Object& obj, const Face& face, const float3& point)
+double lpng::DistFromPointToFace(const float3& point, const float3& a, const float3& b, const float3& c)
 {
-  float3 a = obj.vertexCoords[face[0].vi - 1];
-  float3 b = obj.vertexCoords[face[1].vi - 1];
-  float3 c = obj.vertexCoords[face[2].vi - 1];
   float3 n = Cross(a-b, c-b);
   Normalize(n);
   float d = -Dot(n, a);
