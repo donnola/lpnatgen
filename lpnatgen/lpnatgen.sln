@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lpnatgen", "lpnatgen\lpnatgen.vcxproj", "{45681B8A-75E2-4EB4-8CB0-39698BD53BA1}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lpnatgenUtility", "lpnatgenUtility\lpnatgenUtility.vcxproj", "{C536F386-0B09-4506-8FA8-F2E4909C7BF7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{45681B8A-75E2-4EB4-8CB0-39698BD53BA1} = {45681B8A-75E2-4EB4-8CB0-39698BD53BA1}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,11 +1,10 @@
 #pragma once
 
-#include "desc.h"
+#include "lpmath.h"
 
-#include <cstdlib>
+//#include <cstdlib>
 #include <ctime>
 #include <string>
-#include <vector>
 
 
 namespace lpng
@@ -26,8 +25,6 @@ namespace lpng
     void SaveModel(std::string file_name, std::string save_path) const;
     void SaveModel() const;
     void Generate();
-    std::vector<Face> GenerateMinConvexHull(const std::vector<float3>& points);
-    std::vector<Face> GenerateConvexHullFull(const std::vector<float3>& points);
     std::vector<Object> GetModel();
 
   protected:
@@ -71,6 +68,11 @@ namespace lpng
     void GenerateMesh() override;
   };
 
+  std::ostream& operator<<(std::ostream& out, const float3& v);
 
-  std::vector<float3> GenerateEllipsoidUniformPoints(const float3& size, int pointsNum = 10);
+  std::ostream& operator<<(std::ostream& out, const float2& v);
+
+  std::ostream& operator<<(std::ostream& out, const Vertex& v);
+
+  std::ostream& operator<<(std::ostream& out, const Face& v);
 }

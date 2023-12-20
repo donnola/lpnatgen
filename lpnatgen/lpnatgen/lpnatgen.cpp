@@ -78,77 +78,27 @@ void lpng::GenerateObject::AddObject(Object& obj)
   model.push_back(std::move(obj));
 }
 
-std::vector<lpng::Face> lpng::GenerateObject::GenerateMinConvexHull(const std::vector<float3>& points)
+inline std::ostream& lpng::operator<<(std::ostream& out, const lpng::float3& v)
 {
-  return {};
+  return out << v.x << ' ' << v.y << ' ' << v.z << "\n";
 }
 
-std::vector<lpng::Face> lpng::GenerateObject::GenerateConvexHullFull(const std::vector<float3>& points)
+inline std::ostream& lpng::operator<<(std::ostream& out, const lpng::float2& v)
 {
-  std::vector<Face> faces = GenerateMinConvexHull(points);
-  std::set<int> vertexIds;
-  for (const Face& f : faces)
-  {
-    for (const Vertex& v : f)
-    {
-      vertexIds.insert(v.vi - 1);
-    }
-  }
-  for (int i = 0; i < points.size(); ++i)
-  {
-    if (vertexIds.find(i) == vertexIds.end())
-    {
-      double minDisToFace = FLT_MAX;
-      int nearesFaceId = -1;
-      for (int j = 0; j < faces.size(); ++j)
-      {
-        float3 a = points[faces[j][0].vi - 1];
-        float3 b = points[faces[j][1].vi - 1];
-        float3 c = points[faces[j][2].vi - 1];
-        double dist = DistFromPointToFace(points[i], a, b, c);
-        if (dist > 0 && dist < minDisToFace)
-        {
-          minDisToFace = dist;
-          nearesFaceId = j;
-        }
-      }
-      SplitFaceMithPoint(faces, nearesFaceId, i);
-    }
-  }
-  return faces;
+  return out << v.x << ' ' << v.y << "\n";
 }
 
-std::vector<lpng::float3> lpng::GenerateEllipsoidUniformPoints(const float3& size, int pointsNum)
+inline std::ostream& lpng::operator<<(std::ostream& out, const lpng::Vertex& v)
 {
-  std::vector<float3> points;
-  float from_x = -size.x * 0.5;
-  float to_x = size.x * 0.5;
-  float from_y = -size.y * 0.5;
-  float to_y = size.y * 0.5;
-  float from_z = -size.z * 0.5;
-  float to_z = size.z * 0.5;
+  return out << v.vi << '/' << v.vti << '/' << v.vni;
+}
 
-  float3 rad(to_x, to_y, to_z);
-  float3 rad_sq = rad * rad;
-
-  while (points.size() < pointsNum)
+std::ostream& lpng::operator<<(std::ostream& out, const lpng::Face& f)
+{
+  out << 'f';
+  for (const Vertex& v : f)
   {
-    float x = from_x + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (to_x - from_x)));
-    float y = from_y + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (to_y - from_y)));
-    float z = from_z + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (to_z - from_z)));
-    float3 p(x, y, z);
-    float3 p_sq = p * p;
-    float3 t = p_sq / rad_sq;
-    if (t.x + t.y + t.z <= 1 && t.x + t.y + t.z > 0.5)
-    {
-      points.push_back(p);
-    }
+    out << ' ' << v;
   }
-  for (float3& p : points)
-  {
-    p /= rad;
-    Normalize(p);
-    p *= rad;
-  }
-  return points;
+  return out << "\n";
 }
