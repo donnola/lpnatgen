@@ -134,10 +134,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="convex_hull.h" />
     <ClInclude Include="lpmath.h" />
     <ClInclude Include="lpnatgen.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="convex_hull.cpp" />
     <ClCompile Include="lpmath.cpp" />
     <ClCompile Include="lpnatgen.cpp" />
     <ClCompile Include="lpnatgen_test.cpp" />

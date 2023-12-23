@@ -29,7 +29,7 @@ int main(void)
   SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
   //--------------------------------------------------------------------------------------
 
-  lpng::GenerateObject* obj = new lpng::GenerateObjectTest();
+  lpng::GenerateObject* obj = new lpng::GenerateObjectStone();
   obj->Generate();
   std::vector<lpng::Object> generatedModel = obj->GetModel();
   Model model = LoadModelFromMesh(GenMesh(generatedModel));

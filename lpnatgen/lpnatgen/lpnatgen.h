@@ -39,7 +39,6 @@ namespace lpng
     GenerateObjectTree(float3 size) : GenerateObject(size) {}
 
     void GenerateMesh() override;
-    //void GenerateTextureCoords() override;
   };
 
   class GenerateObjectBush : public GenerateObject
@@ -48,16 +47,14 @@ namespace lpng
     GenerateObjectBush(float3 size) : GenerateObject(size) {}
 
     void GenerateMesh() override;
-    //void GenerateTextureCoords() override; 
   };
 
   class GenerateObjectStone : public GenerateObject
   {
   public:
-    GenerateObjectStone(float3 size) : GenerateObject(size) {}
+    GenerateObjectStone(float3 size = float3(1.5, 2, 1.5)) : GenerateObject(size) {}
 
     void GenerateMesh() override;
-    //void GenerateTextureCoords() override;
   };
 
   class GenerateObjectTest : public GenerateObject

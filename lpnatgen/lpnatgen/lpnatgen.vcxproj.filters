@@ -21,6 +21,9 @@
     <ClInclude Include="lpmath.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="convex_hull.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lpnatgen.cpp">
@@ -33,6 +36,9 @@
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="plnatgen_stone.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="convex_hull.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>

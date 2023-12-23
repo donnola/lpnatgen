@@ -58,6 +58,7 @@ namespace lpng
   bool operator==(const Face& l, const Face& r);
   bool operator==(const Edge& l, const Edge& r);
   bool IsEdgeInFace(const Edge& edge, const Face& face);
+  int TakeThirdPointFromTriangle(const Face& face, const Edge& edge);
 
   enum class ObjectTypes
   {
@@ -150,7 +151,6 @@ namespace lpng
   std::vector<float3> CalculateObjNormals(const Object& obj);
   void DecomposeObj(Object& obj);
 
-  std::vector<Face> GenerateMinConvexHull(const std::vector<float3>& points);
-  std::vector<Face> GenerateConvexHullFull(const std::vector<float3>& points);
   std::vector<float3> GenerateEllipsoidUniformPoints(const float3& size, int pointsNum = 10);
+  void FilterNearesPoints(std::vector<float3>& points, float d = 0.07);
 }

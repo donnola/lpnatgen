@@ -14,6 +14,7 @@ lpng::float3& lpng::float3::operator+=(const float3& r)
   return *this;
 }
 
+
 lpng::float3& lpng::float3::operator-=(const float3& r)
 {
   x -= r.x;
@@ -21,6 +22,7 @@ lpng::float3& lpng::float3::operator-=(const float3& r)
   z -= r.z;
   return *this;
 }
+
 
 lpng::float3& lpng::float3::operator*=(const float3& r)
 {
@@ -30,6 +32,7 @@ lpng::float3& lpng::float3::operator*=(const float3& r)
   return *this;
 }
 
+
 lpng::float3& lpng::float3::operator/=(const float3& r)
 {
   x /= r.x;
@@ -37,6 +40,7 @@ lpng::float3& lpng::float3::operator/=(const float3& r)
   z /= r.z;
   return *this;
 }
+
 
 lpng::float3& lpng::float3::operator*=(double r)
 {
@@ -46,6 +50,7 @@ lpng::float3& lpng::float3::operator*=(double r)
   return *this;
 }
 
+
 lpng::float3& lpng::float3::operator/=(double r)
 {
   x /= r;
@@ -54,15 +59,18 @@ lpng::float3& lpng::float3::operator/=(double r)
   return *this;
 }
 
+
 double lpng::Magnitude(const float3& vec)
 {
   return sqrt(Dot(vec, vec));
 }
 
+
 double lpng::MagnitudeSq(const float3& vec)
 {
   return Dot(vec, vec);
 }
+
 
 void lpng::Normalize(float3& vec)
 {
@@ -70,61 +78,73 @@ void lpng::Normalize(float3& vec)
   vec *= c;
 }
 
+
 lpng::float3 lpng::Normalized(const float3& vec)
 {
   double c = Magnitude(vec);
   return vec / c;
 }
 
+
 lpng::float3 lpng::operator+(const lpng::float3& l, const lpng::float3& r)
 {
   return lpng::float3(l.x + r.x, l.y + r.y, l.z + r.z);
 }
+
 
 lpng::float3 lpng::operator-(const lpng::float3& l, const lpng::float3& r)
 {
   return lpng::float3(l.x - r.x, l.y - r.y, l.z - r.z);
 }
 
+
 lpng::float3 lpng::operator*(const lpng::float3& l, const lpng::float3& r)
 {
   return lpng::float3(l.x * r.x, l.y * r.y, l.z * r.z);
 }
+
 
 lpng::float3 lpng::operator/(const float3& l, const float3& r)
 {
   return lpng::float3(l.x / r.x, l.y / r.y, l.z / r.z);
 }
 
+
 lpng::float3 lpng::operator*(const lpng::float3& l, double r)
 {
   return lpng::float3(l.x * r, l.y * r, l.z * r);
 }
+
 
 lpng::float3 lpng::operator*(double l, const lpng::float3& r)
 {
   return r * l;
 }
 
+
 lpng::float3 lpng::operator/(const lpng::float3& l, double r)
 {
   return lpng::float3(l.x / r, l.y / r, l.z / r);
 }
+
 
 bool lpng::operator==(const lpng::float3& l, const lpng::float3& r)
 {
   return CMP(l.x, r.x) && CMP(l.y, r.y) && CMP(l.z, r.z);
 }
 
+
 bool lpng::operator!=(const lpng::float3& l, const lpng::float3& r)
 {
   return !(l == r);
 }
 
+
 inline double lpng::Dot(const lpng::float3& l, const lpng::float3& r)
 {
-  return l.x * r.x + l.y * r.y + l.z * r.z;
+  return double(l.x) * double(r.x) + double(l.y) * double(r.y) + double(l.z) * double(r.z);
 }
+
 
 lpng::float3 lpng::Cross(const lpng::float3& l, const lpng::float3& r)
 {
@@ -135,17 +155,20 @@ lpng::float3 lpng::Cross(const lpng::float3& l, const lpng::float3& r)
   return result;
 }
 
+
 double lpng::Angle(const lpng::float3& l, const lpng::float3& r)
 {
   double m = sqrtf(MagnitudeSq(l) * MagnitudeSq(r));
   return acos(Dot(l, r) / m);
 }
 
+
 double lpng::Distance(const lpng::float3& l, const lpng::float3& r)
 {
   lpng::float3 t = l - r;
   return Magnitude(t);
 }
+
 
 lpng::float3 lpng::Project(const lpng::float3& dirA, const lpng::float3& dirB)
 {
@@ -154,16 +177,19 @@ lpng::float3 lpng::Project(const lpng::float3& dirA, const lpng::float3& dirB)
   return dirB * (dot / magSq);
 }
 
+
 inline lpng::float3 lpng::Perpendicular(const lpng::float3& dirA, const lpng::float3& dirB)
 {
   return dirA - Project(dirA, dirB);
 }
+
 
 lpng::float3 lpng::Reflection(const lpng::float3& vec, const lpng::float3& normal)
 {
   double d = Dot(vec, normal);
   return vec - normal * (d * 2.0f);
 }
+
 
 bool lpng::operator==(const Face& l, const Face& r)
 {
@@ -193,6 +219,7 @@ bool lpng::operator==(const Face& l, const Face& r)
   return false;
 }
 
+
 bool lpng::operator==(const Edge& l, const Edge& r)
 {
   if (l.first == r.first && l.second == r.second)
@@ -201,6 +228,7 @@ bool lpng::operator==(const Edge& l, const Edge& r)
     return true;
   return false;
 }
+
 
 bool lpng::IsEdgeInFace(const Edge& edge, const Face& face)
 {
@@ -214,6 +242,21 @@ bool lpng::IsEdgeInFace(const Edge& edge, const Face& face)
   return false;
 }
 
+
+int lpng::TakeThirdPointFromTriangle(const Face& face, const Edge& edge)
+{
+  if (face.size() != 3)
+    return -1;
+  if (Edge(face[0].vi, face[1].vi) == edge)
+    return face[2].vi;
+  if (Edge(face[1].vi, face[2].vi) == edge)
+    return face[0].vi;
+  if (Edge(face[2].vi, face[0].vi) == edge)
+    return face[1].vi;
+  return -1;
+}
+
+
 void lpng::ScaleWorldCoord(Object& obj, const float3& vec)
 {
   for (float3& v : obj.vertexCoords)
@@ -223,6 +266,7 @@ void lpng::ScaleWorldCoord(Object& obj, const float3& vec)
   obj.pivot *= vec;
 }
 
+
 void lpng::ScaleLocalCoord(Object& obj, const float3& vec)
 {
   for (float3& v : obj.vertexCoords)
@@ -230,6 +274,7 @@ void lpng::ScaleLocalCoord(Object& obj, const float3& vec)
     v = (v - obj.pivot) * vec + obj.pivot;
   }
 }
+
 
 void lpng::SetPeripheryEdges(
   const Object& obj, const std::vector<int>& facesIds,
@@ -261,6 +306,7 @@ void lpng::SetPeripheryEdges(
   }
 }
 
+
 std::vector<int> lpng::ExtrudeWithCap(Object& obj, const std::vector<int>& facesIds, const float3& vec)
 {
   std::vector<Edge> periphery_edges;
@@ -268,9 +314,9 @@ std::vector<int> lpng::ExtrudeWithCap(Object& obj, const std::vector<int>& faces
   std::map<int, int> extruded_vertex_ids;
   std::vector<int> extruded_faces_ids;
 
-  for (int i : facesIds)
+  for (int fi : facesIds)
   {
-    Face new_face = obj.faces[i];
+    Face new_face = obj.faces[fi];
     for (Vertex& v : new_face)
     {
       if (!extruded_vertex_ids.contains(v.vi))
@@ -280,7 +326,7 @@ std::vector<int> lpng::ExtrudeWithCap(Object& obj, const std::vector<int>& faces
       }
       v.vi = extruded_vertex_ids[v.vi];
     }
-    std::reverse(obj.faces[i].begin(), obj.faces[i].end());
+    std::reverse(obj.faces[fi].begin(), obj.faces[fi].end());
     obj.faces.push_back(new_face);
     extruded_faces_ids.push_back(obj.faces.size() - 1);
   }
@@ -292,6 +338,7 @@ std::vector<int> lpng::ExtrudeWithCap(Object& obj, const std::vector<int>& faces
   }
   return extruded_faces_ids;
 }
+
 
 std::vector<int> lpng::Extrude(Object& obj, const std::vector<int>& facesIds, const float3& vec)
 {
@@ -310,6 +357,7 @@ std::vector<int> lpng::Extrude(Object& obj, const std::vector<int>& facesIds, co
   return extruded_faces_ids;
 }
 
+
 void lpng::MoveFaces(Object& obj, const std::vector<int>& facesIds, const float3& vector)
 {
   std::set<int> vertexIds;
@@ -327,10 +375,12 @@ void lpng::MoveFaces(Object& obj, const std::vector<int>& facesIds, const float3
   }
 }
 
+
 void lpng::MovePivot(Object& obj, const float3& vec)
 {
   obj.pivot += vec;
 }
+
 
 void lpng::MoveObj(Object& obj, const float3& vec)
 {
@@ -341,6 +391,7 @@ void lpng::MoveObj(Object& obj, const float3& vec)
   obj.pivot += vec;
 }
 
+
 void lpng::SplitFaceMithPoint(std::vector<Face>& faces, const int faceId, const int pointId)
 {
   if (faceId == -1 || pointId == -1)
@@ -348,10 +399,11 @@ void lpng::SplitFaceMithPoint(std::vector<Face>& faces, const int faceId, const 
   const Face& f = faces[faceId];
   for (int i = 0; i < f.size(); ++i)
   {
-    faces.push_back(Face({f[i].vi, f[(i + 1) % f.size()].vi, pointId}));
+    faces.push_back(Face({ f[i].vi, f[(i + 1) % f.size()].vi, pointId }));
   }
   faces.erase(faces.begin() + faceId);
 }
+
 
 bool lpng::IsPointInTriangle(const float3& point, const float3& a, const float3& b, const float3& c)
 {
@@ -390,19 +442,15 @@ bool lpng::IsPointInTriangle(const float3& point, const float3& a, const float3&
   return true;
 }
 
+
 double lpng::DistFromPointToFace(const float3& point, const float3& a, const float3& b, const float3& c)
 {
   float3 n = Cross(a-b, c-b);
   Normalize(n);
   float d = -Dot(n, a);
-  double dist = abs(Dot(n, point) + d);
-  float3 proj = point - dist * n;
-  bool is_point_in_triangle = IsPointInTriangle(proj, a, b, c);
-  bool is_point_in_front = Dot(point - proj, Cross(b-a, c - a)) >= 0;
-  if (is_point_in_triangle && is_point_in_front)
-    return dist;
-  return -1;
+  return abs(Dot(n, point) + d);
 }
+
 
 std::vector<lpng::float3> lpng::CalculateObjNormals(const Object& obj)
 {
@@ -423,6 +471,7 @@ std::vector<lpng::float3> lpng::CalculateObjNormals(const Object& obj)
   }
   return normals;
 }
+
 
 void lpng::DecomposeObj(Object& obj)
 {
@@ -445,7 +494,7 @@ void lpng::DecomposeObj(Object& obj)
     else
     {
       float3 mean_vertex_coord;
-      for (Vertex& v : f)
+      for (const Vertex& v : f)
       {
         mean_vertex_coord += obj.vertexCoords[v.vi - 1];
       }
@@ -461,49 +510,30 @@ void lpng::DecomposeObj(Object& obj)
   obj.faces = std::move(new_faces);
 }
 
-std::vector<lpng::Face> lpng::GenerateMinConvexHull(const std::vector<float3>& points)
+
+void lpng::FilterNearesPoints(std::vector<float3>& points, float d)
 {
-  std::vector<Face> faces;
-
-
-  return faces;
-}
-
-std::vector<lpng::Face> lpng::GenerateConvexHullFull(const std::vector<float3>& points)
-{
-  std::vector<Face> faces = GenerateMinConvexHull(points);
-  std::set<int> vertexIds;
-  for (const Face& f : faces)
+  std::vector<float3> new_points;
+  new_points.push_back(std::move(points[0]));
+  for (int i = 1; i < points.size(); ++i)
   {
-    for (const Vertex& v : f)
+    bool is_add = true;
+    for (const float3& p : new_points)
     {
-      vertexIds.insert(v.vi - 1);
-    }
-  }
-  for (int i = 0; i < points.size(); ++i)
-  {
-    if (vertexIds.find(i) == vertexIds.end())
-    {
-      double minDisToFace = FLT_MAX;
-      int nearesFaceId = -1;
-      for (int j = 0; j < faces.size(); ++j)
+      if (Distance(p, points[i]) <= d)
       {
-        float3 a = points[faces[j][0].vi - 1];
-        float3 b = points[faces[j][1].vi - 1];
-        float3 c = points[faces[j][2].vi - 1];
-        double dist = DistFromPointToFace(points[i], a, b, c);
-        if (dist > 0 && dist < minDisToFace)
-        {
-          minDisToFace = dist;
-          nearesFaceId = j;
-        }
+        is_add = false;
+        break;
       }
-      if (nearesFaceId >= 0)
-        SplitFaceMithPoint(faces, nearesFaceId, i);
+    }
+    if (is_add)
+    {
+      new_points.push_back(std::move(points[i]));
     }
   }
-  return faces;
+  points = std::move(new_points);
 }
+
 
 std::vector<lpng::float3> lpng::GenerateEllipsoidUniformPoints(const float3& size, int pointsNum)
 {
@@ -518,7 +548,7 @@ std::vector<lpng::float3> lpng::GenerateEllipsoidUniformPoints(const float3& siz
   float3 rad(to_x, to_y, to_z);
   float3 rad_sq = rad * rad;
 
-  while (points.size() < pointsNum)
+  while (points.size() < pointsNum * 3)
   {
     float x = from_x + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (to_x - from_x)));
     float y = from_y + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (to_y - from_y)));
@@ -537,5 +567,15 @@ std::vector<lpng::float3> lpng::GenerateEllipsoidUniformPoints(const float3& siz
     Normalize(p);
     p *= rad;
   }
-  return points;
+  FilterNearesPoints(points);
+  if (points.size() <= pointsNum)
+    return points;
+  std::vector<float3> new_points;
+  for (int i = 1; i < pointsNum; ++i)
+  {
+    int p_id = rand() % points.size();
+    new_points.push_back(std::move(points[p_id]));
+    points.erase(points.begin() + p_id);
+  }
+  return new_points;
 }

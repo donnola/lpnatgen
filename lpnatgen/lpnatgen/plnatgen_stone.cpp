@@ -1,13 +1,14 @@
 #define _USE_MATH_DEFINES
 #include "lpnatgen.h"
 #include "lpmath.h"
+#include "convex_hull.h"
 
 
 void lpng::GenerateObjectStone::GenerateMesh()
 {
   Object stone;
   stone.matType = MaterialTypes::STONE;
-  std::vector<float3> points = GenerateEllipsoidUniformPoints(objectSize, 13);
+  std::vector<float3> points = GenerateEllipsoidUniformPoints(objectSize, 20);
   // add nois
   float3 eps = objectSize * 0.05;
   for (float3& v : points)
@@ -17,7 +18,9 @@ void lpng::GenerateObjectStone::GenerateMesh()
     float z = -eps.z + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (eps.z * 2)));
     v += float3(x, y, z);
   }
-  std::vector<Face> faces = GenerateConvexHullFull(points);
+  ConvexHull convex_hull(points);
+  convex_hull.GenerateMinConvexHull();
+  std::vector<Face> faces(std::move(convex_hull.GetConvexHull()));
   stone.vertexCoords = points;
   stone.faces = faces;
   model.push_back(std::move(stone));
