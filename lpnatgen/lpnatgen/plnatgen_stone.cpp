@@ -1,7 +1,7 @@
 #define _USE_MATH_DEFINES
 #include "lpnatgen.h"
 #include "lpmath.h"
-#include "convex_hull.h"
+#include "cgal_math.h"
 
 
 void lpng::GenerateObjectStone::GenerateMesh()
@@ -18,10 +18,10 @@ void lpng::GenerateObjectStone::GenerateMesh()
     float z = -eps.z + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (eps.z * 2)));
     v += float3(x, y, z);
   }
-  ConvexHull convex_hull(points);
-  convex_hull.GenerateMinConvexHull();
-  std::vector<Face> faces(std::move(convex_hull.GetConvexHull()));
+  //ConvexHull convex_hull(points);
+  //convex_hull.GenerateMinConvexHull();
+  //std::vector<Face> faces(std::move(convex_hull.GetConvexHull()));
   stone.vertexCoords = points;
-  stone.faces = faces;
+  //stone.faces = faces;
   model.push_back(std::move(stone));
 }
