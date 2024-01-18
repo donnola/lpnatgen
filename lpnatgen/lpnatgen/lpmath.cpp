@@ -571,6 +571,11 @@ std::vector<lpng::float3> lpng::GenerateEllipsoidUniformPoints(const float3& siz
   return points;
 }
 
+void lpng::FixMeshHole(Mesh& mesh)
+{
+
+}
+
 void lpng::FixMeshOrientation(Mesh& mesh)
 {
 

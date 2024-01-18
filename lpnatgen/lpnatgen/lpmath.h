@@ -153,5 +153,6 @@ namespace lpng
 
   std::vector<float3> GenerateEllipsoidUniformPoints(const float3& size, int pointsNum = 10);
   void FilterNearesPoints(std::vector<float3>& points, float d = 0.07);
+  void FixMeshHole(Mesh& mesh);
   void FixMeshOrientation(Mesh& mesh);
 }
