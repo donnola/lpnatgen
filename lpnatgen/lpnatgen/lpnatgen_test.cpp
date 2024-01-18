@@ -5,7 +5,7 @@
 
 void lpng::GenerateObjectTest::GenerateMesh()
 {
-  Object cylinder;
+  Mesh cylinder;
 
   float3 root(0, 0, 0);
   float3 dir(0, 1, 0);

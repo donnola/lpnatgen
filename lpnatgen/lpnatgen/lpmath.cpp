@@ -257,34 +257,34 @@ int lpng::TakeThirdPointFromTriangle(const Face& face, const Edge& edge)
 }
 
 
-void lpng::ScaleWorldCoord(Object& obj, const float3& vec)
+void lpng::ScaleWorldCoord(Mesh& mesh, const float3& vec)
 {
-  for (float3& v : obj.vertexCoords)
+  for (float3& v : mesh.vertexCoords)
   {
     v *= vec;
   }
-  obj.pivot *= vec;
+  mesh.pivot *= vec;
 }
 
 
-void lpng::ScaleLocalCoord(Object& obj, const float3& vec)
+void lpng::ScaleLocalCoord(Mesh& mesh, const float3& vec)
 {
-  for (float3& v : obj.vertexCoords)
+  for (float3& v : mesh.vertexCoords)
   {
-    v = (v - obj.pivot) * vec + obj.pivot;
+    v = (v - mesh.pivot) * vec + mesh.pivot;
   }
 }
 
 
 void lpng::SetPeripheryEdges(
-  const Object& obj, const std::vector<int>& facesIds,
+  const Mesh& mesh, const std::vector<int>& facesIds,
   std::vector<Edge>& peripheryEdges
 )
 {
   peripheryEdges.clear();
   for (int f1_id : facesIds)
   {
-    const Face& f_i = obj.faces[f1_id];
+    const Face& f_i = mesh.faces[f1_id];
     for (int j = 0; j < f_i.size(); j++)
     {
       int e1 = f_i[j].vi;
@@ -296,7 +296,7 @@ void lpng::SetPeripheryEdges(
           break;
         if (f2_id == f1_id)
           continue;
-        isEdgeHasNeighbor = IsEdgeInFace({ e1, e2 }, obj.faces[f2_id]);
+        isEdgeHasNeighbor = IsEdgeInFace({ e1, e2 }, mesh.faces[f2_id]);
       }
       if (!isEdgeHasNeighbor)
       {
@@ -307,49 +307,49 @@ void lpng::SetPeripheryEdges(
 }
 
 
-std::vector<int> lpng::ExtrudeWithCap(Object& obj, const std::vector<int>& facesIds, const float3& vec)
+std::vector<int> lpng::ExtrudeWithCap(Mesh& mesh, const std::vector<int>& facesIds, const float3& vec)
 {
   std::vector<Edge> periphery_edges;
-  SetPeripheryEdges(obj, facesIds, periphery_edges);
+  SetPeripheryEdges(mesh, facesIds, periphery_edges);
   std::map<int, int> extruded_vertex_ids;
   std::vector<int> extruded_faces_ids;
 
   for (int fi : facesIds)
   {
-    Face new_face = obj.faces[fi];
+    Face new_face = mesh.faces[fi];
     for (Vertex& v : new_face)
     {
       if (!extruded_vertex_ids.contains(v.vi))
       {
-        obj.vertexCoords.emplace_back(obj.vertexCoords[v.vi-1] + vec);
-        extruded_vertex_ids[v.vi] = obj.vertexCoords.size();
+        mesh.vertexCoords.emplace_back(mesh.vertexCoords[v.vi-1] + vec);
+        extruded_vertex_ids[v.vi] = mesh.vertexCoords.size();
       }
       v.vi = extruded_vertex_ids[v.vi];
     }
-    std::reverse(obj.faces[fi].begin(), obj.faces[fi].end());
-    obj.faces.push_back(new_face);
-    extruded_faces_ids.push_back(obj.faces.size() - 1);
+    std::reverse(mesh.faces[fi].begin(), mesh.faces[fi].end());
+    mesh.faces.push_back(new_face);
+    extruded_faces_ids.push_back(mesh.faces.size() - 1);
   }
 
   for (const Edge& e: periphery_edges)
   {
-    obj.faces.push_back(Face({ e.first, e.second, extruded_vertex_ids[e.second] }));
-    obj.faces.push_back(Face({ e.first, extruded_vertex_ids[e.second],  extruded_vertex_ids[e.first] }));
+    mesh.faces.push_back(Face({ e.first, e.second, extruded_vertex_ids[e.second] }));
+    mesh.faces.push_back(Face({ e.first, extruded_vertex_ids[e.second],  extruded_vertex_ids[e.first] }));
   }
   return extruded_faces_ids;
 }
 
 
-std::vector<int> lpng::Extrude(Object& obj, const std::vector<int>& facesIds, const float3& vec)
+std::vector<int> lpng::Extrude(Mesh& mesh, const std::vector<int>& facesIds, const float3& vec)
 {
-  std::vector<int> extruded_faces_ids = ExtrudeWithCap(obj, facesIds, vec);
+  std::vector<int> extruded_faces_ids = ExtrudeWithCap(mesh, facesIds, vec);
   std::vector<Face> new_faces;
-  for (int i = 0; i < obj.faces.size(); ++i)
+  for (int i = 0; i < mesh.faces.size(); ++i)
   {
     if (std::find(facesIds.begin(), facesIds.end(), i) == facesIds.end())
-      new_faces.push_back(std::move(obj.faces[i]));
+      new_faces.push_back(std::move(mesh.faces[i]));
   }
-  obj.faces = std::move(new_faces);
+  mesh.faces = std::move(new_faces);
   for (int& f_id : extruded_faces_ids)
   {
     f_id -= facesIds.size();
@@ -358,12 +358,12 @@ std::vector<int> lpng::Extrude(Object& obj, const std::vector<int>& facesIds, co
 }
 
 
-void lpng::MoveFaces(Object& obj, const std::vector<int>& facesIds, const float3& vector)
+void lpng::MoveFaces(Mesh& mesh, const std::vector<int>& facesIds, const float3& vector)
 {
   std::set<int> vertexIds;
   for (int fi : facesIds)
   {
-    const Face& f = obj.faces[fi];
+    const Face& f = mesh.faces[fi];
     for (const Vertex& v : f)
     {
       vertexIds.insert(v.vi - 1);
@@ -371,24 +371,24 @@ void lpng::MoveFaces(Object& obj, const std::vector<int>& facesIds, const float3
   }
   for (int vi : vertexIds)
   {
-    obj.vertexCoords[vi] += vector;
+    mesh.vertexCoords[vi] += vector;
   }
 }
 
 
-void lpng::MovePivot(Object& obj, const float3& vec)
+void lpng::MovePivot(Mesh& mesh, const float3& vec)
 {
-  obj.pivot += vec;
+  mesh.pivot += vec;
 }
 
 
-void lpng::MoveObj(Object& obj, const float3& vec)
+void lpng::MoveObj(Mesh& mesh, const float3& vec)
 {
-  for (float3& v : obj.vertexCoords)
+  for (float3& v : mesh.vertexCoords)
   {
     v += vec;
   }
-  obj.pivot += vec;
+  mesh.pivot += vec;
 }
 
 
@@ -452,13 +452,13 @@ double lpng::DistFromPointToFace(const float3& point, const float3& a, const flo
 }
 
 
-std::vector<lpng::float3> lpng::CalculateObjNormals(const Object& obj)
+std::vector<lpng::float3> lpng::CalculateObjNormals(const Mesh& mesh)
 {
-  std::vector<float3> normals(obj.vertexCoords.size());
-  for (const Face& f : obj.faces)
+  std::vector<float3> normals(mesh.vertexCoords.size());
+  for (const Face& f : mesh.faces)
   {
-    float3 a = obj.vertexCoords[f[2].vi - 1] - obj.vertexCoords[f[1].vi - 1];
-    float3 b = obj.vertexCoords[f[0].vi - 1] - obj.vertexCoords[f[1].vi - 1];
+    float3 a = mesh.vertexCoords[f[2].vi - 1] - mesh.vertexCoords[f[1].vi - 1];
+    float3 b = mesh.vertexCoords[f[0].vi - 1] - mesh.vertexCoords[f[1].vi - 1];
     float3 normal = Cross(a, b);
     for (size_t i = 0; i < 3; ++i)
     {
@@ -473,10 +473,10 @@ std::vector<lpng::float3> lpng::CalculateObjNormals(const Object& obj)
 }
 
 
-void lpng::DecomposeObj(Object& obj)
+void lpng::DecomposeObj(Mesh& mesh)
 {
   std::vector<Face> new_faces;
-  for (Face& f : obj.faces)
+  for (Face& f : mesh.faces)
   {
     if (f.size() < 3)
     {
@@ -496,10 +496,10 @@ void lpng::DecomposeObj(Object& obj)
       float3 mean_vertex_coord;
       for (const Vertex& v : f)
       {
-        mean_vertex_coord += obj.vertexCoords[v.vi - 1];
+        mean_vertex_coord += mesh.vertexCoords[v.vi - 1];
       }
-      obj.vertexCoords.push_back(mean_vertex_coord);
-      size_t center_index = obj.vertexCoords.size();
+      mesh.vertexCoords.push_back(mean_vertex_coord);
+      size_t center_index = mesh.vertexCoords.size();
       Vertex mean_vertex(center_index);
       for (int i = 0; i < f.size(); ++i)
       {
@@ -507,7 +507,7 @@ void lpng::DecomposeObj(Object& obj)
       }
     }
   }
-  obj.faces = std::move(new_faces);
+  mesh.faces = std::move(new_faces);
 }
 
 
@@ -548,7 +548,7 @@ std::vector<lpng::float3> lpng::GenerateEllipsoidUniformPoints(const float3& siz
   float3 rad(to_x, to_y, to_z);
   float3 rad_sq = rad * rad;
 
-  while (points.size() < pointsNum * 3)
+  while (points.size() < pointsNum)
   {
     float x = from_x + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (to_x - from_x)));
     float y = from_y + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (to_y - from_y)));
@@ -568,14 +568,10 @@ std::vector<lpng::float3> lpng::GenerateEllipsoidUniformPoints(const float3& siz
     p *= rad;
   }
   FilterNearesPoints(points);
-  if (points.size() <= pointsNum)
-    return points;
-  std::vector<float3> new_points;
-  for (int i = 1; i < pointsNum; ++i)
-  {
-    int p_id = rand() % points.size();
-    new_points.push_back(std::move(points[p_id]));
-    points.erase(points.begin() + p_id);
-  }
-  return new_points;
+  return points;
+}
+
+void lpng::FixMeshOrientation(Mesh& mesh)
+{
+
 }

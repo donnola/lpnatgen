@@ -76,7 +76,7 @@ namespace lpng
     STONE
   };
 
-  struct Object
+  struct Mesh
   {
     std::vector<Face> faces;
     std::vector<float3> vertexCoords;
@@ -133,24 +133,25 @@ namespace lpng
   void SplitFaceMithPoint(std::vector<Face>& faces, const int faceId, const int pointId);
 
   void SetPeripheryEdges(
-    const Object& obj, const std::vector<int>& facesIds, 
+    const Mesh& mesh, const std::vector<int>& facesIds, 
     std::vector<Edge>& peripheryEdges
   );
 
-  void ScaleWorldCoord(Object& obj, const float3& vec);
-  void ScaleLocalCoord(Object& obj, const float3& vec);
+  void ScaleWorldCoord(Mesh& mesh, const float3& vec);
+  void ScaleLocalCoord(Mesh& mesh, const float3& vec);
 
-  std::vector<int> ExtrudeWithCap(Object& obj, const std::vector<int>& facesIds, const float3& vec);
-  std::vector<int> Extrude(Object& obj, const std::vector<int>& facesIds, const float3& vec);
+  std::vector<int> ExtrudeWithCap(Mesh& mesh, const std::vector<int>& facesIds, const float3& vec);
+  std::vector<int> Extrude(Mesh& mesh, const std::vector<int>& facesIds, const float3& vec);
 
-  void MoveFaces(Object& obj, const std::vector<int>& facesIds, const float3& vector);
-  void MovePivot(Object& obj, const float3& vec);
-  void MoveObj(Object& obj, const float3& vec);
-  void RotateFaces(Object& obj, const std::vector<int>& facesIds, const Quat& quat, const float3& point);
-  void RotatePoints(Object& obj, const std::vector<int>& pointsIds, const Quat& quat, const float3& point);
-  std::vector<float3> CalculateObjNormals(const Object& obj);
-  void DecomposeObj(Object& obj);
+  void MoveFaces(Mesh& mesh, const std::vector<int>& facesIds, const float3& vector);
+  void MovePivot(Mesh& mesh, const float3& vec);
+  void MoveObj(Mesh& mesh, const float3& vec);
+  void RotateFaces(Mesh& mesh, const std::vector<int>& facesIds, const Quat& quat, const float3& point);
+  void RotatePoints(Mesh& mesh, const std::vector<int>& pointsIds, const Quat& quat, const float3& point);
+  std::vector<float3> CalculateObjNormals(const Mesh& mesh);
+  void DecomposeObj(Mesh& mesh);
 
   std::vector<float3> GenerateEllipsoidUniformPoints(const float3& size, int pointsNum = 10);
   void FilterNearesPoints(std::vector<float3>& points, float d = 0.07);
+  void FixMeshOrientation(Mesh& mesh);
 }

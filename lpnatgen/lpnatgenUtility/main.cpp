@@ -4,7 +4,7 @@
 #include "raylib.h"
 #define NUM_MODELS 1 
 
-static Mesh GenMesh(const std::vector<lpng::Object> &model);
+static Mesh GenMesh(const std::vector<lpng::Mesh> &model);
 
 int main(void)
 {
@@ -29,9 +29,9 @@ int main(void)
   SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
   //--------------------------------------------------------------------------------------
 
-  lpng::GenerateObject* obj = new lpng::GenerateObjectStone();
-  obj->Generate();
-  std::vector<lpng::Object> generatedModel = obj->GetModel();
+  lpng::GenerateObject* m = new lpng::GenerateObjectStone();
+  m->Generate();
+  std::vector<lpng::Mesh> generatedModel = m->GetModel();
   Model model = LoadModelFromMesh(GenMesh(generatedModel));
 
   // Main game loop
@@ -66,19 +66,19 @@ int main(void)
   }
 
   UnloadModel(model);
-  delete obj;
+  delete m;
 
   CloseWindow();
 
   return 0;
 }
 
-static Mesh GenMesh(const std::vector<lpng::Object>& model)
+static Mesh GenMesh(const std::vector<lpng::Mesh>& model)
 {
   int triangleCount = 0;
-  for (const lpng::Object& obj : model)
+  for (const lpng::Mesh& m : model)
   {
-    triangleCount += obj.faces.size();
+    triangleCount += m.faces.size();
   }
   Mesh mesh = { 0 };
   mesh.triangleCount = triangleCount;
@@ -88,7 +88,7 @@ static Mesh GenMesh(const std::vector<lpng::Object>& model)
   mesh.normals = (float*)MemAlloc(mesh.vertexCount * 3 * sizeof(float));
 
   int nextVertId = 0;
-  for (const lpng::Object& obj : model)
+  for (const lpng::Mesh& obj : model)
   {
     for (const lpng::Face& f : obj.faces)
     {

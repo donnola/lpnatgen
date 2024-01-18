@@ -17,7 +17,7 @@ namespace lpng
       std::srand(std::time(0));
     }
 
-    void AddObject(Object& obj);
+    void AddObject(Mesh& mesh);
     virtual void GenerateMesh() = 0;
     virtual void GenerateTextureCoords();
     void PolygonDecomposition();
@@ -25,11 +25,11 @@ namespace lpng
     void SaveModel(std::string file_name, std::string save_path) const;
     void SaveModel() const;
     void Generate();
-    std::vector<Object> GetModel();
+    std::vector<Mesh> GetModel();
 
   protected:
     const float3 objectSize = float3(1,1,1);
-    std::vector<Object> model;
+    std::vector<Mesh> model;
     std::string fileFormat = ".obj";
   };
 
@@ -60,7 +60,7 @@ namespace lpng
   class GenerateObjectTest : public GenerateObject
   {
   public:
-    GenerateObjectTest(float3 size = float3(1, 2, 1)) : GenerateObject(size) {}
+    GenerateObjectTest(float3 size = float3(1.5, 3, 1.5)) : GenerateObject(size) {}
 
     void GenerateMesh() override;
   };

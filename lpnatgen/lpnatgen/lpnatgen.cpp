@@ -5,7 +5,7 @@
 #include <set>
 
 
-std::vector<lpng::Object> lpng::GenerateObject::GetModel()
+std::vector<lpng::Mesh> lpng::GenerateObject::GetModel()
 {
   PolygonDecomposition();
   return model;
@@ -21,12 +21,12 @@ void lpng::GenerateObject::Generate()
 
 void lpng::GenerateObject::GenerateNormals()
 {
-  for (Object& obj : model)
+  for (Mesh& mesh : model)
   {
-    std::vector<float3> normals = CalculateObjNormals(obj);
+    std::vector<float3> normals = CalculateObjNormals(mesh);
 
-    obj.vertexNormals = std::move(normals);
-    for (Face& f : obj.faces)
+    mesh.vertexNormals = std::move(normals);
+    for (Face& f : mesh.faces)
     {
       for (size_t i = 0; i < 3; ++i)
       {
@@ -38,13 +38,13 @@ void lpng::GenerateObject::GenerateNormals()
 
 void lpng::GenerateObject::GenerateTextureCoords()
 {
-  for (Object& obj : model)
+  for (Mesh& mesh : model)
   {
-    obj.vertexTextCoords.emplace_back(0.f, 0.f);
-    obj.vertexTextCoords.emplace_back(1.f, 0.f);
-    obj.vertexTextCoords.emplace_back(0.f, 1.f);
+    mesh.vertexTextCoords.emplace_back(0.f, 0.f);
+    mesh.vertexTextCoords.emplace_back(1.f, 0.f);
+    mesh.vertexTextCoords.emplace_back(0.f, 1.f);
 
-    for (Face& f : obj.faces)
+    for (Face& f : mesh.faces)
     {
       for (size_t i = 0; i < 3; ++i)
       {
@@ -56,9 +56,9 @@ void lpng::GenerateObject::GenerateTextureCoords()
 
 void lpng::GenerateObject::PolygonDecomposition()
 {
-  for (Object& obj : model)
+  for (Mesh& mesh : model)
   {
-    DecomposeObj(obj);
+    DecomposeObj(mesh);
   }
 }
 
@@ -73,9 +73,9 @@ void lpng::GenerateObject::SaveModel() const
   std::string save_path = std::filesystem::current_path().string();
 }
 
-void lpng::GenerateObject::AddObject(Object& obj)
+void lpng::GenerateObject::AddObject(Mesh& mesh)
 {
-  model.push_back(std::move(obj));
+  model.push_back(std::move(mesh));
 }
 
 inline std::ostream& lpng::operator<<(std::ostream& out, const lpng::float3& v)
