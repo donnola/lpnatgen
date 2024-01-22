@@ -6,7 +6,7 @@
 
 void lpng::GenerateObjectStone::GenerateMesh()
 {
-  std::vector<float3> points = GenerateEllipsoidUniformPoints(objectSize, 20);
+  std::vector<float3> points = GenerateEllipsoidUniformPoints(objectSize, pointsCount);
   Mesh stone = std::move(BuildMeshWithPoints(points));
   stone.matType = MaterialTypes::STONE;
   model.push_back(std::move(stone));

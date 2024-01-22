@@ -26,7 +26,7 @@ namespace lpng
     void SaveModel() const;
     void Generate();
     std::vector<Mesh> GetModel();
-
+    
   protected:
     const float3 objectSize = float3(1,1,1);
     std::vector<Mesh> model;
@@ -36,7 +36,7 @@ namespace lpng
   class GenerateObjectTree: public GenerateObject
   {
   public:
-    GenerateObjectTree(float3 size) : GenerateObject(size) {}
+    GenerateObjectTree(float3 size = float3(1.5, 2, 1.5)) : GenerateObject(size) {}
 
     void GenerateMesh() override;
   };
@@ -44,7 +44,7 @@ namespace lpng
   class GenerateObjectBush : public GenerateObject
   {
   public:
-    GenerateObjectBush(float3 size) : GenerateObject(size) {}
+    GenerateObjectBush(float3 size = float3(1.5, 2, 1.5)) : GenerateObject(size) {}
 
     void GenerateMesh() override;
   };
@@ -52,15 +52,18 @@ namespace lpng
   class GenerateObjectStone : public GenerateObject
   {
   public:
-    GenerateObjectStone(float3 size = float3(1.5, 2, 1.5)) : GenerateObject(size) {}
+    GenerateObjectStone(float3 size = float3(1.5, 2, 1.5), int pc = 25) : GenerateObject(size), pointsCount(pc) {}
 
     void GenerateMesh() override;
+    void SetPointsCount(int c) { pointsCount = c; };
+  private:
+    size_t pointsCount;
   };
 
   class GenerateObjectTest : public GenerateObject
   {
   public:
-    GenerateObjectTest(float3 size = float3(1.5, 3, 1.5)) : GenerateObject(size) {}
+    GenerateObjectTest(float3 size = float3(1, 2, 1)) : GenerateObject(size) {}
 
     void GenerateMesh() override;
   };

@@ -1,10 +1,24 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <lpnatgen.h>
 #include <iostream>
+#include <memory>
 #include "raylib.h"
+#define RAYGUI_IMPLEMENTATION
+#include "raygui.h"
 #define NUM_MODELS 1 
 
 static Mesh GenMesh(const std::vector<lpng::Mesh> &model);
+static bool GenerateObjectWithType(int type, std::unique_ptr<lpng::GenerateObject>& model_ptr);
+
+
+enum ObjectTypes
+{
+  TEST = 0,
+  STONE = 1,
+  //BUSH = 2,
+  //TREE = 3,
+};
+
 
 int main(void)
 {
@@ -29,9 +43,13 @@ int main(void)
   SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
   //--------------------------------------------------------------------------------------
 
-  lpng::GenerateObject* m = new lpng::GenerateObjectStone();
-  m->Generate();
-  std::vector<lpng::Mesh> generatedModel = m->GetModel();
+  int modelTypeActive = TEST;
+  int prevModelTypeActive = modelTypeActive;
+  bool modelTypeEditMode = false;
+  std::unique_ptr<lpng::GenerateObject> model_ptr{ std::make_unique<lpng::GenerateObjectTest>() };
+  //lpng::GenerateObject* m = new lpng::GenerateObjectTest();
+  model_ptr->Generate();
+  std::vector<lpng::Mesh> generatedModel = model_ptr->GetModel();
   Model model = LoadModelFromMesh(GenMesh(generatedModel));
 
   // Main game loop
@@ -44,7 +62,17 @@ int main(void)
     // Calculate cube screen space position (with a little offset to be in top)
     modelScreenPosition = GetWorldToScreen({ modelPosition.x, modelPosition.y, modelPosition.z }, camera);
     //----------------------------------------------------------------------------------
-
+    if (modelTypeActive != prevModelTypeActive)
+    {
+      bool isNewModel = GenerateObjectWithType(modelTypeActive, model_ptr);
+      if (!isNewModel)
+        break;
+      model_ptr->Generate();
+      generatedModel = model_ptr->GetModel();
+      UnloadModel(model);
+      model = LoadModelFromMesh(GenMesh(generatedModel));
+      prevModelTypeActive = modelTypeActive;
+    }
     // Draw
     //----------------------------------------------------------------------------------
     BeginDrawing();
@@ -68,13 +96,21 @@ int main(void)
 
     EndMode3D();
 
-    DrawText(TextFormat("Cube position in screen space coordinates: [%i, %i]", (int)modelScreenPosition.x, (int)modelScreenPosition.y), 10, 10, 20, LIME);
+    if (modelTypeEditMode) GuiLock();
+    GuiUnlock();
+    DrawText(TextFormat("Model position in screen space coordinates: [%i, %i]", (int)modelScreenPosition.x, (int)modelScreenPosition.y), 10, 10, 20, LIME);
+    if (GuiDropdownBox({ 12, 8 + 24, 140, 28 }, "TEST;STONE", &modelTypeActive, modelTypeEditMode)) modelTypeEditMode = !modelTypeEditMode; //;BUSH;TREE
 
     EndDrawing();
+
+    if (IsKeyPressed(KEY_ONE)) modelTypeActive = 0;
+    else if (IsKeyPressed(KEY_TWO)) modelTypeActive = 1;
+    //else if (IsKeyPressed(KEY_THREE)) modelTypeActive = 2;
+    //else if (IsKeyPressed(KEY_FOUR)) modelTypeActive = 3;
   }
 
   UnloadModel(model);
-  delete m;
+  model_ptr.reset();
 
   CloseWindow();
 
@@ -122,4 +158,31 @@ static Mesh GenMesh(const std::vector<lpng::Mesh>& model)
   UploadMesh(&mesh, false);
 
   return mesh;
+}
+
+
+static bool GenerateObjectWithType(int type, std::unique_ptr<lpng::GenerateObject>& model_ptr)
+{
+  switch (type)
+  {
+  case TEST:
+  {
+    model_ptr.reset(new lpng::GenerateObjectTest());
+    return true;
+  }
+    
+  case STONE:
+  {
+    model_ptr.reset(new lpng::GenerateObjectStone());
+    return true;
+  }
+    
+  //case BUSH:
+  //  return new lpng::GenerateObjectBush();
+  //case TREE:
+  //  return new lpng::GenerateObjectTree();
+  default:
+    return false;
+  }
+  return false;
 }

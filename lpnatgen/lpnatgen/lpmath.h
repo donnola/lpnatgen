@@ -60,14 +60,6 @@ namespace lpng
   bool IsEdgeInFace(const Edge& edge, const Face& face);
   int TakeThirdPointFromTriangle(const Face& face, const Edge& edge);
 
-  enum class ObjectTypes
-  {
-    NONE = -1,
-    TREE = 0,
-    BUSH = 1,
-    STONE = 2
-  };
-
   enum class MaterialTypes
   {
     NONE,
