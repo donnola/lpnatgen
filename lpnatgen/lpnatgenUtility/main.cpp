@@ -3,6 +3,7 @@
 #include <iostream>
 #include <memory>
 #include "raylib.h"
+#include "raymath.h"
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 #define NUM_MODELS 1 
@@ -55,9 +56,15 @@ int main(void)
   // Main game loop
   while (!WindowShouldClose())        // Detect window close button or ESC key
   {
-    // Update
-    //----------------------------------------------------------------------------------
-    UpdateCamera(&camera, CAMERA_THIRD_PERSON);
+
+    if (IsCursorHidden()) UpdateCamera(&camera, CAMERA_THIRD_PERSON);
+
+    // Toggle camera controls
+    if (IsKeyPressed(KEY_F))
+    {
+      if (IsCursorHidden()) EnableCursor();
+      else DisableCursor();
+    }
 
     // Calculate cube screen space position (with a little offset to be in top)
     modelScreenPosition = GetWorldToScreen({ modelPosition.x, modelPosition.y, modelPosition.z }, camera);
