@@ -30,46 +30,57 @@ int main(void)
 
   // Define the camera to look into our 3d world
   Camera camera = { 0 };
-  camera.position = { 10.0f, 10.0f, 10.0f }; // Camera position
-  camera.target = { 0.0f, 0.0f, 0.0f };      // Camera looking at point
-  camera.up = { 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
-  camera.fovy = 45.0f;                                // Camera field-of-view Y
-  camera.projection = CAMERA_PERSPECTIVE;             // Camera projection type
+  camera.position = { 10.0f, 10.0f, 10.0f };
+  camera.target = { 0.0f, 0.0f, 0.0f };
+  camera.up = { 0.0f, 1.0f, 0.0f };
+  camera.fovy = 45.0f;
+  camera.projection = CAMERA_PERSPECTIVE;
 
   Vector3 modelPosition = { 0.0f, 0.0f, 0.0f };
   Vector2 modelScreenPosition = { 0.0f, 0.0f };
 
-  DisableCursor();                    // Limit cursor to relative movement inside the window
+  DisableCursor();
 
-  SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
-  //--------------------------------------------------------------------------------------
+  SetTargetFPS(60);
 
   int modelTypeActive = TEST;
-  int prevModelTypeActive = modelTypeActive;
   bool modelTypeEditMode = false;
+
+  int btnCreateState = 0;
+  bool btnCreateAction = false;
+  Rectangle btnCreateBounds = { 12, 120, 140, 28 };
+
+  Vector2 mousePoint = { 0.0f, 0.0f };
+
   std::unique_ptr<lpng::GenerateObject> model_ptr{ std::make_unique<lpng::GenerateObjectTest>() };
-  //lpng::GenerateObject* m = new lpng::GenerateObjectTest();
   model_ptr->Generate();
   std::vector<lpng::Mesh> generatedModel = model_ptr->GetModel();
   Model model = LoadModelFromMesh(GenMesh(generatedModel));
 
-  // Main game loop
-  while (!WindowShouldClose())        // Detect window close button or ESC key
+  while (!WindowShouldClose())
   {
 
     if (IsCursorHidden()) UpdateCamera(&camera, CAMERA_THIRD_PERSON);
 
-    // Toggle camera controls
     if (IsKeyPressed(KEY_F))
     {
       if (IsCursorHidden()) EnableCursor();
       else DisableCursor();
     }
 
-    // Calculate cube screen space position (with a little offset to be in top)
-    modelScreenPosition = GetWorldToScreen({ modelPosition.x, modelPosition.y, modelPosition.z }, camera);
-    //----------------------------------------------------------------------------------
-    if (modelTypeActive != prevModelTypeActive)
+    mousePoint = GetMousePosition();
+    btnCreateAction = false;
+
+    if (CheckCollisionPointRec(mousePoint, btnCreateBounds))
+    {
+      if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) btnCreateState = 2;
+      else btnCreateState = 1;
+
+      if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) btnCreateAction = true;
+    }
+    else btnCreateState = 0;
+
+    if (btnCreateAction)
     {
       bool isNewModel = GenerateObjectWithType(modelTypeActive, model_ptr);
       if (!isNewModel)
@@ -78,10 +89,10 @@ int main(void)
       generatedModel = model_ptr->GetModel();
       UnloadModel(model);
       model = LoadModelFromMesh(GenMesh(generatedModel));
-      prevModelTypeActive = modelTypeActive;
     }
-    // Draw
-    //----------------------------------------------------------------------------------
+
+    modelScreenPosition = GetWorldToScreen({ modelPosition.x, modelPosition.y, modelPosition.z }, camera);
+
     BeginDrawing();
 
     ClearBackground(RAYWHITE);
@@ -100,14 +111,18 @@ int main(void)
     DrawModelWires(model, modelPosition, 1.0f, DARKPURPLE);
 
     DrawGrid(10, 1.0f);
-
     EndMode3D();
 
     if (modelTypeEditMode) GuiLock();
+    GuiDrawRectangle(btnCreateBounds, GuiGetStyle(LABEL, BORDER_WIDTH), 
+      GRAY,
+      btnCreateState == 2 ? WHITE : LIGHTGRAY);
+    DrawText("Create model", 
+      (int)(btnCreateBounds.x + btnCreateBounds.width / 2 - MeasureText("Create model", 16)/2), 
+      (int)(btnCreateBounds.y + btnCreateBounds.height / 2 - 8),
+      16, DARKGRAY);
     GuiUnlock();
-    DrawText(TextFormat("Model position in screen space coordinates: [%i, %i]", (int)modelScreenPosition.x, (int)modelScreenPosition.y), 10, 10, 20, LIME);
-    if (GuiDropdownBox({ 12, 8 + 24, 140, 28 }, "TEST;STONE", &modelTypeActive, modelTypeEditMode)) modelTypeEditMode = !modelTypeEditMode; //;BUSH;TREE
-
+    if (GuiDropdownBox({ 12, 40, 140, 28 }, "TEST;STONE", &modelTypeActive, modelTypeEditMode)) modelTypeEditMode = !modelTypeEditMode; //;BUSH;TREE
     EndDrawing();
 
     if (IsKeyPressed(KEY_ONE)) modelTypeActive = 0;
