@@ -2,14 +2,18 @@
 #include <lpnatgen.h>
 #include <iostream>
 #include <memory>
+#include <map>
 #include "raylib.h"
 #include "raymath.h"
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 #define NUM_MODELS 1 
 
+
 static Mesh GenMesh(const std::vector<lpng::Mesh> &model);
 static bool GenerateObjectWithType(int type, std::unique_ptr<lpng::GenerateObject>& model_ptr);
+static void BtnHandler(const Vector2& mousePoint, const Rectangle& btnBounds, bool& btnAction, int& btnState);
+static void BtnDraw(const Rectangle& btnBounds, const std::string& text, const int& btnState);
 
 
 enum ObjectTypes
@@ -43,12 +47,31 @@ int main(void)
 
   SetTargetFPS(60);
 
+  Font fonts = LoadFont("resources/fonts/alpha_beta.png");
+
   int modelTypeActive = TEST;
   bool modelTypeEditMode = false;
 
   int btnCreateState = 0;
   bool btnCreateAction = false;
-  Rectangle btnCreateBounds = { 12, 120, 140, 28 };
+  Rectangle btnCreateBounds = { 12, 100, 140, 30 };
+  std::string createModelText = "Create model";
+
+  std::string saveModelText = "Save model";
+
+  std::string modelNameText = "Model name";
+  std::string modelPathText = "Save path";
+  //std::map<Rectangle, std::string> inputBoxes {{{ 40, 140, 140, 30 }, ""}, {{ 40, 180, 140, 30 }, ""}};
+
+  int btnInputState = 0;
+  bool btnInputAction = false;
+  bool isInputActive = false;
+  int* activeStingPtr = nullptr;
+
+  int btnSaveState = 0;
+  bool btnSaveAction = false;
+  Rectangle btnSaveBounds = { 12, 210, 140, 30 };
+
 
   Vector2 mousePoint = { 0.0f, 0.0f };
 
@@ -62,23 +85,15 @@ int main(void)
 
     if (IsCursorHidden()) UpdateCamera(&camera, CAMERA_THIRD_PERSON);
 
-    if (IsKeyPressed(KEY_F))
+    if (IsKeyPressed(KEY_SPACE))
     {
       if (IsCursorHidden()) EnableCursor();
       else DisableCursor();
     }
 
     mousePoint = GetMousePosition();
-    btnCreateAction = false;
-
-    if (CheckCollisionPointRec(mousePoint, btnCreateBounds))
-    {
-      if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) btnCreateState = 2;
-      else btnCreateState = 1;
-
-      if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) btnCreateAction = true;
-    }
-    else btnCreateState = 0;
+    BtnHandler(mousePoint, btnCreateBounds, btnCreateAction, btnCreateState);
+    BtnHandler(mousePoint, btnSaveBounds, btnSaveAction, btnSaveState);
 
     if (btnCreateAction)
     {
@@ -89,6 +104,11 @@ int main(void)
       generatedModel = model_ptr->GetModel();
       UnloadModel(model);
       model = LoadModelFromMesh(GenMesh(generatedModel));
+    }
+
+    if (btnSaveAction)
+    {
+      model_ptr->SaveModel();
     }
 
     modelScreenPosition = GetWorldToScreen({ modelPosition.x, modelPosition.y, modelPosition.z }, camera);
@@ -114,15 +134,12 @@ int main(void)
     EndMode3D();
 
     if (modelTypeEditMode) GuiLock();
-    GuiDrawRectangle(btnCreateBounds, GuiGetStyle(LABEL, BORDER_WIDTH), 
-      GRAY,
-      btnCreateState == 2 ? WHITE : LIGHTGRAY);
-    DrawText("Create model", 
-      (int)(btnCreateBounds.x + btnCreateBounds.width / 2 - MeasureText("Create model", 16)/2), 
-      (int)(btnCreateBounds.y + btnCreateBounds.height / 2 - 8),
-      16, DARKGRAY);
+    BtnDraw(btnCreateBounds, createModelText, btnCreateState);
+    BtnDraw(btnSaveBounds, saveModelText, btnSaveState);
+
     GuiUnlock();
-    if (GuiDropdownBox({ 12, 40, 140, 28 }, "TEST;STONE", &modelTypeActive, modelTypeEditMode)) modelTypeEditMode = !modelTypeEditMode; //;BUSH;TREE
+    DrawText("PRESS SPACE TO ENABLE CURSOR", 10, 400, 16, MAROON);
+    if (GuiDropdownBox({ 12, 20, 140, 30 }, "TEST;STONE", &modelTypeActive, modelTypeEditMode)) modelTypeEditMode = !modelTypeEditMode; //;BUSH;TREE
     EndDrawing();
 
     if (IsKeyPressed(KEY_ONE)) modelTypeActive = 0;
@@ -207,4 +224,29 @@ static bool GenerateObjectWithType(int type, std::unique_ptr<lpng::GenerateObjec
     return false;
   }
   return false;
+}
+
+static void BtnHandler(const Vector2& mousePoint, const Rectangle& btnBounds, bool& btnAction, int& btnState)
+{
+  btnAction = false;
+
+  if (CheckCollisionPointRec(mousePoint, btnBounds))
+  {
+    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) btnState = 2;
+    else btnState = 1;
+
+    if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) btnAction = true;
+  }
+  else btnState = 0;
+}
+
+static void BtnDraw(const Rectangle& btnBounds, const std::string& text, const int& btnState)
+{
+  GuiDrawRectangle(btnBounds, GuiGetStyle(LABEL, BORDER_WIDTH),
+    GRAY,
+    btnState == 2 ? WHITE : LIGHTGRAY);
+  DrawText(text.c_str(),
+    (int)(btnBounds.x + btnBounds.width / 2 - MeasureText(text.c_str(), 16) / 2),
+    (int)(btnBounds.y + btnBounds.height / 2 - 8),
+    16, DARKGRAY);
 }
