@@ -38,7 +38,9 @@ namespace lpng
 
   struct Quat
   {
-
+    float x, y, z, w;
+    Quat(float a, float b, float c, float d) : x(a), y(b), z(c), w(d) {}
+    Quat(float3 vec, float d) : x(vec.x), y(vec.y), z(vec.z), w(d) {}
   };
 
   struct Vertex
@@ -131,6 +133,10 @@ namespace lpng
 
   void ScaleWorldCoord(Mesh& mesh, const float3& vec);
   void ScaleLocalCoord(Mesh& mesh, const float3& vec);
+  void ScalePoints(Mesh& mesh, const float3& vec, const std::vector<int>& pointsIds);
+  void ScalePoints(Mesh& mesh, const float3& vec, const std::vector<int>& pointsIds, const float3& p);
+  void RotateFaces(Mesh& mesh, const std::vector<int>& facesIds, const Quat& quat, const float3& point);
+  void RotatePoints(Mesh& mesh, const std::vector<int>& pointsIds, const Quat& quat, const float3& point);
 
   std::vector<int> ExtrudeWithCap(Mesh& mesh, const std::vector<int>& facesIds, const float3& vec);
   std::vector<int> Extrude(Mesh& mesh, const std::vector<int>& facesIds, const float3& vec);
@@ -138,8 +144,6 @@ namespace lpng
   void MoveFaces(Mesh& mesh, const std::vector<int>& facesIds, const float3& vector);
   void MovePivot(Mesh& mesh, const float3& vec);
   void MoveObj(Mesh& mesh, const float3& vec);
-  void RotateFaces(Mesh& mesh, const std::vector<int>& facesIds, const Quat& quat, const float3& point);
-  void RotatePoints(Mesh& mesh, const std::vector<int>& pointsIds, const Quat& quat, const float3& point);
   std::vector<float3> CalculateObjNormals(const Mesh& mesh);
   void DecomposeObj(Mesh& mesh);
 

@@ -2,7 +2,6 @@
 
 #include "lpmath.h"
 
-//#include <cstdlib>
 #include <ctime>
 #include <string>
 
@@ -33,37 +32,10 @@ namespace lpng
     std::string fileFormat = ".obj";
   };
 
-  class GenerateObjectTree: public GenerateObject
-  {
-  public:
-    GenerateObjectTree(float3 size = float3(1.5, 2, 1.5)) : GenerateObject(size) {}
-
-    void GenerateMesh() override;
-  };
-
   class GenerateObjectBush : public GenerateObject
   {
   public:
     GenerateObjectBush(float3 size = float3(1.5, 2, 1.5)) : GenerateObject(size) {}
-
-    void GenerateMesh() override;
-  };
-
-  class GenerateObjectStone : public GenerateObject
-  {
-  public:
-    GenerateObjectStone(float3 size = float3(1.5, 2, 1.5), int pc = 25) : GenerateObject(size), pointsCount(pc) {}
-
-    void GenerateMesh() override;
-    void SetPointsCount(int c) { pointsCount = c; };
-  private:
-    size_t pointsCount;
-  };
-
-  class GenerateObjectTest : public GenerateObject
-  {
-  public:
-    GenerateObjectTest(float3 size = float3(1, 2, 1)) : GenerateObject(size) {}
 
     void GenerateMesh() override;
   };

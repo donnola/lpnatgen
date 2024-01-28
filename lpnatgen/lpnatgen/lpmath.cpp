@@ -276,6 +276,50 @@ void lpng::ScaleLocalCoord(Mesh& mesh, const float3& vec)
 }
 
 
+void lpng::ScalePoints(Mesh& mesh, const float3& vec, const std::vector<int>& pointsIds)
+{
+  float3 mean_point;
+  for (int id : pointsIds)
+  {
+    mean_point += mesh.vertexCoords[id];
+  }
+  mean_point /= pointsIds.size();
+  for (int id : pointsIds)
+  {
+    mesh.vertexCoords[id] = (mesh.vertexCoords[id] - mean_point) * vec + mean_point;
+  }
+}
+
+
+void lpng::ScalePoints(Mesh& mesh, const float3& vec, const std::vector<int>& pointsIds, const float3& p)
+{
+  for (int id : pointsIds)
+  {
+    mesh.vertexCoords[id] = (mesh.vertexCoords[id] - p) * vec + p;
+  }
+}
+
+
+void lpng::RotateFaces(Mesh& mesh, const std::vector<int>& facesIds, const Quat& quat, const float3& point)
+{
+  std::set<int> points_ids;
+  for (int id : facesIds)
+  {
+    for (const Vertex& v : mesh.faces[id])
+    {
+      points_ids.insert(v.vi - 1);
+    }
+  }
+  RotatePoints(mesh, {points_ids.begin(), points_ids.end()}, quat, point);
+}
+
+
+void lpng::RotatePoints(Mesh& mesh, const std::vector<int>& pointsIds, const Quat& quat, const float3& point)
+{
+
+}
+
+
 void lpng::SetPeripheryEdges(
   const Mesh& mesh, const std::vector<int>& facesIds,
   std::vector<Edge>& peripheryEdges

@@ -1,6 +1,5 @@
 #define _USE_MATH_DEFINES
-#include "lpnatgen.h"
-#include "lpmath.h"
+#include "lpnatgen_stone.h"
 #include "cgal_math.h"
 
 

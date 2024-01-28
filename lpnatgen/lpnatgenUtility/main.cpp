@@ -1,18 +1,23 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include <lpnatgen.h>
+#include <lpnatgen_tree.h>
+#include <lpnatgen_test.h>
+#include <lpnatgen_stone.h>
 #include <iostream>
 #include <memory>
 #include "raylib.h"
 #include "raymath.h"
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
+#undef RAYGUI_IMPLEMENTATION
+#define GUI_WINDOW_FILE_DIALOG_IMPLEMENTATION
+#include "gui_window_file_dialog.h"
 
 
 struct InputBoxDesc
 {
   Rectangle box;
   std::string box_name;
-  std::string text;
+  char text[1024];
 };
 
 enum ObjectTypes
@@ -26,17 +31,13 @@ enum ObjectTypes
 
 static Mesh GenMesh(const std::vector<lpng::Mesh> &model);
 static bool GenerateObjectWithType(int type, std::unique_ptr<lpng::GenerateObject>& model_ptr);
-static void BtnHandler(const Vector2& mousePoint, const Rectangle& btnBounds, bool& btnAction, int& btnState);
-static void BtnDraw(const Rectangle& btnBounds, const std::string& text, const int btnState);
-static void InputBoxHandler(const Vector2& mousePoint, const std::vector<InputBoxDesc>& inputBoxes, bool& inputAction, int& inputState, int& activeInputBoxId, size_t& framesCounter);
-static void InputHandler(std::vector<InputBoxDesc>& inputBoxes, const bool inputAction, const int activeInputBoxId);
-static void InputBoxDraw(const std::vector<InputBoxDesc>& inputBoxes, const int inputState, const int activeInputBoxId, const Font& font, const size_t framesCounter);
+static void InputBox(std::vector<InputBoxDesc>& inputBoxes, const int inputState, const int activeInputBoxId, const Font& font, const size_t framesCounter);
 
 
 int main(void)
 {
   const int screenWidth = 1000;
-  const int screenHeight = 450;
+  const int screenHeight = 560;
 
   InitWindow(screenWidth, screenHeight, "lpnatgenUtility : object generation");
 
@@ -60,11 +61,10 @@ int main(void)
   int modelTypeActive = TEST;
   bool modelTypeEditMode = false;
 
-  int btnCreateState = 0;
-  bool btnCreateAction = false;
   Rectangle btnCreateBounds = { 12, 100, 140, 30 };
   std::string createModelText = "Create model";
 
+  Rectangle btnSaveBounds = { 12, 220, 140, 30 };
   std::string saveModelText = "Save model";
 
   std::vector<InputBoxDesc> inputBoxes{ 
@@ -72,14 +72,12 @@ int main(void)
     {Rectangle{ 120, 180, 140, 30 }, "Save path", ""}
   };
 
+  char* textPathPtr = inputBoxes[1].text;
+
   int inputState = 0;
   bool inputAction = false;
   bool isInputActive = false;
   int activeInputBoxId = -1;
-
-  int btnSaveState = 0;
-  bool btnSaveAction = false;
-  Rectangle btnSaveBounds = { 12, 220, 140, 30 };
 
   Vector2 mousePoint = { 0.0f, 0.0f };
 
@@ -92,6 +90,8 @@ int main(void)
   Font font = LoadFont("resources/fonts/romulus.png");
   size_t framesCounter = 0;
 
+  GuiWindowFileDialogState fileDialogState = InitGuiWindowFileDialog(GetWorkingDirectory());
+  
   while (!WindowShouldClose())
   {
 
@@ -104,25 +104,16 @@ int main(void)
     }
 
     mousePoint = GetMousePosition();
-    BtnHandler(mousePoint, btnCreateBounds, btnCreateAction, btnCreateState);
-    BtnHandler(mousePoint, btnSaveBounds, btnSaveAction, btnSaveState);
-    InputBoxHandler(mousePoint, inputBoxes, inputAction, inputState, activeInputBoxId, framesCounter);
-    InputHandler(inputBoxes, inputAction, activeInputBoxId);
 
-    if (btnCreateAction)
+    if (fileDialogState.SelectFilePressed)
     {
-      bool isNewModel = GenerateObjectWithType(modelTypeActive, model_ptr);
-      if (!isNewModel)
-        break;
-      model_ptr->Generate();
-      generatedModel = model_ptr->GetModel();
-      UnloadModel(model);
-      model = LoadModelFromMesh(GenMesh(generatedModel));
-    }
+      char pathToLoad[1024] = { 0 };
+      if (IsFileExtension(fileDialogState.fileNameText, ".png"))
+      {
+        strcpy(pathToLoad, TextFormat("%s" PATH_SEPERATOR "%s", fileDialogState.dirPathText, fileDialogState.fileNameText));
+      }
 
-    if (btnSaveAction)
-    {
-      model_ptr->SaveModel();
+      fileDialogState.SelectFilePressed = false;
     }
 
     modelScreenPosition = GetWorldToScreen({ modelPosition.x, modelPosition.y, modelPosition.z }, camera);
@@ -147,18 +138,27 @@ int main(void)
     DrawGrid(10, 1.0f);
     EndMode3D();
 
-    if (modelTypeEditMode) GuiLock();
+    if (modelTypeEditMode || fileDialogState.windowActive) GuiLock();
 
-    BtnDraw(btnCreateBounds, createModelText, btnCreateState);
-    BtnDraw(btnSaveBounds, saveModelText, btnSaveState);
-    InputBoxDraw(inputBoxes, inputState, activeInputBoxId, font, framesCounter);
+    if (GuiButton(btnCreateBounds, createModelText.c_str()))
+    {
+      bool isNewModel = GenerateObjectWithType(modelTypeActive, model_ptr);
+      if (!isNewModel)
+        break;
+      model_ptr->Generate();
+      generatedModel = model_ptr->GetModel();
+      UnloadModel(model);
+      model = LoadModelFromMesh(GenMesh(generatedModel));
+    }
+    if (GuiButton(btnSaveBounds, saveModelText.c_str())) model_ptr->SaveModel();
+    InputBox(inputBoxes, inputState, activeInputBoxId, font, framesCounter);
+    if (GuiButton(Rectangle{ 270, 180, 30, 30 }, GuiIconText(ICON_FILE_OPEN, ""))) fileDialogState.windowActive = true;
 
     GuiUnlock();
+    GuiWindowFileDialog(&fileDialogState);
 
     DrawText("PRESS TAB TO ENABLE CURSOR", 10, 420, 16, MAROON);
-    DrawText("PRESS DELETE TO CLEAN INPUTBOX", 10, 400, 16, MAROON);
     if (GuiDropdownBox({ 12, 20, 140, 30 }, "TEST;STONE", &modelTypeActive, modelTypeEditMode)) modelTypeEditMode = !modelTypeEditMode; //;BUSH;TREE
-    
     EndDrawing();
   }
 
@@ -241,129 +241,14 @@ static bool GenerateObjectWithType(int type, std::unique_ptr<lpng::GenerateObjec
 }
 
 
-static void BtnHandler(const Vector2& mousePoint, const Rectangle& btnBounds, bool& btnAction, int& btnState)
-{
-  btnAction = false;
-
-  if (CheckCollisionPointRec(mousePoint, btnBounds))
-  {
-    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) btnState = 2;
-    else btnState = 1;
-
-    if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) btnAction = true;
-  }
-  else btnState = 0;
-}
-
-
-static void BtnDraw(const Rectangle& btnBounds, const std::string& text, const int btnState)
-{
-  GuiDrawRectangle(btnBounds, GuiGetStyle(LABEL, BORDER_WIDTH),
-    GRAY,
-    btnState == 2 ? WHITE : LIGHTGRAY);
-  DrawText(text.c_str(),
-    (int)(btnBounds.x + btnBounds.width / 2 - MeasureText(text.c_str(), 16) / 2),
-    (int)(btnBounds.y + btnBounds.height / 2 - 8),
-    16, DARKGRAY);
-}
-
-
-static void InputBoxHandler(const Vector2& mousePoint, const std::vector<InputBoxDesc>& inputBoxes, bool& inputAction, int& inputState, int& activeInputBoxId, size_t& framesCounter)
-{
-  bool mouseInTextBox = false;
-  int boxCollId = -1;
-
-  for (int i = 0; i < inputBoxes.size(); ++i)
-  {
-    if (CheckCollisionPointRec(mousePoint, inputBoxes[i].box))
-    {
-      mouseInTextBox |= true;
-      boxCollId = i;
-    }
-  }
-
-  if (mouseInTextBox) SetMouseCursor(MOUSE_CURSOR_IBEAM);
-  else SetMouseCursor(MOUSE_CURSOR_DEFAULT);
-
-  if (mouseInTextBox && boxCollId >= 0)
-  {
-    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) inputState = 2;
-    else inputState = 1;
-
-    if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
-    {
-      inputAction = true;
-      activeInputBoxId = boxCollId;
-    }
-  }
-  else inputState = 0;
-
-  if (inputState == 0 && IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
-  {
-    inputAction = false;
-    activeInputBoxId = -1;
-  }
-
-  if (inputAction) ++framesCounter;
-  else framesCounter = 0;
-}
-
-
-static void InputHandler(std::vector<InputBoxDesc>& inputBoxes, const bool inputAction, const int activeInputBoxId)
-{
-  if (inputAction && activeInputBoxId >= 0)
-  {
-    std::string& text = inputBoxes[activeInputBoxId].text;
-    int key = GetCharPressed();
-
-    while (key > 0)
-    {
-      if ((key >= 32) && (key <= 125))
-      {
-        text += (char)key;
-      }
-
-      key = GetCharPressed();
-    }
-
-    if (IsKeyPressed(KEY_BACKSPACE) && text.size() > 0)
-    {
-      text.pop_back();
-    }
-
-    if (IsKeyPressed(KEY_DELETE))
-    {
-      text.clear();
-    }
-
-    if (activeInputBoxId >= 0 && IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_C))
-    {
-      SetClipboardText(text.c_str());
-    }
-    if (activeInputBoxId >= 0 && IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_V))
-    {
-      text += GetClipboardText();
-    }
-  }
-}
-
-
-static void InputBoxDraw(const std::vector<InputBoxDesc>& inputBoxes, const int inputState, const int activeInputBoxId, const Font& font, const size_t framesCounter)
+static void InputBox(std::vector<InputBoxDesc>& inputBoxes, const int inputState, const int activeInputBoxId, const Font& font, const size_t framesCounter)
 {
   for (int i = 0; i < inputBoxes.size(); ++i)
   {
-    const std::string& text = inputBoxes[i].text;
+    char* text = inputBoxes[i].text;
     const std::string& box_name = inputBoxes[i].box_name;
     const Rectangle& box = inputBoxes[i].box;
-    GuiDrawRectangle(box, GuiGetStyle(LABEL, BORDER_WIDTH),
-      GRAY,
-      activeInputBoxId == i ? WHITE : LIGHTGRAY);
-    
-    if (((framesCounter / 30) % 2) == 0 && activeInputBoxId == i)
-    {
-      DrawTextEx(font, "|", { box.x + 3 + MeasureTextEx(font, text.c_str(), 16, 2).x, box.y + 8 }, 20, 2, BLACK);
-    }
-    DrawTextEx(font, text.c_str(), { box.x + 3, box.y + 8 }, 16, 2, BLACK);
     DrawText(box_name.c_str(), 12, (int)box.y + 8, 16, BLACK);
+    GuiTextBox(box, text, 1024, true);
   }
 }

@@ -10,10 +10,11 @@ lpng::Mesh lpng::BuildMeshWithPoints(const std::vector<float3>& input_points)
   std::vector<Point_3> points;
   for (const float3 &p : input_points)
     points.emplace_back(p.x, p.y, p.z);
+
   CGALMesh m;
   Construct construct(m, points.begin(), points.end());
-
   CGAL::advancing_front_surface_reconstruction(points.begin(), points.end(), construct, double(500), double(1.57));
+  
   Mesh mesh;
   std::vector<float3> vertexCoords;
   for (CGALMesh::Vertex_index vi : m.vertices())
