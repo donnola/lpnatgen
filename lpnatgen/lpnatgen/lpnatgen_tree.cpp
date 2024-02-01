@@ -93,7 +93,7 @@ void lpng::GenerateObjectTree::GenerateBranch(TreeBranch& branch, const float3& 
 
 void lpng::GenerateObjectTree::RelaxBranch(TreeBranch& branch, size_t meshId)
 {
-  for (size_t i = 1; i < branch.rings.size(); ++i)
+  for (size_t i = 0; i < branch.rings.size(); ++i)
   {
     TreeRing& ring = branch.rings[i];
     float angle = Angle(float3(0, 1, 0), ring.vecIn);
@@ -103,7 +103,7 @@ void lpng::GenerateObjectTree::RelaxBranch(TreeBranch& branch, size_t meshId)
       RotateVertexes(model[meshId], ring.vertexesIds, q, ring.center);
     }
     angle = Angle(ring.vecIn, ring.vecOut);
-    if (angle > FLT_EPSILON)
+    if (angle > FLT_EPSILON && i > 1)
     {
       Quat q(Cross(ring.vecIn, ring.vecOut), angle);
       RotateVertexes(model[meshId], ring.vertexesIds, q, ring.center);
