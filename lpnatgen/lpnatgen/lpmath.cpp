@@ -6,6 +6,74 @@
 #include <algorithm>
 
 
+lpng::Quat::Quat(float a, float b, float c, float d)
+{
+  float3 vec(a, b, c);
+  Normalize(vec);
+  w = cos(d / 2);
+  x = vec.x * sin(d / 2);
+  y = vec.y * sin(d / 2);
+  z = vec.z * sin(d / 2);
+}
+
+
+lpng::Quat::Quat(float3 vec, float d)
+{
+  Normalize(vec);
+  w = cos(d / 2);
+  x = vec.x * sin(d / 2);
+  y = vec.y * sin(d / 2);
+  z = vec.z * sin(d / 2);
+}
+
+
+void lpng::Invert(Quat& q)
+{
+  q.x = -q.x;
+  q.y = -q.y;
+  q.z = -q.z;
+}
+
+
+lpng::Quat lpng::Inverted(const Quat& q)
+{
+  Quat iq = q;
+  iq.x = -iq.x;
+  iq.y = -iq.y;
+  iq.z = -iq.z;
+  return iq;
+}
+
+
+lpng::Quat lpng::operator*(const Quat& l, const float3& r)
+{
+  Quat res;
+  res.w = -l.x * r.x - l.y * r.y - l.z * r.z;
+  res.x = l.w * r.x + l.y * r.z - l.z * r.y;
+  res.y = l.w * r.y - l.x * r.z + l.z * r.x;
+  res.z = l.w * r.z + l.x * r.y - l.y * r.x;
+  return res;
+}
+
+
+lpng::Quat lpng::operator*(const Quat& l, const Quat& r)
+{
+  Quat res;
+  res.w = l.w * r.w - l.x * r.x - l.y * r.y - l.z * r.z;
+  res.x = l.w * r.x + l.x * r.w + l.y * r.z - l.z * r.y;
+  res.y = l.w * r.y - l.x * r.z + l.y * r.w + l.z * r.x;
+  res.z = l.w * r.z + l.x * r.y - l.y * r.x + l.z * r.w;
+  return res;
+}
+
+
+lpng::float3 lpng::QuatTransformVec(const Quat& l, const float3& r)
+{
+  Quat res = l * r * Inverted(l);
+  return float3(res.x, res.y, res.z);
+}
+
+
 lpng::float3& lpng::float3::operator+=(const float3& r)
 {
   x += r.x;
@@ -275,48 +343,70 @@ void lpng::ScaleLocalCoord(Mesh& mesh, const float3& vec)
   }
 }
 
+std::vector<int> lpng::GetVertexesIds(const Mesh& mesh, const std::vector<int>& facesIds)
+{
+  std::set<int> vertexes_ids;
+  for (int id : facesIds)
+  {
+    for (const Vertex& v : mesh.faces[id])
+    {
+      vertexes_ids.insert(v.vi - 1);
+    }
+  }
+  return { vertexes_ids.begin(), vertexes_ids.end() };
+}
 
-void lpng::ScalePoints(Mesh& mesh, const float3& vec, const std::vector<int>& pointsIds)
+void lpng::ScaleVertexes(Mesh& mesh, const float3& vec, const std::vector<int>& vertexesIds)
 {
   float3 mean_point;
-  for (int id : pointsIds)
+  for (int id : vertexesIds)
   {
     mean_point += mesh.vertexCoords[id];
   }
-  mean_point /= pointsIds.size();
-  for (int id : pointsIds)
+  mean_point /= vertexesIds.size();
+  for (int id : vertexesIds)
   {
     mesh.vertexCoords[id] = (mesh.vertexCoords[id] - mean_point) * vec + mean_point;
   }
 }
 
 
-void lpng::ScalePoints(Mesh& mesh, const float3& vec, const std::vector<int>& pointsIds, const float3& p)
+void lpng::ScaleVertexes(Mesh& mesh, const float3& vec, const std::vector<int>& vertexesIds, const float3& O)
 {
-  for (int id : pointsIds)
+  for (int id : vertexesIds)
   {
-    mesh.vertexCoords[id] = (mesh.vertexCoords[id] - p) * vec + p;
+    mesh.vertexCoords[id] = (mesh.vertexCoords[id] - O) * vec + O;
   }
 }
 
 
-void lpng::RotateFaces(Mesh& mesh, const std::vector<int>& facesIds, const Quat& quat, const float3& point)
+void lpng::ScaleFaces(Mesh& mesh, const float3& vec, const std::vector<int>& facesIds)
 {
-  std::set<int> points_ids;
-  for (int id : facesIds)
-  {
-    for (const Vertex& v : mesh.faces[id])
-    {
-      points_ids.insert(v.vi - 1);
-    }
-  }
-  RotatePoints(mesh, {points_ids.begin(), points_ids.end()}, quat, point);
+  ScaleVertexes(mesh, vec, GetVertexesIds(mesh, facesIds));
 }
 
 
-void lpng::RotatePoints(Mesh& mesh, const std::vector<int>& pointsIds, const Quat& quat, const float3& point)
+void lpng::ScaleFaces(Mesh& mesh, const float3& vec, const std::vector<int>& facesIds, const float3& O)
 {
+  ScaleVertexes(mesh, vec, GetVertexesIds(mesh, facesIds), O);
+}
 
+
+void lpng::RotateFaces(Mesh& mesh, const std::vector<int>& facesIds, const Quat& quat, const float3& O)
+{
+  RotatePoints(mesh, GetVertexesIds(mesh, facesIds), quat, O);
+}
+
+
+void lpng::RotatePoints(Mesh& mesh, const std::vector<int>& vertexesIds, const Quat& quat, const float3& O)
+{
+  for (int pId : vertexesIds)
+  {
+    float3& p = mesh.vertexCoords[pId];
+    p -= O;
+    p = QuatTransformVec(quat, p);
+    p += O;
+  }
 }
 
 
@@ -404,16 +494,7 @@ std::vector<int> lpng::Extrude(Mesh& mesh, const std::vector<int>& facesIds, con
 
 void lpng::MoveFaces(Mesh& mesh, const std::vector<int>& facesIds, const float3& vector)
 {
-  std::set<int> vertexIds;
-  for (int fi : facesIds)
-  {
-    const Face& f = mesh.faces[fi];
-    for (const Vertex& v : f)
-    {
-      vertexIds.insert(v.vi - 1);
-    }
-  }
-  for (int vi : vertexIds)
+  for (int vi : GetVertexesIds(mesh, facesIds))
   {
     mesh.vertexCoords[vi] += vector;
   }

@@ -16,6 +16,11 @@ namespace lpng
       std::srand(std::time(0));
     }
 
+    GenerateObject(float size) : objectSize({0, size, 0})
+    {
+      std::srand(std::time(0));
+    }
+
     void AddObject(Mesh& mesh);
     virtual void GenerateMesh() = 0;
     virtual void GenerateTextureCoords();

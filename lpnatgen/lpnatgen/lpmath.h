@@ -39,9 +39,20 @@ namespace lpng
   struct Quat
   {
     float x, y, z, w;
-    Quat(float a, float b, float c, float d) : x(a), y(b), z(c), w(d) {}
-    Quat(float3 vec, float d) : x(vec.x), y(vec.y), z(vec.z), w(d) {}
+    // d - rad
+    Quat(float a, float b, float c, float d);
+    Quat(float3 vec, float d);
+    Quat() 
+    {
+      x = 0; y = 0; z = 0; w = 0;
+    }
   };
+
+  void Invert(Quat& q);
+  Quat Inverted(const Quat& q);
+  Quat operator*(const Quat& l, const float3& r);
+  Quat operator*(const Quat& l, const Quat& r);
+  float3 QuatTransformVec(const Quat& l, const float3& r);
 
   struct Vertex
   {
@@ -131,12 +142,16 @@ namespace lpng
     std::vector<Edge>& peripheryEdges
   );
 
+  std::vector<int> GetVertexesIds(const Mesh& mesh, const std::vector<int>& facesIds);
+
   void ScaleWorldCoord(Mesh& mesh, const float3& vec);
   void ScaleLocalCoord(Mesh& mesh, const float3& vec);
-  void ScalePoints(Mesh& mesh, const float3& vec, const std::vector<int>& pointsIds);
-  void ScalePoints(Mesh& mesh, const float3& vec, const std::vector<int>& pointsIds, const float3& p);
-  void RotateFaces(Mesh& mesh, const std::vector<int>& facesIds, const Quat& quat, const float3& point);
-  void RotatePoints(Mesh& mesh, const std::vector<int>& pointsIds, const Quat& quat, const float3& point);
+  void ScaleVertexes(Mesh& mesh, const float3& vec, const std::vector<int>& vertexesIds);
+  void ScaleVertexes(Mesh& mesh, const float3& vec, const std::vector<int>& vertexesIds, const float3& O);
+  void ScaleFaces(Mesh& mesh, const float3& vec, const std::vector<int>& facesIds);
+  void ScaleFaces(Mesh& mesh, const float3& vec, const std::vector<int>& facesIds, const float3& O);
+  void RotateFaces(Mesh& mesh, const std::vector<int>& facesIds, const Quat& quat, const float3& O);
+  void RotatePoints(Mesh& mesh, const std::vector<int>& vertexesIds, const Quat& quat, const float3& O);
 
   std::vector<int> ExtrudeWithCap(Mesh& mesh, const std::vector<int>& facesIds, const float3& vec);
   std::vector<int> Extrude(Mesh& mesh, const std::vector<int>& facesIds, const float3& vec);

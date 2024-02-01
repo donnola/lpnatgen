@@ -147,6 +147,9 @@
     <ClInclude Include="cgal_math.h" />
     <ClInclude Include="lpmath.h" />
     <ClInclude Include="lpnatgen.h" />
+    <ClInclude Include="lpnatgen_stone.h" />
+    <ClInclude Include="lpnatgen_test.h" />
+    <ClInclude Include="lpnatgen_tree.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cgal_math.cpp" />

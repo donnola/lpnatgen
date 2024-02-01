@@ -24,8 +24,9 @@ enum ObjectTypes
 {
   TEST = 0,
   STONE = 1,
+  TREE = 2,
   //BUSH = 2,
-  //TREE = 3,
+  
 };
 
 
@@ -158,7 +159,7 @@ int main(void)
     GuiWindowFileDialog(&fileDialogState);
 
     DrawText("PRESS TAB TO ENABLE CURSOR", 10, 420, 16, MAROON);
-    if (GuiDropdownBox({ 12, 20, 140, 30 }, "TEST;STONE", &modelTypeActive, modelTypeEditMode)) modelTypeEditMode = !modelTypeEditMode; //;BUSH;TREE
+    if (GuiDropdownBox({ 12, 20, 140, 30 }, "TEST;STONE;TREE", &modelTypeActive, modelTypeEditMode)) modelTypeEditMode = !modelTypeEditMode; //;BUSH;TREE
     EndDrawing();
   }
 
@@ -232,8 +233,11 @@ static bool GenerateObjectWithType(int type, std::unique_ptr<lpng::GenerateObjec
     
   //case BUSH:
   //  return new lpng::GenerateObjectBush();
-  //case TREE:
-  //  return new lpng::GenerateObjectTree();
+  case TREE:
+  {
+    model_ptr.reset(new lpng::GenerateObjectTree());
+    return true;
+  }
   default:
     return false;
   }
