@@ -15,7 +15,7 @@ void lpng::GenerateObjectTest::GenerateMesh()
   float segment_angle = 2 * M_PI / segments_num;
   std::vector<Face> culinderBaseFaces;
   
-  for (int i = 0; i < segments_num; ++i)
+  for (size_t i = 0; i < segments_num; ++i)
   {
     float3 vertex = root + float3(sin(i * segment_angle) * radius_x, 0, cos(i * segment_angle) * radius_z);
     cylinder.vertexCoords.push_back(vertex);

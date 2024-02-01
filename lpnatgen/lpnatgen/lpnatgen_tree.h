@@ -20,7 +20,7 @@ namespace lpng
     std::vector<TreeRing> rings;
     std::vector<TreeBranch*> childs;
     size_t childsCount = 0;
-    int weight;
+    size_t weight;
     float length;
     float rad;
   };
@@ -33,7 +33,7 @@ namespace lpng
       treeHeight = h;
       treeRad = r;
       branchCount = c;
-      mainBranch.weight = pow(2, branchCount) / 2;
+      mainBranch.weight = int(pow(2, branchCount) / 2);
       mainBranch.length = h;
       mainBranch.rad = r;
       segNum = s;

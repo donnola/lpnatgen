@@ -33,6 +33,6 @@ lpng::Mesh lpng::BuildMeshWithPoints(const std::vector<float3>& input_points)
     }
     mesh.faces.push_back(std::move(face));
   }
-  FixMeshOrientation(mesh);
+  //FixMeshOrientation(mesh);
   return mesh;
 }

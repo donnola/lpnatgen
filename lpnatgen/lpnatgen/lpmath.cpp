@@ -74,6 +74,54 @@ lpng::float3 lpng::QuatTransformVec(const Quat& l, const float3& r)
 }
 
 
+lpng::float2& lpng::float2::operator+=(const float2& r)
+{
+  x += r.x;
+  y += r.y;
+  return *this;
+}
+
+
+lpng::float2& lpng::float2::operator-=(const float2& r)
+{
+  x -= r.x;
+  y -= r.y;
+  return *this;
+}
+
+
+lpng::float2& lpng::float2::operator*=(const float2& r)
+{
+  x *= r.x;
+  y *= r.y;
+  return *this;
+}
+
+
+lpng::float2& lpng::float2::operator/=(const float2& r)
+{
+  x /= r.x;
+  y /= r.y;
+  return *this;
+}
+
+
+lpng::float2& lpng::float2::operator*=(double r)
+{
+  x *= r;
+  y *= r;
+  return *this;
+}
+
+
+lpng::float2& lpng::float2::operator/=(double r)
+{
+  x /= r;
+  y /= r;
+  return *this;
+}
+
+
 lpng::float3& lpng::float3::operator+=(const float3& r)
 {
   x += r.x;
@@ -128,6 +176,18 @@ lpng::float3& lpng::float3::operator/=(double r)
 }
 
 
+double lpng::Magnitude(const float2& vec)
+{
+  return sqrt(Dot(vec, vec));
+}
+
+
+double lpng::MagnitudeSq(const float2& vec)
+{
+  return Dot(vec, vec);
+}
+
+
 double lpng::Magnitude(const float3& vec)
 {
   return sqrt(Dot(vec, vec));
@@ -137,6 +197,20 @@ double lpng::Magnitude(const float3& vec)
 double lpng::MagnitudeSq(const float3& vec)
 {
   return Dot(vec, vec);
+}
+
+
+void lpng::Normalize(float2& vec)
+{
+  double c = 1.0f / Magnitude(vec);
+  vec *= c;
+}
+
+
+lpng::float2 lpng::Normalized(const float2& vec)
+{
+  double c = Magnitude(vec);
+  return vec / c;
 }
 
 
@@ -151,6 +225,59 @@ lpng::float3 lpng::Normalized(const float3& vec)
 {
   double c = Magnitude(vec);
   return vec / c;
+}
+
+lpng::float2 lpng::operator+(const lpng::float2& l, const lpng::float2& r)
+{
+  return lpng::float2(l.x + r.x, l.y + r.y);
+}
+
+
+lpng::float2 lpng::operator-(const lpng::float2& l, const lpng::float2& r)
+{
+  return lpng::float2(l.x - r.x, l.y - r.y);
+}
+
+
+lpng::float2 lpng::operator*(const lpng::float2& l, const lpng::float2& r)
+{
+  return lpng::float2(l.x * r.x, l.y * r.y);
+}
+
+
+lpng::float2 lpng::operator/(const float2& l, const float2& r)
+{
+  return lpng::float2(l.x / r.x, l.y / r.y);
+}
+
+
+lpng::float2 lpng::operator*(const lpng::float2& l, double r)
+{
+  return lpng::float2(l.x * r, l.y * r);
+}
+
+
+lpng::float2 lpng::operator*(double l, const lpng::float2& r)
+{
+  return r * l;
+}
+
+
+lpng::float2 lpng::operator/(const lpng::float2& l, double r)
+{
+  return lpng::float2(l.x / r, l.y / r);
+}
+
+
+bool lpng::operator==(const lpng::float2& l, const lpng::float2& r)
+{
+  return CMP(l.x, r.x) && CMP(l.y, r.y);
+}
+
+
+bool lpng::operator!=(const lpng::float2& l, const lpng::float2& r)
+{
+  return !(l == r);
 }
 
 
@@ -208,6 +335,12 @@ bool lpng::operator!=(const lpng::float3& l, const lpng::float3& r)
 }
 
 
+inline double lpng::Dot(const lpng::float2& l, const lpng::float2& r)
+{
+  return double(l.x) * double(r.x) + double(l.y) * double(r.y);
+}
+
+
 inline double lpng::Dot(const lpng::float3& l, const lpng::float3& r)
 {
   return double(l.x) * double(r.x) + double(l.y) * double(r.y) + double(l.z) * double(r.z);
@@ -224,10 +357,24 @@ lpng::float3 lpng::Cross(const lpng::float3& l, const lpng::float3& r)
 }
 
 
+double lpng::Angle(const lpng::float2& l, const lpng::float2& r)
+{
+  double m = sqrtf(MagnitudeSq(l) * MagnitudeSq(r));
+  return acos(Dot(l, r) / m);
+}
+
+
 double lpng::Angle(const lpng::float3& l, const lpng::float3& r)
 {
   double m = sqrtf(MagnitudeSq(l) * MagnitudeSq(r));
   return acos(Dot(l, r) / m);
+}
+
+
+double lpng::Distance(const lpng::float2& l, const lpng::float2& r)
+{
+  lpng::float2 t = l - r;
+  return Magnitude(t);
 }
 
 
@@ -275,7 +422,7 @@ bool lpng::operator==(const Face& l, const Face& r)
   {
     std::sort(f_l.begin(), f_l.end());
     std::sort(f_r.begin(), f_r.end());
-    for (int i = 0; i < f_l.size(); ++i)
+    for (size_t i = 0; i < f_l.size(); ++i)
     {
       if (f_l[i] != f_r[i])
       {
@@ -300,7 +447,7 @@ bool lpng::operator==(const Edge& l, const Edge& r)
 
 bool lpng::IsEdgeInFace(const Edge& edge, const Face& face)
 {
-  for (int i = 0; i < face.size(); ++i)
+  for (size_t i = 0; i < face.size(); ++i)
   {
     int e1 = face[i].vi;
     int e2 = face[(i + 1) % face.size()].vi;
@@ -325,6 +472,47 @@ int lpng::TakeThirdPointFromTriangle(const Face& face, const Edge& edge)
 }
 
 
+bool lpng::IsPointInTriangle(const float3& point, const float3& a, const float3& b, const float3& c)
+{
+  float3 ab = b - a;
+  float3 ac = c - a;
+  float3 ba = a - b;
+  float3 cb = b - c;
+
+  float3 ap = point - a;
+  float3 bp = point - b;
+  float3 cp = point - c;
+
+  float3 normal = Cross(ab, ac);
+
+  float dotProduct1 = Dot(normal, Cross(ap, ac));
+  if (dotProduct1 < 0) return false;
+
+
+  float dotProduct2 = Dot(normal, Cross(bp, ba));
+  if (dotProduct2 < 0) return false;
+
+  float dotProduct3 = Dot(normal, Cross(cp, cb));
+  if (dotProduct3 < 0) return false;
+
+  return true;
+}
+
+
+std::vector<int> lpng::GetVertexesIds(const Mesh& mesh, const std::vector<int>& facesIds)
+{
+  std::set<int> vertexes_ids;
+  for (int id : facesIds)
+  {
+    for (const Vertex& v : mesh.faces[id])
+    {
+      vertexes_ids.insert(v.vi - 1);
+    }
+  }
+  return { vertexes_ids.begin(), vertexes_ids.end() };
+}
+
+
 void lpng::ScaleWorldCoord(Mesh& mesh, const float3& vec)
 {
   for (float3& v : mesh.vertexCoords)
@@ -343,18 +531,6 @@ void lpng::ScaleLocalCoord(Mesh& mesh, const float3& vec)
   }
 }
 
-std::vector<int> lpng::GetVertexesIds(const Mesh& mesh, const std::vector<int>& facesIds)
-{
-  std::set<int> vertexes_ids;
-  for (int id : facesIds)
-  {
-    for (const Vertex& v : mesh.faces[id])
-    {
-      vertexes_ids.insert(v.vi - 1);
-    }
-  }
-  return { vertexes_ids.begin(), vertexes_ids.end() };
-}
 
 void lpng::ScaleVertexes(Mesh& mesh, const float3& vec, const std::vector<int>& vertexesIds)
 {
@@ -394,11 +570,11 @@ void lpng::ScaleFaces(Mesh& mesh, const float3& vec, const std::vector<int>& fac
 
 void lpng::RotateFaces(Mesh& mesh, const std::vector<int>& facesIds, const Quat& quat, const float3& O)
 {
-  RotatePoints(mesh, GetVertexesIds(mesh, facesIds), quat, O);
+  RotateVertexes(mesh, GetVertexesIds(mesh, facesIds), quat, O);
 }
 
 
-void lpng::RotatePoints(Mesh& mesh, const std::vector<int>& vertexesIds, const Quat& quat, const float3& O)
+void lpng::RotateVertexes(Mesh& mesh, const std::vector<int>& vertexesIds, const Quat& quat, const float3& O)
 {
   for (int pId : vertexesIds)
   {
@@ -407,6 +583,112 @@ void lpng::RotatePoints(Mesh& mesh, const std::vector<int>& vertexesIds, const Q
     p = QuatTransformVec(quat, p);
     p += O;
   }
+}
+
+
+void lpng::MoveFaces(Mesh& mesh, const std::vector<int>& facesIds, const float3& vector)
+{
+  for (int vi : GetVertexesIds(mesh, facesIds))
+  {
+    mesh.vertexCoords[vi] += vector;
+  }
+}
+
+
+void lpng::MovePivot(Mesh& mesh, const float3& vec)
+{
+  mesh.pivot += vec;
+}
+
+
+void lpng::MoveObj(Mesh& mesh, const float3& vec)
+{
+  for (float3& v : mesh.vertexCoords)
+  {
+    v += vec;
+  }
+  mesh.pivot += vec;
+}
+
+
+void lpng::DecomposeObj(Mesh& mesh)
+{
+  std::vector<Face> new_faces;
+  for (Face& f : mesh.faces)
+  {
+    if (f.size() < 3)
+    {
+      continue;
+    }
+    if (f.size() == 3)
+    {
+      new_faces.push_back(std::move(f));
+    }
+    else if (f.size() == 4)
+    {
+      new_faces.push_back(Face({ f[0], f[1], f[2] }));
+      new_faces.push_back(Face({ f[2], f[3], f[0] }));
+    }
+    else
+    {
+      float3 mean_vertex_coord;
+      for (const Vertex& v : f)
+      {
+        mean_vertex_coord += mesh.vertexCoords[v.vi - 1];
+      }
+      mesh.vertexCoords.push_back(mean_vertex_coord);
+      size_t center_index = mesh.vertexCoords.size();
+      Vertex mean_vertex(center_index);
+      for (size_t i = 0; i < f.size(); ++i)
+      {
+        new_faces.push_back(Face({ f[i], f[(i + 1) % f.size()], mean_vertex }));
+      }
+    }
+  }
+  mesh.faces = std::move(new_faces);
+}
+
+
+std::vector<lpng::float3> lpng::CalculateObjNormals(const Mesh& mesh)
+{
+  std::vector<float3> normals(mesh.vertexCoords.size());
+  for (const Face& f : mesh.faces)
+  {
+    float3 a = mesh.vertexCoords[f[2].vi - 1] - mesh.vertexCoords[f[1].vi - 1];
+    float3 b = mesh.vertexCoords[f[0].vi - 1] - mesh.vertexCoords[f[1].vi - 1];
+    float3 normal = Cross(a, b);
+    for (size_t i = 0; i < 3; ++i)
+    {
+      normals[f[i].vi - 1] += normal;
+    }
+  }
+  for (float3& n : normals)
+  {
+    Normalize(n);
+  }
+  return normals;
+}
+
+
+void lpng::SplitFaceMithPoint(std::vector<Face>& faces, const int faceId, const int pointId)
+{
+  if (faceId == -1 || pointId == -1)
+    return;
+  const Face& f = faces[faceId];
+  for (size_t i = 0; i < f.size(); ++i)
+  {
+    faces.push_back(Face({ f[i].vi, f[(i + 1) % f.size()].vi, pointId }));
+  }
+  faces.erase(faces.begin() + faceId);
+}
+
+
+double lpng::DistFromPointToFace(const float3& point, const float3& a, const float3& b, const float3& c)
+{
+  float3 n = Cross(a - b, c - b);
+  Normalize(n);
+  float d = -Dot(n, a);
+  return abs(Dot(n, point) + d);
 }
 
 
@@ -419,7 +701,7 @@ void lpng::SetPeripheryEdges(
   for (int f1_id : facesIds)
   {
     const Face& f_i = mesh.faces[f1_id];
-    for (int j = 0; j < f_i.size(); j++)
+    for (size_t j = 0; j < f_i.size(); j++)
     {
       int e1 = f_i[j].vi;
       int e2 = f_i[(j + 1) % f_i.size()].vi;
@@ -478,7 +760,7 @@ std::vector<int> lpng::Extrude(Mesh& mesh, const std::vector<int>& facesIds, con
 {
   std::vector<int> extruded_faces_ids = ExtrudeWithCap(mesh, facesIds, vec);
   std::vector<Face> new_faces;
-  for (int i = 0; i < mesh.faces.size(); ++i)
+  for (size_t i = 0; i < mesh.faces.size(); ++i)
   {
     if (std::find(facesIds.begin(), facesIds.end(), i) == facesIds.end())
       new_faces.push_back(std::move(mesh.faces[i]));
@@ -489,174 +771,6 @@ std::vector<int> lpng::Extrude(Mesh& mesh, const std::vector<int>& facesIds, con
     f_id -= facesIds.size();
   }
   return extruded_faces_ids;
-}
-
-
-void lpng::MoveFaces(Mesh& mesh, const std::vector<int>& facesIds, const float3& vector)
-{
-  for (int vi : GetVertexesIds(mesh, facesIds))
-  {
-    mesh.vertexCoords[vi] += vector;
-  }
-}
-
-
-void lpng::MovePivot(Mesh& mesh, const float3& vec)
-{
-  mesh.pivot += vec;
-}
-
-
-void lpng::MoveObj(Mesh& mesh, const float3& vec)
-{
-  for (float3& v : mesh.vertexCoords)
-  {
-    v += vec;
-  }
-  mesh.pivot += vec;
-}
-
-
-void lpng::SplitFaceMithPoint(std::vector<Face>& faces, const int faceId, const int pointId)
-{
-  if (faceId == -1 || pointId == -1)
-    return;
-  const Face& f = faces[faceId];
-  for (int i = 0; i < f.size(); ++i)
-  {
-    faces.push_back(Face({ f[i].vi, f[(i + 1) % f.size()].vi, pointId }));
-  }
-  faces.erase(faces.begin() + faceId);
-}
-
-
-bool lpng::IsPointInTriangle(const float3& point, const float3& a, const float3& b, const float3& c)
-{
-  float3 ab = b - a;
-  float3 ac = c - a;
-  float3 ba = a - b;
-  float3 cb = b - c;
-
-  float3 ap = point - a;
-  float3 bp = point - b;
-  float3 cp = point - c;
-
-  float3 normal = Cross(ab, ac);
-
-  float dotProduct1 = Dot(normal, Cross(ap, ac));
-
-  if (dotProduct1 < 0)
-  {
-    return false;
-  }
-
-  float dotProduct2 = Dot(normal, Cross(bp, ba));
-
-  if (dotProduct2 < 0)
-  {
-    return false;
-  }
-
-  float dotProduct3 = Dot(normal, Cross(cp, cb));
-
-  if (dotProduct3 < 0)
-  {
-    return false;
-  }
-
-  return true;
-}
-
-
-double lpng::DistFromPointToFace(const float3& point, const float3& a, const float3& b, const float3& c)
-{
-  float3 n = Cross(a-b, c-b);
-  Normalize(n);
-  float d = -Dot(n, a);
-  return abs(Dot(n, point) + d);
-}
-
-
-std::vector<lpng::float3> lpng::CalculateObjNormals(const Mesh& mesh)
-{
-  std::vector<float3> normals(mesh.vertexCoords.size());
-  for (const Face& f : mesh.faces)
-  {
-    float3 a = mesh.vertexCoords[f[2].vi - 1] - mesh.vertexCoords[f[1].vi - 1];
-    float3 b = mesh.vertexCoords[f[0].vi - 1] - mesh.vertexCoords[f[1].vi - 1];
-    float3 normal = Cross(a, b);
-    for (size_t i = 0; i < 3; ++i)
-    {
-      normals[f[i].vi - 1] += normal;
-    }
-  }
-  for (float3& n : normals)
-  {
-    Normalize(n);
-  }
-  return normals;
-}
-
-
-void lpng::DecomposeObj(Mesh& mesh)
-{
-  std::vector<Face> new_faces;
-  for (Face& f : mesh.faces)
-  {
-    if (f.size() < 3)
-    {
-      continue;
-    }
-    if (f.size() == 3)
-    {
-      new_faces.push_back(std::move(f));
-    }
-    else if (f.size() == 4)
-    {
-      new_faces.push_back(Face({ f[0], f[1], f[2] }));
-      new_faces.push_back(Face({ f[2], f[3], f[0] }));
-    }
-    else
-    {
-      float3 mean_vertex_coord;
-      for (const Vertex& v : f)
-      {
-        mean_vertex_coord += mesh.vertexCoords[v.vi - 1];
-      }
-      mesh.vertexCoords.push_back(mean_vertex_coord);
-      size_t center_index = mesh.vertexCoords.size();
-      Vertex mean_vertex(center_index);
-      for (int i = 0; i < f.size(); ++i)
-      {
-        new_faces.push_back(Face({ f[i], f[(i + 1) % f.size()], mean_vertex }));
-      }
-    }
-  }
-  mesh.faces = std::move(new_faces);
-}
-
-
-void lpng::FilterNearesPoints(std::vector<float3>& points, float d)
-{
-  std::vector<float3> new_points;
-  new_points.push_back(std::move(points[0]));
-  for (int i = 1; i < points.size(); ++i)
-  {
-    bool is_add = true;
-    for (const float3& p : new_points)
-    {
-      if (Distance(p, points[i]) <= d)
-      {
-        is_add = false;
-        break;
-      }
-    }
-    if (is_add)
-    {
-      new_points.push_back(std::move(points[i]));
-    }
-  }
-  points = std::move(new_points);
 }
 
 
@@ -696,12 +810,37 @@ std::vector<lpng::float3> lpng::GenerateEllipsoidUniformPoints(const float3& siz
   return points;
 }
 
-void lpng::FixMeshHole(Mesh& mesh)
-{
 
+void lpng::FilterNearesPoints(std::vector<float3>& points, float d)
+{
+  std::vector<float3> new_points;
+  new_points.push_back(std::move(points[0]));
+  for (size_t i = 1; i < points.size(); ++i)
+  {
+    bool is_add = true;
+    for (const float3& p : new_points)
+    {
+      if (Distance(p, points[i]) <= d)
+      {
+        is_add = false;
+        break;
+      }
+    }
+    if (is_add)
+    {
+      new_points.push_back(std::move(points[i]));
+    }
+  }
+  points = std::move(new_points);
 }
 
-void lpng::FixMeshOrientation(Mesh& mesh)
-{
 
-}
+//void lpng::FixMeshHole(Mesh& mesh)
+//{
+//
+//}
+//
+//void lpng::FixMeshOrientation(Mesh& mesh)
+//{
+//
+//}
