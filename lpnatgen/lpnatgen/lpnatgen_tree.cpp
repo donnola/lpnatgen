@@ -50,8 +50,7 @@ void lpng::GenerateObjectTree::GenerateBranch(TreeBranch& branch, const float3& 
   while (branch.rings.back().curLength < branch.length)
   {
     TreeRing& p_ring = branch.rings.back();
-    //float3 prev_vec_in = mRing.vecIn;
-
+    ring = TreeRing();
     float seg_len = std::max((branch.length - p_ring.curLength) / 5 * 2, last_seg_len);
     ring.curLength = p_ring.curLength + seg_len;
     ring.rad = std::max((treeRad - last_rad) * (1 - std::min(ring.curLength / branch.length, 1.f)), last_rad);
@@ -61,14 +60,14 @@ void lpng::GenerateObjectTree::GenerateBranch(TreeBranch& branch, const float3& 
       vec.y = 1;
     else
     {
-      int angle = rand() % 10 + 15;
+      int angle = rand() % 25 + 5;
       vec.y = 1 / tan(DEG2RAD(angle));
     }
     Normalize(vec);
-    float angle = Angle(float3(0, 1, 0), p_ring.vecIn);
+    float angle = Angle(float3(0, 1, 0), vecIn);
     if (angle > FLT_EPSILON)
     {
-      Quat q(Cross(float3(0, 1, 0), p_ring.vecIn + float3(0, 1, 0)), angle);
+      Quat q(Cross(float3(0, 1, 0), vecIn), angle);
       vec = QuatTransformVec(q, vec);
     }
 
@@ -96,16 +95,10 @@ void lpng::GenerateObjectTree::RelaxBranch(TreeBranch& branch, size_t meshId)
   for (size_t i = 0; i < branch.rings.size(); ++i)
   {
     TreeRing& ring = branch.rings[i];
-    float angle = Angle(float3(0, 1, 0), ring.vecIn);
+    float angle = Angle(float3(0, 1, 0), Normalized(ring.vecIn + ring.vecOut));
     if (angle > FLT_EPSILON)
     {
-      Quat q(Cross(float3(0, 1, 0), ring.vecIn), angle);
-      RotateVertexes(model[meshId], ring.vertexesIds, q, ring.center);
-    }
-    angle = Angle(ring.vecIn, ring.vecOut);
-    if (angle > FLT_EPSILON && i > 1)
-    {
-      Quat q(Cross(ring.vecIn, ring.vecOut), angle);
+      Quat q(Cross(float3(0, 1, 0), Normalized(ring.vecIn + ring.vecOut)), angle);
       RotateVertexes(model[meshId], ring.vertexesIds, q, ring.center);
     }
   }
