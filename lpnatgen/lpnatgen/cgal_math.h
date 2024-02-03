@@ -1,5 +1,5 @@
 #pragma once
-#include "lpmath.h"
+#include "lpng_math.h"
 #include <CGAL/Surface_mesh.h>
 #include <CGAL/Simple_cartesian.h>
 

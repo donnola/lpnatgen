@@ -1,6 +1,6 @@
 #define _USE_MATH_DEFINES
 
-#include "lpnatgen_tree.h"
+#include "lpng_tree.h"
 
 
 void lpng::GenerateObjectTree::GenerateMesh()
@@ -54,13 +54,13 @@ void lpng::GenerateObjectTree::GenerateBranch(TreeBranch& branch, const float3& 
     float seg_len = std::max((branch.length - p_ring.curLength) / 5 * 2, last_seg_len);
     ring.curLength = p_ring.curLength + seg_len;
     ring.rad = std::max((treeRad - last_rad) * (1 - std::min(ring.curLength / branch.length, 1.f)), last_rad);
-    float3 vec(rand() % 101 - 50, 0, rand() % 101 - 50);
+    float3 vec(fast_lpng_rand() % 101 - 50, 0, fast_lpng_rand() % 101 - 50);
     Normalize(vec);
     if (vec == float3(0, 0, 0))
       vec.y = 1;
     else
     {
-      int angle = rand() % 25 + 5;
+      int angle = fast_lpng_rand() % 25 + 5;
       vec.y = 1 / tan(DEG2RAD(angle));
     }
     Normalize(vec);

@@ -15,42 +15,48 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="lpnatgen.h">
+    <ClInclude Include="lpng.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="lpmath.h">
+    <ClInclude Include="lpng_math.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="cgal_math.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="lpnatgen_tree.h">
+    <ClInclude Include="lpng_tree.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="lpnatgen_stone.h">
+    <ClInclude Include="lpng_stone.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="lpnatgen_test.h">
+    <ClInclude Include="lpng_test.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="lpng_rand.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="lpnatgen.cpp">
+    <ClCompile Include="lpng.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="lpmath.cpp">
+    <ClCompile Include="lpng_math.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="lpnatgen_test.cpp">
+    <ClCompile Include="lpngtest.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="plnatgen_stone.cpp">
+    <ClCompile Include="lpng_stone.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="cgal_math.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="lpnatgen_tree.cpp">
+    <ClCompile Include="lpng_tree.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="lpng_rand.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>

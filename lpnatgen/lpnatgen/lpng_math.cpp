@@ -1,4 +1,5 @@
-#include "lpmath.h"
+#include "lpng_math.h"
+#include "lpng_rand.h"
 
 #include <cfloat>
 #include <set>
@@ -789,9 +790,9 @@ std::vector<lpng::float3> lpng::GenerateEllipsoidUniformPoints(const float3& siz
 
   while (points.size() < pointsNum)
   {
-    float x = from_x + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (to_x - from_x)));
-    float y = from_y + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (to_y - from_y)));
-    float z = from_z + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (to_z - from_z)));
+    float x = from_x + static_cast <float> (fast_lpng_rand()) / (static_cast <float> (RAND_MAX / (to_x - from_x)));
+    float y = from_y + static_cast <float> (fast_lpng_rand()) / (static_cast <float> (RAND_MAX / (to_y - from_y)));
+    float z = from_z + static_cast <float> (fast_lpng_rand()) / (static_cast <float> (RAND_MAX / (to_z - from_z)));
     float3 p(x, y, z);
     float3 p_sq = p * p;
     float3 t = p_sq / rad_sq;

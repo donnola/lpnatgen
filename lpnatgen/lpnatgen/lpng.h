@@ -1,8 +1,8 @@
 #pragma once
 
-#include "lpmath.h"
+#include "lpng_math.h"
+#include "lpng_rand.h"
 
-#include <ctime>
 #include <string>
 
 
@@ -11,15 +11,9 @@ namespace lpng
   class GenerateObject
   {
   public:
-    GenerateObject(float3 size) : objectSize(size)
-    {
-      std::srand(std::time(0));
-    }
+    GenerateObject(float3 size) : objectSize(size) {}
 
-    GenerateObject(float size) : objectSize({0, size, 0})
-    {
-      std::srand(std::time(0));
-    }
+    GenerateObject(float size) : objectSize({0, size, 0}) {}
 
     void AddObject(Mesh& mesh);
     virtual void GenerateMesh() = 0;
@@ -30,11 +24,13 @@ namespace lpng
     void SaveModel() const;
     void Generate();
     std::vector<Mesh> GetModel();
+    unsigned int GetModelSeed() { return seed; }
     
   protected:
     const float3 objectSize = float3(1,1,1);
     std::vector<Mesh> model;
     std::string fileFormat = ".obj";
+    unsigned int seed;
   };
 
   class GenerateObjectBush : public GenerateObject

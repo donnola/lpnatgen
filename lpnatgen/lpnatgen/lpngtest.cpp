@@ -1,5 +1,5 @@
 #define _USE_MATH_DEFINES
-#include "lpnatgen_test.h"
+#include "lpng_test.h"
 
 
 void lpng::GenerateObjectTest::GenerateMesh()

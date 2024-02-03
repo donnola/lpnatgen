@@ -145,19 +145,21 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="cgal_math.h" />
-    <ClInclude Include="lpmath.h" />
-    <ClInclude Include="lpnatgen.h" />
-    <ClInclude Include="lpnatgen_stone.h" />
-    <ClInclude Include="lpnatgen_test.h" />
-    <ClInclude Include="lpnatgen_tree.h" />
+    <ClInclude Include="lpng_math.h" />
+    <ClInclude Include="lpng.h" />
+    <ClInclude Include="lpng_rand.h" />
+    <ClInclude Include="lpng_stone.h" />
+    <ClInclude Include="lpng_test.h" />
+    <ClInclude Include="lpng_tree.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cgal_math.cpp" />
-    <ClCompile Include="lpmath.cpp" />
-    <ClCompile Include="lpnatgen.cpp" />
-    <ClCompile Include="lpnatgen_test.cpp" />
-    <ClCompile Include="lpnatgen_tree.cpp" />
-    <ClCompile Include="plnatgen_stone.cpp" />
+    <ClCompile Include="lpng_math.cpp" />
+    <ClCompile Include="lpng.cpp" />
+    <ClCompile Include="lpngtest.cpp" />
+    <ClCompile Include="lpng_rand.cpp" />
+    <ClCompile Include="lpng_tree.cpp" />
+    <ClCompile Include="lpng_stone.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

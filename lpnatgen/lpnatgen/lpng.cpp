@@ -1,5 +1,5 @@
-#include "lpnatgen.h"
-#include "lpmath.h"
+#include "lpng.h"
+#include "lpng_math.h"
 #include <filesystem>
 #include <stack>
 #include <set>
@@ -13,6 +13,7 @@ std::vector<lpng::Mesh> lpng::GenerateObject::GetModel()
 
 void lpng::GenerateObject::Generate()
 {
+  seed = get_lpng_seed();
   GenerateMesh();
   PolygonDecomposition();
   GenerateNormals();

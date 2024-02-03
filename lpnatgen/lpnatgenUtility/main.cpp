@@ -1,9 +1,11 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include <lpnatgen_tree.h>
-#include <lpnatgen_test.h>
-#include <lpnatgen_stone.h>
+#include "lpng_tree.h"
+#include "lpng_test.h"
+#include "lpng_stone.h"
+#include "lpng_rand.h"
 #include <iostream>
 #include <memory>
+#include <ctime>
 #include "raylib.h"
 #include "raymath.h"
 #define RAYGUI_IMPLEMENTATION
@@ -32,7 +34,7 @@ enum ObjectTypes
 
 static Mesh GenMesh(const std::vector<lpng::Mesh> &model);
 static bool GenerateObjectWithType(int type, std::unique_ptr<lpng::GenerateObject>& model_ptr);
-static void InputBox(std::vector<InputBoxDesc>& inputBoxes, const int inputState, const int activeInputBoxId, const Font& font, const size_t framesCounter);
+static void InputBox(std::vector<InputBoxDesc>& inputBoxes, const int activeInputBoxId);
 
 
 int main(void)
@@ -40,7 +42,7 @@ int main(void)
   const int screenWidth = 1000;
   const int screenHeight = 560;
 
-  InitWindow(screenWidth, screenHeight, "lpnatgenUtility : object generation");
+  InitWindow(screenWidth, screenHeight, "lpngUtility : object generation");
 
   // Define the camera to look into our 3d world
   Camera camera = { 0 };
@@ -57,7 +59,7 @@ int main(void)
 
   SetTargetFPS(60);
 
-  Font fonts = LoadFont("resources/fonts/alpha_beta.png");
+  fast_lpng_rand(int(std::time(0)));
 
   int modelTypeActive = TEST;
   bool modelTypeEditMode = false;
@@ -82,14 +84,11 @@ int main(void)
 
   Vector2 mousePoint = { 0.0f, 0.0f };
 
-  std::unique_ptr<lpng::GenerateObject> model_ptr{ std::make_unique<lpng::GenerateObjectTest>() };
-  model_ptr->Generate();
-  std::vector<lpng::Mesh> generatedModel = model_ptr->GetModel();
+  std::unique_ptr<lpng::GenerateObject> modelPtr{ std::make_unique<lpng::GenerateObjectTest>() };
+  modelPtr->Generate();
+  unsigned int modelSeed = modelPtr->GetModelSeed();
+  std::vector<lpng::Mesh> generatedModel = modelPtr->GetModel();
   Model model = LoadModelFromMesh(GenMesh(generatedModel));
-
-
-  Font font = LoadFont("resources/fonts/romulus.png");
-  size_t framesCounter = 0;
 
   GuiWindowFileDialogState fileDialogState = InitGuiWindowFileDialog(GetWorkingDirectory());
   
@@ -143,28 +142,30 @@ int main(void)
 
     if (GuiButton(btnCreateBounds, createModelText.c_str()))
     {
-      bool isNewModel = GenerateObjectWithType(modelTypeActive, model_ptr);
+      bool isNewModel = GenerateObjectWithType(modelTypeActive, modelPtr);
       if (!isNewModel)
         break;
-      model_ptr->Generate();
-      generatedModel = model_ptr->GetModel();
+      modelPtr->Generate();
+      modelSeed = modelPtr->GetModelSeed();
+      generatedModel = modelPtr->GetModel();
       UnloadModel(model);
       model = LoadModelFromMesh(GenMesh(generatedModel));
     }
-    if (GuiButton(btnSaveBounds, saveModelText.c_str())) model_ptr->SaveModel();
-    InputBox(inputBoxes, inputState, activeInputBoxId, font, framesCounter);
+    if (GuiButton(btnSaveBounds, saveModelText.c_str())) modelPtr->SaveModel();
+    InputBox(inputBoxes, activeInputBoxId);
     if (GuiButton(Rectangle{ 270, 180, 30, 30 }, GuiIconText(ICON_FILE_OPEN, ""))) fileDialogState.windowActive = true;
 
     GuiUnlock();
     GuiWindowFileDialog(&fileDialogState);
 
-    DrawText("PRESS TAB TO ENABLE CURSOR", 10, 420, 16, MAROON);
+    DrawText(TextFormat("MODEL SEED : %u", modelSeed), 10, 500, 16, MAROON);
+    DrawText("PRESS TAB TO ENABLE CURSOR", 10, 520, 16, MAROON);
     if (GuiDropdownBox({ 12, 20, 140, 30 }, "TEST;STONE;TREE", &modelTypeActive, modelTypeEditMode)) modelTypeEditMode = !modelTypeEditMode; //;BUSH;TREE
     EndDrawing();
   }
 
   UnloadModel(model);
-  model_ptr.reset();
+  modelPtr.reset();
 
   CloseWindow();
 
@@ -245,7 +246,7 @@ static bool GenerateObjectWithType(int type, std::unique_ptr<lpng::GenerateObjec
 }
 
 
-static void InputBox(std::vector<InputBoxDesc>& inputBoxes, const int inputState, const int activeInputBoxId, const Font& font, const size_t framesCounter)
+static void InputBox(std::vector<InputBoxDesc>& inputBoxes, const int activeInputBoxId)
 {
   for (int i = 0; i < inputBoxes.size(); ++i)
   {
