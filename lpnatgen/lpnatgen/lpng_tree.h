@@ -33,7 +33,7 @@ namespace lpng
       treeHeight = h;
       treeRad = r;
       branchCount = c;
-      mainBranch.weight = int(pow(2, branchCount) / 2);
+      mainBranch.weight = 10000;
       mainBranch.length = h;
       mainBranch.rad = r;
       segNum = s;
@@ -42,13 +42,17 @@ namespace lpng
     void GenerateMesh() override;
 
   private:
-    void GenerateBranch(TreeBranch& branch, const float3& vecIn, const float3& pointStart);
+    void GenerateBranch(TreeBranch& branch, const float3& pointStart, const float3& vecIn, const float3& vecOut = float3());
     void RelaxBranch(TreeBranch& branch, size_t meshId);
+    float3 GenOutVec(const float3& vecIn, int angleDelta, int add = 0) const;
+    size_t SelectWeightedBranch() const;
+    void InitBranch(const size_t parent_id, TreeBranch& branch, float3& point_start, float3& vec_in);
     std::vector<TreeBranch> tree;
     TreeBranch mainBranch;
     float treeRad;
     float treeHeight;
     size_t branchCount = 8;
     size_t segNum = 5;
+    size_t weightCum = 0;
   };
 }

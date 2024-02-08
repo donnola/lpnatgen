@@ -16,6 +16,7 @@ namespace lpng
     float x;
     float y;
 
+    float2() : x(0), y(0) {}
     float2(float a, float b) : x(a), y(b) {}
 
     float2& operator+=(const float2& r);

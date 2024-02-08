@@ -203,29 +203,37 @@ double lpng::MagnitudeSq(const float3& vec)
 
 void lpng::Normalize(float2& vec)
 {
-  double c = 1.0f / Magnitude(vec);
-  vec *= c;
+  float m = Magnitude(vec);
+  if (m == 0)
+    return;
+  vec /= m;
 }
 
 
 lpng::float2 lpng::Normalized(const float2& vec)
 {
-  double c = Magnitude(vec);
-  return vec / c;
+  double m = Magnitude(vec);
+  if (m == 0)
+    return float2();
+  return vec / m;
 }
 
 
 void lpng::Normalize(float3& vec)
 {
-  double c = 1.0f / Magnitude(vec);
-  vec *= c;
+  float m = Magnitude(vec);
+  if (m == 0)
+    return;
+  vec /= m;
 }
 
 
 lpng::float3 lpng::Normalized(const float3& vec)
 {
-  double c = Magnitude(vec);
-  return vec / c;
+  double m = Magnitude(vec);
+  if (m == 0)
+    return float3();
+  return vec / m;
 }
 
 lpng::float2 lpng::operator+(const lpng::float2& l, const lpng::float2& r)
@@ -361,6 +369,8 @@ lpng::float3 lpng::Cross(const lpng::float3& l, const lpng::float3& r)
 double lpng::Angle(const lpng::float2& l, const lpng::float2& r)
 {
   double m = sqrtf(MagnitudeSq(l) * MagnitudeSq(r));
+  if (m == 0)
+    return -1;
   return acos(Dot(l, r) / m);
 }
 
@@ -368,6 +378,8 @@ double lpng::Angle(const lpng::float2& l, const lpng::float2& r)
 double lpng::Angle(const lpng::float3& l, const lpng::float3& r)
 {
   double m = sqrtf(MagnitudeSq(l) * MagnitudeSq(r));
+  if (m == 0)
+    return -1;
   return acos(Dot(l, r) / m);
 }
 
@@ -790,9 +802,9 @@ std::vector<lpng::float3> lpng::GenerateEllipsoidUniformPoints(const float3& siz
 
   while (points.size() < pointsNum)
   {
-    float x = from_x + static_cast <float> (fast_lpng_rand()) / (static_cast <float> (RAND_MAX / (to_x - from_x)));
-    float y = from_y + static_cast <float> (fast_lpng_rand()) / (static_cast <float> (RAND_MAX / (to_y - from_y)));
-    float z = from_z + static_cast <float> (fast_lpng_rand()) / (static_cast <float> (RAND_MAX / (to_z - from_z)));
+    float x = from_x + static_cast <float> (fast_lpng_rand()) / (static_cast <float> (UINT32_MAX / (to_x - from_x)));
+    float y = from_y + static_cast <float> (fast_lpng_rand()) / (static_cast <float> (UINT32_MAX / (to_y - from_y)));
+    float z = from_z + static_cast <float> (fast_lpng_rand()) / (static_cast <float> (UINT32_MAX / (to_z - from_z)));
     float3 p(x, y, z);
     float3 p_sq = p * p;
     float3 t = p_sq / rad_sq;
