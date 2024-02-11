@@ -20,9 +20,17 @@ namespace lpng
     std::vector<TreeRing> rings;
     std::vector<TreeBranch*> childs;
     size_t childsCount = 0;
-    size_t weight;
-    float length;
-    float rad;
+    size_t weight = 0;
+    float length = 0;
+    float rad = 0;
+  };
+
+  struct Quality
+  {
+    float3 C;
+    float3 mean;
+    float3 D3;
+    float D;
   };
 
   class GenerateObjectTree : public GenerateObject
@@ -33,9 +41,6 @@ namespace lpng
       treeHeight = h;
       treeRad = r;
       branchCount = c;
-      mainBranch.weight = 10000;
-      mainBranch.length = h;
-      mainBranch.rad = r;
       segNum = s;
     }
 
@@ -45,14 +50,14 @@ namespace lpng
     void GenerateBranch(TreeBranch& branch, const float3& pointStart, const float3& vecIn, const float3& vecOut = float3());
     void RelaxBranch(TreeBranch& branch, size_t meshId);
     float3 GenOutVec(const float3& vecIn, int angleDelta, int add = 0) const;
-    size_t SelectWeightedBranch() const;
+    size_t SelectWeightedBranch();
     void InitBranch(const size_t parent_id, TreeBranch& branch, float3& point_start, float3& vec_in);
+    void CalculateQuality();
     std::vector<TreeBranch> tree;
-    TreeBranch mainBranch;
     float treeRad;
     float treeHeight;
     size_t branchCount = 8;
     size_t segNum = 5;
-    size_t weightCum = 0;
+    Quality quality;
   };
 }
