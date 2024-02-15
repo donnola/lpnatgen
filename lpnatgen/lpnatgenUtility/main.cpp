@@ -39,21 +39,31 @@ static void InputBox(std::vector<InputBoxDesc>& inputBoxes, const int activeInpu
 
 int main(void)
 {
-  const int screenWidth = 1000;
-  const int screenHeight = 560;
+  const int screenWidth = 1400;
+  const int screenHeight = 800;
 
   InitWindow(screenWidth, screenHeight, "lpngUtility : object generation");
 
-  // Define the camera to look into our 3d world
-  Camera camera = { 0 };
-  camera.position = { 10.0f, 10.0f, 10.0f };
-  camera.target = { 0.0f, 0.0f, 0.0f };
-  camera.up = { 0.0f, 1.0f, 0.0f };
-  camera.fovy = 45.0f;
-  camera.projection = CAMERA_PERSPECTIVE;
+  Camera cameraPlayer1 = { 0 };
+  cameraPlayer1.fovy = 45.0f;
+  cameraPlayer1.up.y = 1.0f;
+  cameraPlayer1.target.y = 1.0f;
+  cameraPlayer1.position.z = -3.0f;
+  cameraPlayer1.position.y = 1.0f;
+
+  RenderTexture screenPlayer1 = LoadRenderTexture(screenWidth / 2, screenHeight);
+
+  Camera cameraPlayer2 = { 0 };
+  cameraPlayer2.fovy = 45.0f;
+  cameraPlayer2.up.y = 1.0f;
+  cameraPlayer2.target.y = 0.0f;
+  cameraPlayer2.position.x = -10.0f;
+  cameraPlayer2.position.y = 10.0f;
+
+  RenderTexture screenPlayer2 = LoadRenderTexture(screenWidth / 2, screenHeight);
+  Rectangle splitScreenRect = { 0.0f, 0.0f, (float)screenPlayer1.texture.width, (float)-screenPlayer1.texture.height };
 
   Vector3 modelPosition = { 0.0f, 0.0f, 0.0f };
-  Vector2 modelScreenPosition = { 0.0f, 0.0f };
 
   DisableCursor();
 
@@ -95,7 +105,7 @@ int main(void)
   while (!WindowShouldClose())
   {
 
-    if (IsCursorHidden()) UpdateCamera(&camera, CAMERA_THIRD_PERSON);
+    if (IsCursorHidden()) UpdateCamera(&cameraPlayer2, CAMERA_THIRD_PERSON);
 
     if (IsKeyPressed(KEY_TAB))
     {
@@ -116,27 +126,8 @@ int main(void)
       fileDialogState.SelectFilePressed = false;
     }
 
-    modelScreenPosition = GetWorldToScreen({ modelPosition.x, modelPosition.y, modelPosition.z }, camera);
-
-    BeginDrawing();
-
-    ClearBackground(RAYWHITE);
-
-    BeginMode3D(camera);
-
-    for (const lpng::Mesh& m : generatedModel)
-    {
-      for (const lpng::float3& v : m.vertexCoords)
-      {
-        DrawSphere({v.x, v.y, v.z}, 0.05f, DARKPURPLE);
-      }
-    }
-    
-    DrawModel(model, modelPosition, 1.0f, RED);
-    DrawModelWires(model, modelPosition, 1.0f, DARKPURPLE);
-
-    DrawGrid(10, 1.0f);
-    EndMode3D();
+    BeginTextureMode(screenPlayer1);
+    ClearBackground({ 255, 230, 200, 255 });
 
     if (modelTypeEditMode || fileDialogState.windowActive) GuiLock();
 
@@ -158,12 +149,42 @@ int main(void)
     GuiUnlock();
     GuiWindowFileDialog(&fileDialogState);
 
-    DrawText(TextFormat("MODEL SEED : %u", modelSeed), 10, 500, 16, MAROON);
-    DrawText("PRESS TAB TO ENABLE CURSOR", 10, 520, 16, MAROON);
-    if (GuiDropdownBox({ 12, 20, 140, 30 }, "TEST;STONE;TREE", &modelTypeActive, modelTypeEditMode)) modelTypeEditMode = !modelTypeEditMode; //;BUSH;TREE
+    DrawText(TextFormat("MODEL SEED : %u", modelSeed), 10, 710, 22, MAROON);
+    DrawText("PRESS TAB TO ENABLE CURSOR", 10, 740, 22, MAROON);
+    if (GuiDropdownBox({ 12, 20, 140, 30 }, "TEST;STONE;TREE", &modelTypeActive, modelTypeEditMode)) modelTypeEditMode = !modelTypeEditMode; //;BUSH
+
+    EndTextureMode();
+
+    BeginTextureMode(screenPlayer2);
+    ClearBackground(RAYWHITE);
+
+    BeginMode3D(cameraPlayer2);
+
+    for (const lpng::Mesh& m : generatedModel)
+    {
+      for (const lpng::float3& v : m.vertexCoords)
+      {
+        DrawSphere({v.x, v.y, v.z}, 0.05f, DARKPURPLE);
+      }
+    }
+    
+    DrawModel(model, modelPosition, 1.0f, RED);
+    DrawModelWires(model, modelPosition, 1.0f, DARKPURPLE);
+
+    DrawGrid(10, 1.0f);
+    EndMode3D();
+
+    EndTextureMode();
+
+    BeginDrawing();
+
+    DrawTextureRec(screenPlayer1.texture, splitScreenRect, { 0, 0 }, WHITE);
+    DrawTextureRec(screenPlayer2.texture, splitScreenRect, { screenWidth / 2.0f, 0 }, WHITE);
+
     EndDrawing();
   }
-
+  UnloadRenderTexture(screenPlayer1);
+  UnloadRenderTexture(screenPlayer2);
   UnloadModel(model);
   modelPtr.reset();
 
