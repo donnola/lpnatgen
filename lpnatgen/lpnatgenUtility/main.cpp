@@ -44,25 +44,17 @@ int main(void)
 
   InitWindow(screenWidth, screenHeight, "lpngUtility : object generation");
 
-  Camera cameraPlayer1 = { 0 };
-  cameraPlayer1.fovy = 45.0f;
-  cameraPlayer1.up.y = 1.0f;
-  cameraPlayer1.target.y = 1.0f;
-  cameraPlayer1.position.z = -3.0f;
-  cameraPlayer1.position.y = 1.0f;
+  RenderTexture screen1 = LoadRenderTexture(screenWidth / 2, screenHeight);
 
-  RenderTexture screenPlayer1 = LoadRenderTexture(screenWidth / 2, screenHeight);
+  Camera camera = { 0 };
+  camera.fovy = 45.0f;
+  camera.up.y = 1.0f;
+  camera.target.y = 0.0f;
+  camera.position.x = 15.0f;
+  camera.position.y = 15.0f;
 
-  Camera cameraPlayer2 = { 0 };
-  cameraPlayer2.fovy = 45.0f;
-  cameraPlayer2.up.y = 1.0f;
-  cameraPlayer2.target.y = 0.0f;
-  cameraPlayer2.position.x = -10.0f;
-  cameraPlayer2.position.y = 10.0f;
-
-  RenderTexture screenPlayer2 = LoadRenderTexture(screenWidth / 2, screenHeight);
-  Rectangle splitScreenRect = { 0.0f, 0.0f, (float)screenPlayer1.texture.width, (float)-screenPlayer1.texture.height };
-
+  RenderTexture screen2 = LoadRenderTexture(screenWidth / 2, screenHeight);
+  Rectangle splitScreenRect = { 0.0f, 0.0f, (float)screen1.texture.width, (float)-screen1.texture.height };
   Vector3 modelPosition = { 0.0f, 0.0f, 0.0f };
 
   DisableCursor();
@@ -105,7 +97,7 @@ int main(void)
   while (!WindowShouldClose())
   {
 
-    if (IsCursorHidden()) UpdateCamera(&cameraPlayer2, CAMERA_THIRD_PERSON);
+    if (IsCursorHidden()) UpdateCamera(&camera, CAMERA_THIRD_PERSON);
 
     if (IsKeyPressed(KEY_TAB))
     {
@@ -126,8 +118,8 @@ int main(void)
       fileDialogState.SelectFilePressed = false;
     }
 
-    BeginTextureMode(screenPlayer1);
-    ClearBackground({ 255, 230, 200, 255 });
+    BeginTextureMode(screen1);
+    ClearBackground({ 230, 245, 255, 255 });
 
     if (modelTypeEditMode || fileDialogState.windowActive) GuiLock();
 
@@ -155,10 +147,10 @@ int main(void)
 
     EndTextureMode();
 
-    BeginTextureMode(screenPlayer2);
+    BeginTextureMode(screen2);
     ClearBackground(RAYWHITE);
 
-    BeginMode3D(cameraPlayer2);
+    BeginMode3D(camera);
 
     for (const lpng::Mesh& m : generatedModel)
     {
@@ -178,13 +170,13 @@ int main(void)
 
     BeginDrawing();
 
-    DrawTextureRec(screenPlayer1.texture, splitScreenRect, { 0, 0 }, WHITE);
-    DrawTextureRec(screenPlayer2.texture, splitScreenRect, { screenWidth / 2.0f, 0 }, WHITE);
-
+    DrawTextureRec(screen1.texture, splitScreenRect, { 0, 0 }, WHITE);
+    DrawTextureRec(screen2.texture, splitScreenRect, { screenWidth / 2.0f, 0 }, WHITE);
+    DrawRectangle(GetScreenWidth() / 2 - 2, 0, 4, GetScreenHeight(), LIGHTGRAY);
     EndDrawing();
   }
-  UnloadRenderTexture(screenPlayer1);
-  UnloadRenderTexture(screenPlayer2);
+  UnloadRenderTexture(screen1);
+  UnloadRenderTexture(screen2);
   UnloadModel(model);
   modelPtr.reset();
 
