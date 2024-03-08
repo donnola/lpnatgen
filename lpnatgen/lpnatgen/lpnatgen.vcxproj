@@ -144,36 +144,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="cgal_math.h" />
     <ClInclude Include="lpng_math.h" />
     <ClInclude Include="lpng.h" />
+    <ClInclude Include="lpng_primitive.h" />
     <ClInclude Include="lpng_rand.h" />
     <ClInclude Include="lpng_stone.h" />
     <ClInclude Include="lpng_test.h" />
     <ClInclude Include="lpng_tree.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="cgal_math.cpp" />
     <ClCompile Include="lpng_math.cpp" />
     <ClCompile Include="lpng.cpp" />
     <ClCompile Include="lpngtest.cpp" />
+    <ClCompile Include="lpng_primitive.cpp" />
     <ClCompile Include="lpng_rand.cpp" />
     <ClCompile Include="lpng_tree.cpp" />
     <ClCompile Include="lpng_stone.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\boost.1.84.0\build\boost.targets" Condition="Exists('..\packages\boost.1.84.0\build\boost.targets')" />
-    <Import Project="..\packages\Eigen3.3.3.9\build\native\Eigen3.targets" Condition="Exists('..\packages\Eigen3.3.3.9\build\native\Eigen3.targets')" />
-  </ImportGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\boost.1.84.0\build\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost.1.84.0\build\boost.targets'))" />
-    <Error Condition="!Exists('..\packages\Eigen3.3.3.9\build\native\Eigen3.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Eigen3.3.3.9\build\native\Eigen3.targets'))" />
-  </Target>
+  <ImportGroup Label="ExtensionTargets" />
 </Project>

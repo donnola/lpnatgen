@@ -42,8 +42,8 @@ void lpng::GenerateObject::GenerateTextureCoords()
   for (Mesh& mesh : model)
   {
     mesh.vertexTextCoords.emplace_back(0.f, 0.f);
-    mesh.vertexTextCoords.emplace_back(1.f, 0.f);
-    mesh.vertexTextCoords.emplace_back(0.f, 1.f);
+    mesh.vertexTextCoords.emplace_back(0.9, 0.f);
+    mesh.vertexTextCoords.emplace_back(0.f, 0.9);
 
     for (Face& f : mesh.faces)
     {

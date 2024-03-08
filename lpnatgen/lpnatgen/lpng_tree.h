@@ -59,8 +59,8 @@ namespace lpng
       params.lastRad = 0.03;
       params.upCoef = 0.3;
       params.disp = float2(2.2, 2.8);
-      params.sqBalance = 0.09;
-      params.sqCentered = 0.2;
+      params.sqBalance = 0.05;
+      params.sqCentered = 0.1;
       params.branchCount = 7;
       params.edgeBase = 5;
       params.rebuildNum = 5;

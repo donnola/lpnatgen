@@ -97,7 +97,7 @@ int lpng::GenerateObjectTree::SelectWeightedBranch()
 void lpng::GenerateObjectTree::InitBranch(const size_t parent_id, TreeBranch& branch, float3& point_start, float3& vec_in)
 {
   TreeBranch& parent = tree[parent_id];
-  float c_start = fast_lpng_rand(2500, 6500) / 10000.f;
+  float c_start = fast_lpng_rand(2500, 8000) / 10000.f;
   float l_start = parent.length * c_start;
   float c_len = fast_lpng_rand(850, 1100) / 1000.f;
   branch.length = (parent.length - l_start) * c_len;
@@ -224,6 +224,7 @@ void lpng::GenerateObjectTree::GenerateBranch(TreeBranch& branch, const float3& 
   model.push_back(std::move(mesh));
 }
 
+
 void lpng::GenerateObjectTree::RelaxBranch(TreeBranch& branch, size_t meshId)
 {
   for (size_t i = 0; i < branch.rings.size(); ++i)
@@ -238,6 +239,7 @@ void lpng::GenerateObjectTree::RelaxBranch(TreeBranch& branch, size_t meshId)
     }
   }
 }
+
 
 void lpng::GenerateObjectTree::CalculateQuality()
 {

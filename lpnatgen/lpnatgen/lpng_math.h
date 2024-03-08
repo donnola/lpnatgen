@@ -1,6 +1,8 @@
 #pragma once
 #include <cmath>
 #include <vector>
+#include <functional>
+
 
 
 namespace lpng
@@ -115,6 +117,23 @@ namespace lpng
 
   bool operator==(const Face& l, const Face& r);
   bool operator==(const Edge& l, const Edge& r);
+
+  struct EdgeHash
+  {
+    std::size_t operator()(const lpng::Edge& e) const
+    {
+      return ((std::hash<int>()(e.first) * std::hash<int>()(e.second)));
+    }
+  };
+
+  struct EdgeEqual
+  {
+    bool operator()(const Edge& l, const Edge& r) const
+    {
+      return l == r;
+    }
+  };
+
   bool IsEdgeInFace(const Edge& edge, const Face& face);
   int TakeThirdPointFromTriangle(const Face& face, const Edge& edge);
   bool IsPointInTriangle(const float3& point, const float3& a, const float3& b, const float3& c);
@@ -137,6 +156,10 @@ namespace lpng
     MaterialTypes matType = MaterialTypes::NONE;
     float3 pivot = float3(0, 0, 0);
   };
+
+  int FindFaceInMesh(const Mesh& mesh, const Edge& e);
+  std::vector<size_t> FindFacesInMesh(const Mesh& mesh, const size_t& v_id);
+  float3 FaceNormal(const Mesh& mesh, const Face& f);
 
   std::vector<int> GetVertexesIds(const Mesh& mesh, const std::vector<int>& facesIds);
   void ScaleWorldCoord(Mesh& mesh, const float3& vec);
@@ -166,6 +189,4 @@ namespace lpng
  
   std::vector<float3> GenerateEllipsoidUniformPoints(const float3& size, int pointsNum = 10);
   void FilterNearesPoints(std::vector<float3>& points, float d = 0.07);
-  void FixMeshHole(Mesh& mesh);
-  void FixMeshOrientation(Mesh& mesh);
 }

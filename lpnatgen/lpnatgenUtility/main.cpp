@@ -3,6 +3,7 @@
 #include "lpng_test.h"
 #include "lpng_stone.h"
 #include "lpng_rand.h"
+#include "lpng_primitive.h"
 #include <iostream>
 #include <memory>
 #include <ctime>
@@ -139,7 +140,6 @@ int main(void)
     if (GuiButton(Rectangle{ 270, 180, 30, 30 }, GuiIconText(ICON_FILE_OPEN, ""))) fileDialogState.windowActive = true;
 
     GuiUnlock();
-    GuiWindowFileDialog(&fileDialogState);
 
     DrawText(TextFormat("MODEL SEED : %u", modelSeed), 10, 710, 22, MAROON);
     DrawText("PRESS TAB TO ENABLE CURSOR", 10, 740, 22, MAROON);
@@ -173,6 +173,7 @@ int main(void)
     DrawTextureRec(screen1.texture, splitScreenRect, { 0, 0 }, WHITE);
     DrawTextureRec(screen2.texture, splitScreenRect, { screenWidth / 2.0f, 0 }, WHITE);
     DrawRectangle(GetScreenWidth() / 2 - 2, 0, 4, GetScreenHeight(), LIGHTGRAY);
+    GuiWindowFileDialog(&fileDialogState);
     EndDrawing();
   }
   UnloadRenderTexture(screen1);
@@ -181,6 +182,7 @@ int main(void)
   modelPtr.reset();
 
   CloseWindow();
+
 
   return 0;
 }
@@ -224,7 +226,7 @@ static Mesh GenMesh(const std::vector<lpng::Mesh>& model)
     }
   }
   UploadMesh(&mesh, false);
-
+  lpng::Sphere::Destroy();
   return mesh;
 }
 

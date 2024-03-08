@@ -512,6 +512,41 @@ bool lpng::IsPointInTriangle(const float3& point, const float3& a, const float3&
 }
 
 
+int lpng::FindFaceInMesh(const Mesh& mesh, const Edge& e)
+{
+  for (size_t i = 0; i < mesh.faces.size(); ++i)
+  {
+    if (IsEdgeInFace(e, mesh.faces[i]))
+    {
+      return i;
+    }
+  }
+  return -1;
+}
+
+
+std::vector<size_t> lpng::FindFacesInMesh(const Mesh& mesh, const size_t& v_id)
+{
+  std::vector<size_t> res;
+  for (int i = 0; i < mesh.faces.size(); ++i)
+  {
+    if (std::find_if(mesh.faces[i].begin(), mesh.faces[i].end(), [&](Vertex v) { return v_id == v.vi; }) != mesh.faces[i].end())
+    {  
+      res.push_back(i);
+    }
+  }
+  return res;
+}
+
+
+lpng::float3 lpng::FaceNormal(const Mesh& mesh, const Face& f)
+{
+  float3 a = mesh.vertexCoords[f[2].vi - 1] - mesh.vertexCoords[f[1].vi - 1];
+  float3 b = mesh.vertexCoords[f[0].vi - 1] - mesh.vertexCoords[f[1].vi - 1];
+  return Normalized(Cross(a, b));
+}
+
+
 std::vector<int> lpng::GetVertexesIds(const Mesh& mesh, const std::vector<int>& facesIds)
 {
   std::set<int> vertexes_ids;
@@ -802,9 +837,9 @@ std::vector<lpng::float3> lpng::GenerateEllipsoidUniformPoints(const float3& siz
 
   while (points.size() < pointsNum)
   {
-    float x = from_x + static_cast <float> (fast_lpng_rand()) / (static_cast <float> (UINT32_MAX / (to_x - from_x)));
-    float y = from_y + static_cast <float> (fast_lpng_rand()) / (static_cast <float> (UINT32_MAX / (to_y - from_y)));
-    float z = from_z + static_cast <float> (fast_lpng_rand()) / (static_cast <float> (UINT32_MAX / (to_z - from_z)));
+    float x = fast_lpng_rand(from_x * 10000.f, to_x * 10000.f) / 10000.f;
+    float y = fast_lpng_rand(from_y * 10000.f, to_y * 10000.f) / 10000.f;
+    float z = fast_lpng_rand(from_z * 10000.f, to_z * 10000.f) / 10000.f;
     float3 p(x, y, z);
     float3 p_sq = p * p;
     float3 t = p_sq / rad_sq;
@@ -846,14 +881,3 @@ void lpng::FilterNearesPoints(std::vector<float3>& points, float d)
   }
   points = std::move(new_points);
 }
-
-
-//void lpng::FixMeshHole(Mesh& mesh)
-//{
-//
-//}
-//
-//void lpng::FixMeshOrientation(Mesh& mesh)
-//{
-//
-//}
