@@ -57,5 +57,8 @@ namespace lpng
     void RaiseSmoothness();
   };
 
+  bool SortEdges(std::vector<Edge>& edges);
   Mesh GenerateMeshFromSphere(const std::set<size_t>& points_ids);
+  void CupFromEdges(const Mesh& mesh, std::vector<Face>& faces, std::vector<Edge> edges);
+  void CupFromEdges(const Mesh& mesh, std::vector<Face>& faces, std::vector<Edge> edges);
 }

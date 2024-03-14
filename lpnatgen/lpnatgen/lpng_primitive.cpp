@@ -140,65 +140,130 @@ lpng::Mesh lpng::GenerateMeshFromSphere(const std::set<size_t>& points_ids)
 {
   Sphere* sphere = Sphere::GetInstance();
   Mesh mesh = sphere->GetSphere();
+  std::set<size_t> error_vertexes;
   for (int i = 0; i < mesh.vertexCoords.size(); ++i)
   {
     if (auto it = points_ids.find(i); it == points_ids.end())
     {
-      std::vector<size_t> faces = FindFacesInMesh(mesh, i+1);
-      std::sort(faces.begin(), faces.end(), std::greater<size_t>());
+      std::vector<size_t> faces_ids = FindFacesInMesh(mesh, i+1);
+      if (faces_ids.size() < 3)
+      {
+        error_vertexes.insert(i);
+        continue;
+      }
+      std::sort(faces_ids.begin(), faces_ids.end(), std::greater<size_t>());
       std::vector<Edge> edges;
-      for (size_t j : faces)
+      for (size_t j : faces_ids)
       {
         const Face& f = mesh.faces[j];
         int v_id = std::find_if(f.begin(), f.end(), [&](Vertex v) { return (i + 1) == v.vi; }) - f.begin();
-        Edge e(f[(v_id + 1) % f.size()].vi, f[(v_id + 2) % f.size()].vi);
-        if (edges.empty())
-          edges.push_back(e);
-        else
-        {
-          auto e_it1 = std::find_if(edges.begin(), edges.end(), [&](Edge edge) { return e.first == edge.second; });
-          auto e_it2 = std::find_if(edges.begin(), edges.end(), [&](Edge edge) { return e.second == edge.first; });
-          if (e_it1 != edges.end())
-            edges.insert(e_it1 + 1, e);
-          else if (e_it2 != edges.end())
-            edges.insert(e_it2, e);
-          else
-            edges.push_back(e);
-        }
+        edges.emplace_back(f[(v_id + 1) % f.size()].vi, f[(v_id + 2) % f.size()].vi);
       }
-      for (int j : faces)
+      std::vector<Edge> prev_edges = edges;
+      if (!SortEdges(edges))
+      {
+        error_vertexes.insert(i);
+        continue;
+      } 
+      std::vector<Face> new_faces;
+      CupFromEdges(mesh, new_faces, edges);
+      mesh.faces.insert(mesh.faces.end(), new_faces.begin(), new_faces.end());
+      for (int j : faces_ids)
       {
         mesh.faces.erase(mesh.faces.begin() + j);
       }
-      while (edges.size() > 3)
-      {
-        float min_angle = 7;
-        int e = 0;
-        for (int e1 = 0; e1 < edges.size(); ++e1)
-        {
-          int e2 = (e1 + 1) % edges.size();
-          float3 a = mesh.vertexCoords[edges[e1].first - 1] - mesh.vertexCoords[edges[e1].second - 1];
-          float3 b = mesh.vertexCoords[edges[e2].second - 1] - mesh.vertexCoords[edges[e2].first - 1];
-          float angle = Angle(a, b);
-          if (angle < min_angle)
-          {
-            min_angle = angle;
-            e = e1;
-          }
-        }
-        int e2 = (e + 1) % edges.size();
-        Edge new_edge(edges[e].first, edges[e2].second);
-        mesh.faces.push_back(Face{ edges[e].first, edges[e].second, edges[e2].second });
-        if (e2 < e)
-          std::swap(e, e2);
-        edges.erase(edges.begin() + e2);
-        edges.erase(edges.begin() + e);
-        edges.insert(edges.begin() + e, new_edge);
-      }
-      mesh.faces.push_back(Face{ edges[0].first, edges[0].second, edges[1].second });
-      edges.clear();
     }
   }
 
   return mesh;
+}
+
+
+bool lpng::SortEdges(std::vector<Edge>& edges)
+{
+  std::vector<Edge> sorted_edges;
+  sorted_edges.push_back(edges.back());
+  edges.pop_back();
+  while (edges.size() > 0)
+  {
+    const Edge& e = sorted_edges.back();
+    auto e_it = std::find_if(edges.begin(), edges.end(), [&](Edge edge) { return e.second == edge.first; });
+    if (e_it != edges.end())
+    {
+      sorted_edges.push_back(*e_it);
+      edges.erase(e_it);
+    }
+    else
+      return false;
+  }
+  edges = std::move(sorted_edges);
+  return true;
+}
+
+
+void lpng::CupFromEdges(const Mesh& mesh, std::vector<Face>& faces, std::vector<Edge> edges)
+{
+  if (edges.size() > 3)
+  {
+    float min_angle = 7;
+    int e = 0;
+    float3 normal;
+    int f_id = FindFaceWithEdge(mesh.faces, edges[0]);
+    if (f_id >= 0)
+      normal = FaceNormal(mesh, mesh.faces[f_id]);
+    else
+    {
+      f_id = FindFaceWithEdge(faces, edges[0]);
+      normal = FaceNormal(mesh, faces[f_id]);
+    }
+    for (int e1 = 1; e1 < edges.size() - 1; ++e1)
+    {
+      float3 a = mesh.vertexCoords[edges[0].first - 1] - mesh.vertexCoords[edges[0].second - 1];
+      float3 b = mesh.vertexCoords[edges[e1].second - 1] - mesh.vertexCoords[edges[0].second - 1];
+      float3 new_normal = Normalized(Cross(b, a));
+      float angle = Angle(new_normal, normal);
+      if (angle < min_angle)
+      {
+        min_angle = angle;
+        e = e1;
+      }
+    }
+    faces.push_back(Face{ edges[0].first, edges[0].second, edges[e].second });
+    if (e == 1)
+    {
+      Edge new_edge(edges[0].first, edges[e].second);
+      edges.erase(edges.begin() + e);
+      edges.erase(edges.begin());
+      edges.insert(edges.begin(), new_edge);
+      CupFromEdges(mesh, faces, edges);
+    }
+    else if (e == edges.size() - 2)
+    {
+      Edge new_edge(edges[e].second, edges[0].second);
+      edges.erase(edges.begin() + e + 1);
+      edges.erase(edges.begin());
+      edges.insert(edges.begin(), new_edge);
+      CupFromEdges(mesh, faces, edges);
+    }
+    else
+    {
+      Edge new_edge1(edges[e].second, edges[0].second);
+      Edge new_edge2(edges[0].first, edges[e].second);
+      std::vector<Edge> edges1;
+      std::vector<Edge> edges2;
+      edges1.insert(edges1.end(), edges.begin() + 1, edges.begin() + e + 1);
+      edges1.push_back(new_edge1);
+      edges2.insert(edges2.end(), edges.begin() + e + 1, edges.end());
+      edges2.push_back(new_edge2);
+      edges.erase(edges.begin());
+      CupFromEdges(mesh, faces, edges1);
+      CupFromEdges(mesh, faces, edges2);
+    }
+  }
+  else
+  {
+    faces.push_back(Face{ edges[0].first, edges[0].second, edges[1].second });
+    edges.clear();
+  }
+  return;
 }

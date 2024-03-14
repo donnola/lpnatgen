@@ -157,7 +157,7 @@ namespace lpng
     float3 pivot = float3(0, 0, 0);
   };
 
-  int FindFaceInMesh(const Mesh& mesh, const Edge& e);
+  int FindFaceWithEdge(const std::vector<Face>& faces, const Edge& e);
   std::vector<size_t> FindFacesInMesh(const Mesh& mesh, const size_t& v_id);
   float3 FaceNormal(const Mesh& mesh, const Face& f);
 

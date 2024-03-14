@@ -369,18 +369,20 @@ lpng::float3 lpng::Cross(const lpng::float3& l, const lpng::float3& r)
 double lpng::Angle(const lpng::float2& l, const lpng::float2& r)
 {
   double m = sqrtf(MagnitudeSq(l) * MagnitudeSq(r));
-  if (m == 0)
+  if (ABSOLUTE_CMP(m, 0))
     return -1;
-  return acos(Dot(l, r) / m);
+  double a = std::clamp(Dot(l, r) / m, -1.0 , 1.0);
+  return acos(a);
 }
 
 
 double lpng::Angle(const lpng::float3& l, const lpng::float3& r)
 {
   double m = sqrtf(MagnitudeSq(l) * MagnitudeSq(r));
-  if (m == 0)
+  if (ABSOLUTE_CMP(m, 0))
     return -1;
-  return acos(Dot(l, r) / m);
+  double a = std::clamp(Dot(l, r) / m, -1.0, 1.0);
+  return acos(a);
 }
 
 
@@ -512,11 +514,11 @@ bool lpng::IsPointInTriangle(const float3& point, const float3& a, const float3&
 }
 
 
-int lpng::FindFaceInMesh(const Mesh& mesh, const Edge& e)
+int lpng::FindFaceWithEdge(const std::vector<Face>& faces, const Edge& e)
 {
-  for (size_t i = 0; i < mesh.faces.size(); ++i)
+   for (size_t i = 0; i < faces.size(); ++i)
   {
-    if (IsEdgeInFace(e, mesh.faces[i]))
+    if (IsEdgeInFace(e, faces[i]))
     {
       return i;
     }
