@@ -425,14 +425,10 @@ bool lpng::operator==(const Face& l, const Face& r)
 {
   std::vector<int> f_l;
   for (const Vertex& v : l)
-  {
     f_l.push_back(v.vi);
-  }
   std::vector<int> f_r;
   for (const Vertex& v : r)
-  {
     f_r.push_back(v.vi);
-  }
   if (f_l.size() == f_r.size())
   {
     std::sort(f_l.begin(), f_l.end());
@@ -440,9 +436,7 @@ bool lpng::operator==(const Face& l, const Face& r)
     for (size_t i = 0; i < f_l.size(); ++i)
     {
       if (f_l[i] != f_r[i])
-      {
         return false;
-      }
     }
     return true;
   }
@@ -516,12 +510,10 @@ bool lpng::IsPointInTriangle(const float3& point, const float3& a, const float3&
 
 int lpng::FindFaceWithEdge(const std::vector<Face>& faces, const Edge& e)
 {
-   for (size_t i = 0; i < faces.size(); ++i)
+  for (size_t i = 0; i < faces.size(); ++i)
   {
     if (IsEdgeInFace(e, faces[i]))
-    {
       return i;
-    }
   }
   return -1;
 }
@@ -533,9 +525,7 @@ std::vector<size_t> lpng::FindFacesInMesh(const Mesh& mesh, const size_t& v_id)
   for (int i = 0; i < mesh.faces.size(); ++i)
   {
     if (std::find_if(mesh.faces[i].begin(), mesh.faces[i].end(), [&](Vertex v) { return v_id == v.vi; }) != mesh.faces[i].end())
-    {  
       res.push_back(i);
-    }
   }
   return res;
 }
@@ -555,9 +545,7 @@ std::vector<int> lpng::GetVertexesIds(const Mesh& mesh, const std::vector<int>& 
   for (int id : facesIds)
   {
     for (const Vertex& v : mesh.faces[id])
-    {
       vertexes_ids.insert(v.vi - 1);
-    }
   }
   return { vertexes_ids.begin(), vertexes_ids.end() };
 }
@@ -566,9 +554,7 @@ std::vector<int> lpng::GetVertexesIds(const Mesh& mesh, const std::vector<int>& 
 void lpng::ScaleWorldCoord(Mesh& mesh, const float3& vec)
 {
   for (float3& v : mesh.vertexCoords)
-  {
     v *= vec;
-  }
   mesh.pivot *= vec;
 }
 
@@ -576,9 +562,7 @@ void lpng::ScaleWorldCoord(Mesh& mesh, const float3& vec)
 void lpng::ScaleLocalCoord(Mesh& mesh, const float3& vec)
 {
   for (float3& v : mesh.vertexCoords)
-  {
     v = (v - mesh.pivot) * vec + mesh.pivot;
-  }
 }
 
 
@@ -586,23 +570,17 @@ void lpng::ScaleVertexes(Mesh& mesh, const float3& vec, const std::vector<int>& 
 {
   float3 mean_point;
   for (int id : vertexesIds)
-  {
     mean_point += mesh.vertexCoords[id];
-  }
   mean_point /= vertexesIds.size();
   for (int id : vertexesIds)
-  {
     mesh.vertexCoords[id] = (mesh.vertexCoords[id] - mean_point) * vec + mean_point;
-  }
 }
 
 
 void lpng::ScaleVertexes(Mesh& mesh, const float3& vec, const std::vector<int>& vertexesIds, const float3& O)
 {
   for (int id : vertexesIds)
-  {
     mesh.vertexCoords[id] = (mesh.vertexCoords[id] - O) * vec + O;
-  }
 }
 
 
@@ -654,9 +632,7 @@ void lpng::MovePivot(Mesh& mesh, const float3& vec)
 void lpng::MoveObj(Mesh& mesh, const float3& vec)
 {
   for (float3& v : mesh.vertexCoords)
-  {
     v += vec;
-  }
   mesh.pivot += vec;
 }
 
@@ -667,13 +643,9 @@ void lpng::DecomposeObj(Mesh& mesh)
   for (Face& f : mesh.faces)
   {
     if (f.size() < 3)
-    {
       continue;
-    }
     if (f.size() == 3)
-    {
       new_faces.push_back(std::move(f));
-    }
     else if (f.size() == 4)
     {
       new_faces.push_back(Face({ f[0], f[1], f[2] }));
@@ -683,16 +655,12 @@ void lpng::DecomposeObj(Mesh& mesh)
     {
       float3 mean_vertex_coord;
       for (const Vertex& v : f)
-      {
         mean_vertex_coord += mesh.vertexCoords[v.vi - 1];
-      }
       mesh.vertexCoords.push_back(mean_vertex_coord);
       size_t center_index = mesh.vertexCoords.size();
       Vertex mean_vertex(center_index);
       for (size_t i = 0; i < f.size(); ++i)
-      {
         new_faces.push_back(Face({ f[i], f[(i + 1) % f.size()], mean_vertex }));
-      }
     }
   }
   mesh.faces = std::move(new_faces);
@@ -708,14 +676,10 @@ std::vector<lpng::float3> lpng::CalculateObjNormals(const Mesh& mesh)
     float3 b = mesh.vertexCoords[f[0].vi - 1] - mesh.vertexCoords[f[1].vi - 1];
     float3 normal = Cross(a, b);
     for (size_t i = 0; i < 3; ++i)
-    {
       normals[f[i].vi - 1] += normal;
-    }
   }
   for (float3& n : normals)
-  {
     Normalize(n);
-  }
   return normals;
 }
 
@@ -726,9 +690,7 @@ void lpng::SplitFaceMithPoint(std::vector<Face>& faces, const int faceId, const 
     return;
   const Face& f = faces[faceId];
   for (size_t i = 0; i < f.size(); ++i)
-  {
     faces.push_back(Face({ f[i].vi, f[(i + 1) % f.size()].vi, pointId }));
-  }
   faces.erase(faces.begin() + faceId);
 }
 
@@ -765,9 +727,7 @@ void lpng::SetPeripheryEdges(
         isEdgeHasNeighbor = IsEdgeInFace({ e1, e2 }, mesh.faces[f2_id]);
       }
       if (!isEdgeHasNeighbor)
-      {
         peripheryEdges.emplace_back(e1, e2);
-      }
     }
   }
 }
@@ -817,9 +777,7 @@ std::vector<int> lpng::Extrude(Mesh& mesh, const std::vector<int>& facesIds, con
   }
   mesh.faces = std::move(new_faces);
   for (int& f_id : extruded_faces_ids)
-  {
     f_id -= facesIds.size();
-  }
   return extruded_faces_ids;
 }
 
@@ -846,9 +804,7 @@ std::vector<lpng::float3> lpng::GenerateEllipsoidUniformPoints(const float3& siz
     float3 p_sq = p * p;
     float3 t = p_sq / rad_sq;
     if (t.x + t.y + t.z <= 1 && t.x + t.y + t.z > 0.5)
-    {
       points.push_back(p);
-    }
   }
   for (float3& p : points)
   {
@@ -877,9 +833,40 @@ void lpng::FilterNearesPoints(std::vector<float3>& points, float d)
       }
     }
     if (is_add)
-    {
       new_points.push_back(std::move(points[i]));
-    }
   }
   points = std::move(new_points);
+}
+
+
+void lpng::DeleteUnusedVertexes(Mesh& mesh)
+{
+  std::unordered_set<int> used_vertexes_id;
+  int max_used = 0;
+  for (const Face& f : mesh.faces)
+  {
+    for (const Vertex& v : f)
+    {
+      used_vertexes_id.insert(v.vi - 1);
+      if (v.vi - 1 > max_used)
+        max_used = v.vi - 1;
+    }
+  }
+  for (int i = mesh.vertexCoords.size() - 1; i >= 0; --i)
+  {
+    if (i > max_used)
+      mesh.vertexCoords.erase(mesh.vertexCoords.begin() + i);
+    else if (auto it = used_vertexes_id.find(i); it == used_vertexes_id.end())
+    {
+      for (Face& f : mesh.faces)
+      {
+        for (Vertex& v : f)
+        {
+          if (v.vi - 1 > i)
+            v.vi -= 1;
+        }
+      }
+      mesh.vertexCoords.erase(mesh.vertexCoords.begin() + i);
+    }
+  }
 }

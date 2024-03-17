@@ -57,7 +57,8 @@ namespace lpng
   };
 
   bool SortEdges(std::vector<Edge>& edges);
-  Mesh GenerateMeshFromSphere(const std::unordered_set<size_t>& points_ids);
+  Mesh GenerateMeshFromSphere(const std::unordered_set<size_t>& vertexes_ids);
   void CupFromEdges(const Mesh& mesh, std::vector<Face>& faces, std::vector<Edge> edges);
   void CupFromEdges(const Mesh& mesh, std::vector<Face>& faces, std::vector<Edge> edges);
+  void DeleteUnusedVertexes(Mesh& mesh);
 }

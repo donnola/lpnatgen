@@ -185,8 +185,8 @@ namespace lpng
   );
   std::vector<int> ExtrudeWithCap(Mesh& mesh, const std::vector<int>& facesIds, const float3& vec);
   std::vector<int> Extrude(Mesh& mesh, const std::vector<int>& facesIds, const float3& vec);
-
  
   std::vector<float3> GenerateEllipsoidUniformPoints(const float3& size, int pointsNum = 10);
   void FilterNearesPoints(std::vector<float3>& points, float d = 0.07);
+  void DeleteUnusedVertexes(Mesh& mesh);
 }

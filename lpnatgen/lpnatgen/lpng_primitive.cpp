@@ -145,14 +145,14 @@ void lpng::Sphere::Subdiv()
   vertex_num = sphere.vertexCoords.size();
 }
 
-lpng::Mesh lpng::GenerateMeshFromSphere(const std::unordered_set<size_t>& points_ids)
+lpng::Mesh lpng::GenerateMeshFromSphere(const std::unordered_set<size_t>& vertexes_ids)
 {
   Sphere* sphere = Sphere::GetInstance();
   Mesh mesh = sphere->GetSphere();
   std::unordered_set<size_t> error_vertexes;
   for (int i = 0; i < mesh.vertexCoords.size(); ++i)
   {
-    if (auto it = points_ids.find(i); it == points_ids.end())
+    if (auto it = vertexes_ids.find(i); it == vertexes_ids.end())
     {
       std::vector<size_t> faces_ids = FindFacesInMesh(mesh, i+1);
       if (faces_ids.size() < 3)
@@ -183,7 +183,7 @@ lpng::Mesh lpng::GenerateMeshFromSphere(const std::unordered_set<size_t>& points
       }
     }
   }
-
+  DeleteUnusedVertexes(mesh);
   return mesh;
 }
 
