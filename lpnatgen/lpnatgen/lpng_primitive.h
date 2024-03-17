@@ -1,6 +1,6 @@
 #pragma once
 #include "lpng_math.h"
-#include <set>
+#include <unordered_set>
 
 
 namespace lpng
@@ -17,7 +17,7 @@ namespace lpng
     const float size_coef = 10;
     size_t smooth_level = 0;
   public:
-    ~Sphere() { p_instance = nullptr; }
+    ~Sphere() {}
 
     static Sphere* GetInstance()
     {
@@ -33,9 +33,8 @@ namespace lpng
 
     static void Destroy()
     {
-      if (!p_instance)
-        return;
       delete p_instance;
+      p_instance = nullptr;
     }
 
     const Mesh& GetSphere() const
@@ -53,12 +52,12 @@ namespace lpng
       return size_coef;
     }
 
-    void RaiseToMinSmoothness(int min_point_count);
-    void RaiseSmoothness();
+    void RaiseToMinSubdiv(int min_point_count);
+    void Subdiv();
   };
 
   bool SortEdges(std::vector<Edge>& edges);
-  Mesh GenerateMeshFromSphere(const std::set<size_t>& points_ids);
+  Mesh GenerateMeshFromSphere(const std::unordered_set<size_t>& points_ids);
   void CupFromEdges(const Mesh& mesh, std::vector<Face>& faces, std::vector<Edge> edges);
   void CupFromEdges(const Mesh& mesh, std::vector<Face>& faces, std::vector<Edge> edges);
 }

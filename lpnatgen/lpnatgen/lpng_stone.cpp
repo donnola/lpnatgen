@@ -1,16 +1,16 @@
 #define _USE_MATH_DEFINES
 #include "lpng_stone.h"
 #include "lpng_primitive.h"
-#include <set>
+#include <unordered_set>
 
 
 void lpng::GenerateObjectStone::GenerateMesh()
 {
-  std::set<size_t> points;
+  std::unordered_set<size_t> points;
   Sphere* s = Sphere::GetInstance();
   if (s->GetVertexCount() < pointsCount * 3)
   {
-    s->RaiseToMinSmoothness(pointsCount * 3);
+    s->RaiseToMinSubdiv(pointsCount * 3);
   }
   while (points.size() < pointsCount)
   {

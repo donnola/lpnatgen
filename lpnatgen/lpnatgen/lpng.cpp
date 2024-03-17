@@ -2,7 +2,6 @@
 #include "lpng_math.h"
 #include <filesystem>
 #include <stack>
-#include <set>
 
 
 std::vector<lpng::Mesh> lpng::GenerateObject::GetModel()

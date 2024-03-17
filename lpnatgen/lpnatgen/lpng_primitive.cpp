@@ -5,9 +5,18 @@
 
 lpng::Sphere* lpng::Sphere::p_instance = nullptr;
 
+static struct CleanUp
+{
+  ~CleanUp()
+  {
+    lpng::Sphere::Destroy();
+  }
+} cleanup;
+
+
 lpng::Sphere::Sphere()
 {
-  float phi = (1.0f + sqrt(5.0f)) * 0.5f; // golden ratio
+  float phi = (1.0f + sqrt(5.0f)) * 0.5f;
   float a = 1.0f;
   float b = 1.0f / phi;
   float2 v(a, b);
@@ -52,21 +61,21 @@ lpng::Sphere::Sphere()
 
   for (int i = 1; i < 3; ++i)
   {
-    RaiseSmoothness();
+    Subdiv();
   }
 }
 
 
-void lpng::Sphere::RaiseToMinSmoothness(int min_point_count)
+void lpng::Sphere::RaiseToMinSubdiv(int min_point_count)
 {
   while (vertex_num < min_point_count)
   {
-    RaiseSmoothness();
+    Subdiv();
   }
 }
 
 
-void lpng::Sphere::RaiseSmoothness()
+void lpng::Sphere::Subdiv()
 {
   std::unordered_map<Edge, size_t, EdgeHash, EdgeEqual> edge_div;
   std::vector<Face> new_faces;
@@ -136,11 +145,11 @@ void lpng::Sphere::RaiseSmoothness()
   vertex_num = sphere.vertexCoords.size();
 }
 
-lpng::Mesh lpng::GenerateMeshFromSphere(const std::set<size_t>& points_ids)
+lpng::Mesh lpng::GenerateMeshFromSphere(const std::unordered_set<size_t>& points_ids)
 {
   Sphere* sphere = Sphere::GetInstance();
   Mesh mesh = sphere->GetSphere();
-  std::set<size_t> error_vertexes;
+  std::unordered_set<size_t> error_vertexes;
   for (int i = 0; i < mesh.vertexCoords.size(); ++i)
   {
     if (auto it = points_ids.find(i); it == points_ids.end())

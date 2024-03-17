@@ -2,8 +2,8 @@
 #include "lpng_rand.h"
 
 #include <cfloat>
-#include <set>
-#include <map>
+#include <unordered_set>
+#include <unordered_map>
 #include <algorithm>
 
 
@@ -551,7 +551,7 @@ lpng::float3 lpng::FaceNormal(const Mesh& mesh, const Face& f)
 
 std::vector<int> lpng::GetVertexesIds(const Mesh& mesh, const std::vector<int>& facesIds)
 {
-  std::set<int> vertexes_ids;
+  std::unordered_set<int> vertexes_ids;
   for (int id : facesIds)
   {
     for (const Vertex& v : mesh.faces[id])
@@ -777,7 +777,7 @@ std::vector<int> lpng::ExtrudeWithCap(Mesh& mesh, const std::vector<int>& facesI
 {
   std::vector<Edge> periphery_edges;
   SetPeripheryEdges(mesh, facesIds, periphery_edges);
-  std::map<int, int> extruded_vertex_ids;
+  std::unordered_map<int, int> extruded_vertex_ids;
   std::vector<int> extruded_faces_ids;
 
   for (int fi : facesIds)
