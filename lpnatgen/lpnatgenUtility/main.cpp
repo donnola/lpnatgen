@@ -207,10 +207,9 @@ static Mesh GenMesh(const std::vector<lpng::Mesh>& model)
     {
       for (int i = 0; i < 3; i++)
       {
-        lpng::Vertex v = f[i];
-        lpng::float3 vc = obj.vertexCoords[v.vi - 1];
-        lpng::float3 vn = obj.vertexNormals[v.vni - 1];
-        lpng::float2 vt = obj.vertexTextCoords[v.vti - 1];
+        lpng::float3 vc = obj.vertexCoords[f.vi[i] - 1];
+        lpng::float3 vn = obj.vertexNormals[f.vni[i] - 1];
+        lpng::float2 vt = obj.vertexTextCoords[f.vti[i] - 1];
         mesh.vertices[nextVertId * 3] = vc.x;
         mesh.vertices[nextVertId * 3 + 1] = vc.y;
         mesh.vertices[nextVertId * 3 + 2] = vc.z;

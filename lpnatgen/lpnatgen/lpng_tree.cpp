@@ -192,7 +192,7 @@ void lpng::GenerateObjectTree::GenerateBranch(TreeBranch& branch, const float3& 
   int rootId = mesh.vertexCoords.size();
   for (int i = 0; i < rootId - 1; ++i)
   {
-    mesh.faces.push_back(Face({ i + 1, (i + 1) % params.edgeBase + 1, rootId }));
+    mesh.faces.push_back(Face({ i + 1, int((i + 1) % params.edgeBase) + 1, rootId }));
     ring.facesIds.push_back(mesh.faces.size()-1);
   }
   ring.vertexesIds = GetVertexesIds(mesh, ring.facesIds);

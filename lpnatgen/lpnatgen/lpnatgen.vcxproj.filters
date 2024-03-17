@@ -44,7 +44,7 @@
     <ClCompile Include="lpng_math.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="lpngtest.cpp">
+    <ClCompile Include="lpng_test.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="lpng_stone.cpp">

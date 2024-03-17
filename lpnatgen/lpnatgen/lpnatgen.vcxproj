@@ -155,7 +155,7 @@
   <ItemGroup>
     <ClCompile Include="lpng_math.cpp" />
     <ClCompile Include="lpng.cpp" />
-    <ClCompile Include="lpngtest.cpp" />
+    <ClCompile Include="lpng_test.cpp" />
     <ClCompile Include="lpng_primitive.cpp" />
     <ClCompile Include="lpng_rand.cpp" />
     <ClCompile Include="lpng_tree.cpp" />

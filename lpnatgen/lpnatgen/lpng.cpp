@@ -29,10 +29,7 @@ void lpng::GenerateObject::GenerateNormals()
     mesh.vertexNormals = std::move(normals);
     for (Face& f : mesh.faces)
     {
-      for (size_t i = 0; i < 3; ++i)
-      {
-        f[i].vni = f[i].vi;
-      }
+      f.vni = f.vi;
     }
   }
 }
@@ -49,7 +46,7 @@ void lpng::GenerateObject::GenerateTextureCoords()
     {
       for (size_t i = 0; i < 3; ++i)
       {
-        f[i].vti = i + 1;
+        f.vti = {1, 2, 3};
       }
     }
   }
@@ -97,8 +94,9 @@ inline std::ostream& lpng::operator<<(std::ostream& out, const lpng::Vertex& v)
 std::ostream& lpng::operator<<(std::ostream& out, const lpng::Face& f)
 {
   out << 'f';
-  for (const Vertex& v : f)
+  for (int i = 0; i < f.vi.size(); ++i)
   {
+    Vertex v(f.vi[i], f.vti[i], f.vni[i]);
     out << ' ' << v;
   }
   return out << "\n";

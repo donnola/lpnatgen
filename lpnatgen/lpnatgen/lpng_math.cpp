@@ -423,19 +423,17 @@ lpng::float3 lpng::Reflection(const lpng::float3& vec, const lpng::float3& norma
 
 bool lpng::operator==(const Face& l, const Face& r)
 {
-  std::vector<int> f_l;
-  for (const Vertex& v : l)
-    f_l.push_back(v.vi);
-  std::vector<int> f_r;
-  for (const Vertex& v : r)
-    f_r.push_back(v.vi);
+  std::unordered_set<int> f_l;
+  for (int v : l.vi)
+    f_l.insert(v);
+  std::unordered_set<int> f_r;
+  for (int v : r.vi)
+    f_r.insert(v);
   if (f_l.size() == f_r.size())
   {
-    std::sort(f_l.begin(), f_l.end());
-    std::sort(f_r.begin(), f_r.end());
-    for (size_t i = 0; i < f_l.size(); ++i)
+    for (int v : f_l)
     {
-      if (f_l[i] != f_r[i])
+      if (auto it = f_r.find(v); it == f_r.end())
         return false;
     }
     return true;
@@ -456,10 +454,10 @@ bool lpng::operator==(const Edge& l, const Edge& r)
 
 bool lpng::IsEdgeInFace(const Edge& edge, const Face& face)
 {
-  for (size_t i = 0; i < face.size(); ++i)
+  for (size_t i = 0; i < face.vi.size(); ++i)
   {
-    int e1 = face[i].vi;
-    int e2 = face[(i + 1) % face.size()].vi;
+    int e1 = face.vi[i];
+    int e2 = face.vi[(i + 1) % face.vi.size()];
     if (edge == Edge(e1, e2))
       return true;
   }
@@ -469,14 +467,14 @@ bool lpng::IsEdgeInFace(const Edge& edge, const Face& face)
 
 int lpng::TakeThirdPointFromTriangle(const Face& face, const Edge& edge)
 {
-  if (face.size() != 3)
+  if (face.vi.size() != 3)
     return -1;
-  if (Edge(face[0].vi, face[1].vi) == edge)
-    return face[2].vi;
-  if (Edge(face[1].vi, face[2].vi) == edge)
-    return face[0].vi;
-  if (Edge(face[2].vi, face[0].vi) == edge)
-    return face[1].vi;
+  if (Edge(face.vi[0], face.vi[1]) == edge)
+    return face.vi[2];
+  if (Edge(face.vi[1], face.vi[2]) == edge)
+    return face.vi[0];
+  if (Edge(face.vi[2], face.vi[0]) == edge)
+    return face.vi[1];
   return -1;
 }
 
@@ -524,7 +522,7 @@ std::vector<size_t> lpng::FindFacesInMesh(const Mesh& mesh, const size_t& v_id)
   std::vector<size_t> res;
   for (int i = 0; i < mesh.faces.size(); ++i)
   {
-    if (std::find_if(mesh.faces[i].begin(), mesh.faces[i].end(), [&](Vertex v) { return v_id == v.vi; }) != mesh.faces[i].end())
+    if (std::find(mesh.faces[i].vi.begin(), mesh.faces[i].vi.end(), v_id) != mesh.faces[i].vi.end())
       res.push_back(i);
   }
   return res;
@@ -533,8 +531,8 @@ std::vector<size_t> lpng::FindFacesInMesh(const Mesh& mesh, const size_t& v_id)
 
 lpng::float3 lpng::FaceNormal(const Mesh& mesh, const Face& f)
 {
-  float3 a = mesh.vertexCoords[f[2].vi - 1] - mesh.vertexCoords[f[1].vi - 1];
-  float3 b = mesh.vertexCoords[f[0].vi - 1] - mesh.vertexCoords[f[1].vi - 1];
+  float3 a = mesh.vertexCoords[f.vi[2] - 1] - mesh.vertexCoords[f.vi[1] - 1];
+  float3 b = mesh.vertexCoords[f.vi[0] - 1] - mesh.vertexCoords[f.vi[1] - 1];
   return Normalized(Cross(a, b));
 }
 
@@ -544,8 +542,8 @@ std::vector<int> lpng::GetVertexesIds(const Mesh& mesh, const std::vector<int>& 
   std::unordered_set<int> vertexes_ids;
   for (int id : facesIds)
   {
-    for (const Vertex& v : mesh.faces[id])
-      vertexes_ids.insert(v.vi - 1);
+    for (int v : mesh.faces[id].vi)
+      vertexes_ids.insert(v - 1);
   }
   return { vertexes_ids.begin(), vertexes_ids.end() };
 }
@@ -642,25 +640,25 @@ void lpng::DecomposeObj(Mesh& mesh)
   std::vector<Face> new_faces;
   for (Face& f : mesh.faces)
   {
-    if (f.size() < 3)
+    if (f.vi.size() < 3)
       continue;
-    if (f.size() == 3)
+    if (f.vi.size() == 3)
       new_faces.push_back(std::move(f));
-    else if (f.size() == 4)
+    else if (f.vi.size() == 4)
     {
-      new_faces.push_back(Face({ f[0], f[1], f[2] }));
-      new_faces.push_back(Face({ f[2], f[3], f[0] }));
+      new_faces.push_back(Face({ f.vi[0], f.vi[1], f.vi[2] }));
+      new_faces.push_back(Face({ f.vi[2], f.vi[3], f.vi[0] }));
     }
     else
     {
       float3 mean_vertex_coord;
-      for (const Vertex& v : f)
-        mean_vertex_coord += mesh.vertexCoords[v.vi - 1];
+      for (size_t v : f.vi)
+        mean_vertex_coord += mesh.vertexCoords[v - 1];
+      mean_vertex_coord /= f.vi.size();
       mesh.vertexCoords.push_back(mean_vertex_coord);
-      size_t center_index = mesh.vertexCoords.size();
-      Vertex mean_vertex(center_index);
-      for (size_t i = 0; i < f.size(); ++i)
-        new_faces.push_back(Face({ f[i], f[(i + 1) % f.size()], mean_vertex }));
+      int center_index = mesh.vertexCoords.size();
+      for (size_t i = 0; i < f.vi.size(); ++i)
+        new_faces.push_back(Face({ f.vi[i], f.vi[(i + 1) % f.vi.size()], center_index }));
     }
   }
   mesh.faces = std::move(new_faces);
@@ -672,11 +670,11 @@ std::vector<lpng::float3> lpng::CalculateObjNormals(const Mesh& mesh)
   std::vector<float3> normals(mesh.vertexCoords.size());
   for (const Face& f : mesh.faces)
   {
-    float3 a = mesh.vertexCoords[f[2].vi - 1] - mesh.vertexCoords[f[1].vi - 1];
-    float3 b = mesh.vertexCoords[f[0].vi - 1] - mesh.vertexCoords[f[1].vi - 1];
+    float3 a = mesh.vertexCoords[f.vi[2] - 1] - mesh.vertexCoords[f.vi[1] - 1];
+    float3 b = mesh.vertexCoords[f.vi[0] - 1] - mesh.vertexCoords[f.vi[1] - 1];
     float3 normal = Cross(a, b);
     for (size_t i = 0; i < 3; ++i)
-      normals[f[i].vi - 1] += normal;
+      normals[f.vi[i] - 1] += normal;
   }
   for (float3& n : normals)
     Normalize(n);
@@ -689,8 +687,8 @@ void lpng::SplitFaceMithPoint(std::vector<Face>& faces, const int faceId, const 
   if (faceId == -1 || pointId == -1)
     return;
   const Face& f = faces[faceId];
-  for (size_t i = 0; i < f.size(); ++i)
-    faces.push_back(Face({ f[i].vi, f[(i + 1) % f.size()].vi, pointId }));
+  for (size_t i = 0; i < f.vi.size(); ++i)
+    faces.push_back(Face({ f.vi[i], f.vi[(i + 1) % f.vi.size()], pointId }));
   faces.erase(faces.begin() + faceId);
 }
 
@@ -713,10 +711,10 @@ void lpng::SetPeripheryEdges(
   for (int f1_id : facesIds)
   {
     const Face& f_i = mesh.faces[f1_id];
-    for (size_t j = 0; j < f_i.size(); j++)
+    for (size_t j = 0; j < f_i.vi.size(); j++)
     {
-      int e1 = f_i[j].vi;
-      int e2 = f_i[(j + 1) % f_i.size()].vi;
+      int e1 = f_i.vi[j];
+      int e2 = f_i.vi[(j + 1) % f_i.vi.size()];
       bool isEdgeHasNeighbor = false;
       for (int f2_id : facesIds)
       {
@@ -743,16 +741,16 @@ std::vector<int> lpng::ExtrudeWithCap(Mesh& mesh, const std::vector<int>& facesI
   for (int fi : facesIds)
   {
     Face new_face = mesh.faces[fi];
-    for (Vertex& v : new_face)
+    for (int& v : new_face.vi)
     {
-      if (!extruded_vertex_ids.contains(v.vi))
+      if (!extruded_vertex_ids.contains(v))
       {
-        mesh.vertexCoords.emplace_back(mesh.vertexCoords[v.vi-1] + vec);
-        extruded_vertex_ids[v.vi] = mesh.vertexCoords.size();
+        mesh.vertexCoords.emplace_back(mesh.vertexCoords[v-1] + vec);
+        extruded_vertex_ids[v] = mesh.vertexCoords.size();
       }
-      v.vi = extruded_vertex_ids[v.vi];
+      v = extruded_vertex_ids[v];
     }
-    std::reverse(mesh.faces[fi].begin(), mesh.faces[fi].end());
+    std::reverse(mesh.faces[fi].vi.begin(), mesh.faces[fi].vi.end());
     mesh.faces.push_back(new_face);
     extruded_faces_ids.push_back(mesh.faces.size() - 1);
   }
@@ -845,11 +843,11 @@ void lpng::DeleteUnusedVertexes(Mesh& mesh)
   int max_used = 0;
   for (const Face& f : mesh.faces)
   {
-    for (const Vertex& v : f)
+    for (int v : f.vi)
     {
-      used_vertexes_id.insert(v.vi - 1);
-      if (v.vi - 1 > max_used)
-        max_used = v.vi - 1;
+      used_vertexes_id.insert(v - 1);
+      if (v - 1 > max_used)
+        max_used = v - 1;
     }
   }
   for (int i = mesh.vertexCoords.size() - 1; i >= 0; --i)
@@ -860,10 +858,10 @@ void lpng::DeleteUnusedVertexes(Mesh& mesh)
     {
       for (Face& f : mesh.faces)
       {
-        for (Vertex& v : f)
+        for (int& v : f.vi)
         {
-          if (v.vi - 1 > i)
-            v.vi -= 1;
+          if (v - 1 > i)
+            v -= 1;
         }
       }
       mesh.vertexCoords.erase(mesh.vertexCoords.begin() + i);

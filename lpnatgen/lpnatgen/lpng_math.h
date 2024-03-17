@@ -112,7 +112,17 @@ namespace lpng
     Vertex(size_t a) : vi(a), vti(-1), vni(-1) {}
   };
 
-  using Face = std::vector<Vertex>;
+  struct Face
+  {
+    std::vector<int> vi;
+    std::vector<int> vti;
+    std::vector<int> vni;
+
+    Face(std::vector<int> a) : vi(a) {}
+    Face(std::vector<int> a, std::vector<int> b) : vi(a), vti(b) {}
+    Face(std::vector<int> a, std::vector<int> b, std::vector<int> c) : vi(a), vti(b), vni(c) {}
+  };
+
   using Edge = std::pair<int, int>;
 
   bool operator==(const Face& l, const Face& r);
