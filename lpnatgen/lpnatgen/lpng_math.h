@@ -164,7 +164,6 @@ namespace lpng
     std::vector<float3> vertexNormals;
 
     MaterialTypes matType = MaterialTypes::NONE;
-    float3 pivot = float3(0, 0, 0);
   };
 
   int FindFaceWithEdge(const std::vector<Face>& faces, const Edge& e);
@@ -172,8 +171,7 @@ namespace lpng
   float3 FaceNormal(const Mesh& mesh, const Face& f);
 
   std::vector<int> GetVertexesIds(const Mesh& mesh, const std::vector<int>& facesIds);
-  void ScaleWorldCoord(Mesh& mesh, const float3& vec);
-  void ScaleLocalCoord(Mesh& mesh, const float3& vec);
+  void ScaleObj(Mesh& mesh, const float3& vec);
   void ScaleVertexes(Mesh& mesh, const float3& vec, const std::vector<int>& vertexesIds);
   void ScaleVertexes(Mesh& mesh, const float3& vec, const std::vector<int>& vertexesIds, const float3& O);
   void ScaleFaces(Mesh& mesh, const float3& vec, const std::vector<int>& facesIds);
@@ -182,7 +180,6 @@ namespace lpng
   void RotateVertexes(Mesh& mesh, const std::vector<int>& vertexesIds, const Quat& quat, const float3& O);
 
   void MoveFaces(Mesh& mesh, const std::vector<int>& facesIds, const float3& vector);
-  void MovePivot(Mesh& mesh, const float3& vec);
   void MoveObj(Mesh& mesh, const float3& vec);
   void DecomposeObj(Mesh& mesh);
   std::vector<float3> CalculateObjNormals(const Mesh& mesh);

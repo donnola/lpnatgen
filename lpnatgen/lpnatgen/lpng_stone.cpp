@@ -2,6 +2,40 @@
 #include "lpng_stone.h"
 #include "lpng_primitive.h"
 #include <unordered_set>
+#include <algorithm>
+
+
+void lpng::GenerateObjectStone::flatten_stone()
+{
+  for (Mesh& m : model)
+  {
+    std::vector<float3> vertexes = m.vertexCoords;
+    std::sort(vertexes.begin(), vertexes.end(), [](const float3& a, const float3& b) { return a.y < b.y; });
+    int quant_id = vertexes.size() * 0.4 - 1;
+    float3 quantile = vertexes[quant_id];
+    while (quant_id > 1)
+    {
+      for (float3& v : m.vertexCoords)
+      {
+        float n = quantile.y - v.y;
+        if (n > 0)
+          v.y = quantile.y - n * 0.5;
+      }
+      quant_id /= 2;
+    }
+    float3 max_vertex;
+    float3 min_vertex;
+    for (const float3& v : m.vertexCoords)
+    {
+      if (v.y < min_vertex.y)
+        min_vertex = v;
+      if (v.y > max_vertex.y)
+        max_vertex = v;
+    }
+    MoveObj(m, float3(0, -min_vertex.y * 0.9, 0));
+    ScaleObj(m, float3(1, objectSize.y / (max_vertex.y - min_vertex.y), 1));
+  }
+}
 
 
 void lpng::GenerateObjectStone::GenerateMesh()
@@ -17,7 +51,10 @@ void lpng::GenerateObjectStone::GenerateMesh()
     points.insert(fast_lpng_rand(0, s->GetVertexCount()));
   }
   Mesh stone = GenerateMeshFromSphere(points);
-  ScaleLocalCoord(stone, objectSize / s->GetSizeCoef());
+  
+  ScaleObj(stone, objectSize / (s->GetSizeCoef() * 2));
+  
   stone.matType = MaterialTypes::STONE;
   model.push_back(std::move(stone));
+  flatten_stone();
 }

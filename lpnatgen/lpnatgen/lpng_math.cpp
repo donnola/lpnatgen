@@ -549,18 +549,10 @@ std::vector<int> lpng::GetVertexesIds(const Mesh& mesh, const std::vector<int>& 
 }
 
 
-void lpng::ScaleWorldCoord(Mesh& mesh, const float3& vec)
+void lpng::ScaleObj(Mesh& mesh, const float3& vec)
 {
   for (float3& v : mesh.vertexCoords)
     v *= vec;
-  mesh.pivot *= vec;
-}
-
-
-void lpng::ScaleLocalCoord(Mesh& mesh, const float3& vec)
-{
-  for (float3& v : mesh.vertexCoords)
-    v = (v - mesh.pivot) * vec + mesh.pivot;
 }
 
 
@@ -621,17 +613,10 @@ void lpng::MoveFaces(Mesh& mesh, const std::vector<int>& facesIds, const float3&
 }
 
 
-void lpng::MovePivot(Mesh& mesh, const float3& vec)
-{
-  mesh.pivot += vec;
-}
-
-
 void lpng::MoveObj(Mesh& mesh, const float3& vec)
 {
   for (float3& v : mesh.vertexCoords)
     v += vec;
-  mesh.pivot += vec;
 }
 
 

@@ -94,7 +94,7 @@ int main(void)
   Model model = LoadModelFromMesh(GenMesh(generatedModel));
 
   GuiWindowFileDialogState fileDialogState = InitGuiWindowFileDialog(GetWorkingDirectory());
-  
+
   while (!WindowShouldClose())
   {
 
@@ -156,7 +156,8 @@ int main(void)
     {
       for (const lpng::float3& v : m.vertexCoords)
       {
-        DrawSphere({v.x, v.y, v.z}, 0.05f, DARKPURPLE);
+        
+        DrawSphere({v.x, v.y, v.z} , 0.04f, DARKPURPLE);
       }
     }
     
