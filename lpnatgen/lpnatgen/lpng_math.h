@@ -152,7 +152,7 @@ namespace lpng
   {
     NONE,
     WOOD,
-    GRASS,
+    CROWN,
     STONE
   };
 
@@ -172,6 +172,7 @@ namespace lpng
 
   std::vector<int> GetVertexesIds(const Mesh& mesh, const std::vector<int>& facesIds);
   void ScaleObj(Mesh& mesh, const float3& vec);
+  void ScaleObj(Mesh& mesh, const float3& vec, const float3& O);
   void ScaleVertexes(Mesh& mesh, const float3& vec, const std::vector<int>& vertexesIds);
   void ScaleVertexes(Mesh& mesh, const float3& vec, const std::vector<int>& vertexesIds, const float3& O);
   void ScaleFaces(Mesh& mesh, const float3& vec, const std::vector<int>& facesIds);

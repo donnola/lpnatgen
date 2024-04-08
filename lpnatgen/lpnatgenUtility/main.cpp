@@ -152,14 +152,14 @@ int main(void)
 
     BeginMode3D(camera);
 
-    for (const lpng::Mesh& m : generatedModel)
-    {
-      for (const lpng::float3& v : m.vertexCoords)
-      {
-        
-        DrawSphere({v.x, v.y, v.z} , 0.04f, DARKPURPLE);
-      }
-    }
+    //for (const lpng::Mesh& m : generatedModel)
+    //{
+    //  for (const lpng::float3& v : m.vertexCoords)
+    //  {
+    //    
+    //    DrawSphere({v.x, v.y, v.z} , 0.04f, DARKPURPLE);
+    //  }
+    //}
     
     DrawModel(model, modelPosition, 1.0f, RED);
     DrawModelWires(model, modelPosition, 1.0f, DARKPURPLE);

@@ -12,7 +12,7 @@ namespace lpng
     void GenerateMesh() override;
     void SetPointsCount(int c) { pointsCount = c; };
   private:
-    void flatten_stone();
+    void ModifyStone(Mesh& stone);
     size_t pointsCount;
   };
 }

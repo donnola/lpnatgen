@@ -1,6 +1,8 @@
 #define _USE_MATH_DEFINES
 
 #include "lpng_tree.h"
+#include "lpng_primitive.h"
+#include <algorithm>
 
 
 void lpng::GenerateObjectTree::ClearTree()
@@ -8,7 +10,7 @@ void lpng::GenerateObjectTree::ClearTree()
   tree.clear();
   model.clear();
   seed = get_lpng_seed();
-  ++build_id;
+  ++buildId;
 }
 
 
@@ -65,7 +67,7 @@ std::vector<lpng::float2> lpng::GenerateObjectTree::GetNDirections(int n)
   for (int i = 0; i < n; ++i)
   {
     dirs.emplace_back(sin(angle_cum), cos(angle_cum));
-    float angle = seg_angle * fast_lpng_rand(900, 1100) / 1000.f;
+    float angle = seg_angle * fast_lpng_rand(700, 1300) / 1000.f;
     angle_cum += angle;
   } 
   return dirs;
@@ -97,6 +99,7 @@ int lpng::GenerateObjectTree::SelectWeightedBranch()
 void lpng::GenerateObjectTree::InitBranch(const size_t parent_id, TreeBranch& branch, float3& point_start, float3& vec_in)
 {
   TreeBranch& parent = tree[parent_id];
+  branch.level = parent.level + 1;
   float c_start = fast_lpng_rand(2500, 8000) / 10000.f;
   float l_start = parent.length * c_start;
   float c_len = fast_lpng_rand(850, 1100) / 1000.f;
@@ -145,26 +148,28 @@ void lpng::GenerateObjectTree::GenerateMesh()
     float3 vec_in;
     InitBranch(parent_id, branch, point_start, vec_in);
     GenerateBranch(branch, point_start, vec_in, vec_in);
-    tree[parent_id].childs_id.push_back(tree.size() - 1);
+    tree[parent_id].childsIds.push_back(tree.size() - 1);
   }
   for (size_t i = 0; i < tree.size(); ++i)
   {
     RelaxBranch(tree[i], i);
   }
-  if (build_id < params.rebuildNum)
-  {
-    CalculateQuality();
+  CalculateQuality();
+  if (buildId < params.rebuildNum)
+  {   
     bool nead_rebuild_tree = false;
     bool is_balanced = MagnitudeSq(float2(quality.C.x, quality.C.z)) <= params.sqBalance;
     bool is_centered = MagnitudeSq(float2(quality.mean.x, quality.mean.z)) <= params.sqCentered;
     bool is_spreading = quality.D > params.disp.x && quality.D < params.disp.y;
-    nead_rebuild_tree = !is_balanced || !is_centered || !is_spreading;
+    nead_rebuild_tree = !is_balanced || !is_centered || !is_spreading || tree[0].childsIds.size() < params.branchCount / 3;
     if (nead_rebuild_tree)
     {
       ClearTree();
       GenerateMesh();
+      return;
     }
   }
+  GenerateCrown();
 }
 
 
@@ -244,6 +249,7 @@ void lpng::GenerateObjectTree::RelaxBranch(TreeBranch& branch, size_t meshId)
 void lpng::GenerateObjectTree::CalculateQuality()
 {
   size_t i = 0;
+  float3 mean_ends;
   for (const TreeBranch& branch : tree)
   {
     for (const TreeRing& ring : branch.rings)
@@ -252,18 +258,155 @@ void lpng::GenerateObjectTree::CalculateQuality()
       quality.C += ring.center * ring.rad;
       quality.mean += ring.center;
     }
+    mean_ends += branch.rings.back().center;
   }
   quality.C /= i;
   quality.mean /= i;
+  mean_ends /= tree.size();
   for (const TreeBranch& branch : tree)
   {
-    for (const TreeRing& ring : branch.rings)
-    {
-      float3 t = ring.center - quality.mean;
-      quality.D3 += t * t;
-      quality.D += MagnitudeSq(t);
-    }
+    float3 t = branch.rings.back().center - mean_ends;
+    quality.D3 += t * t;
+    quality.D += MagnitudeSq(t);
   }
   quality.D3 /= i;
   quality.D /= i;
+}
+
+
+void lpng::GenerateObjectTree::InitClusters()
+{
+  crownClusters.clear();
+  std::vector<std::pair<int, int>> free_branch_ids;
+  for (int i = 0; i < tree.size(); ++i)
+  {
+    free_branch_ids.emplace_back(i, tree[i].level);
+  }
+
+  std::sort(free_branch_ids.begin(), free_branch_ids.end(), [](const std::pair<int, int>& a, const std::pair<int, int>& b)
+    { return a.second < b.second; });
+
+  while (free_branch_ids.size() > 0)
+  {
+    CrownCluster cluster;
+    int id = free_branch_ids.front().first;
+    float3 c = tree[id].rings.back().center - float3(0, tree[id].length * 0.2, 0);
+    cluster.rad = std::max(tree[id].rad * 5, tree[id].length * 0.4f);
+    cluster.rad = std::max(cluster.rad, tree[0].rad * 1.5f);
+    cluster.deltaRad = cluster.rad / 4.f;
+    cluster.mainBranchId = id;
+    cluster.center = c;
+    std::unordered_set<int> selected_ids;
+    for (const auto& i : free_branch_ids)
+    {
+      float3 p = tree[i.first].rings.back().center;
+      if (Magnitude(p - c) + cluster.deltaRad <= cluster.rad)
+      {
+        selected_ids.insert(i.first);
+      }
+    }
+    for (int i = 0; i < free_branch_ids.size(); ++i)
+    {
+      if (selected_ids.find(free_branch_ids[i].first) != selected_ids.end())
+      {
+        free_branch_ids.erase(free_branch_ids.begin() + i);
+        --i;
+      }
+    }
+    cluster.branchIds = std::move(selected_ids);
+    crownClusters.push_back(cluster);
+  }
+}
+
+
+void lpng::GenerateObjectTree::GenerateCrown()
+{
+  InitClusters();
+  Sphere* sphere = Sphere::GetInstance();
+  for (CrownCluster& cluster : crownClusters)
+  {
+    cluster.center;
+    float3 v = Normalized(float3(1, 1, 1)) * cluster.rad;
+    for (int i : cluster.branchIds)
+    {
+      float3 p = tree[i].rings.back().center - cluster.center;
+      if (abs(p.x) > v.x)
+      {
+        v.x = abs(p.x);
+      }
+      if (abs(p.y) > v.y)
+      {
+        v.y = abs(p.y);
+      }
+      if (abs(p.z) > v.z)
+      {
+        v.z = abs(p.z);
+      }
+    }
+    float v_r = Magnitude(v);
+    if (v_r < cluster.rad)
+    {
+      v *= cluster.rad / v_r;
+      v_r = cluster.rad;
+    }
+    float k = fast_lpng_rand(1150, 1300) / 1000.f;
+    cluster.rad = v_r * k;
+    v *= k;
+    std::unordered_set<size_t> points;
+    int points_count = 50;
+    const Mesh& s = sphere->GetSphere();
+    for (int i : cluster.branchIds)
+    {
+      float3 p = tree[i].rings.back().center;
+      int neares_p = 0;
+      float min_dist_sq = MagnitudeSq(p - s.vertexCoords[0]);
+      for (int j = 1; j < s.vertexCoords.size(); ++j)
+      {
+        float dist_sq = MagnitudeSq(p - s.vertexCoords[j]);
+        if (MagnitudeSq(p - s.vertexCoords[j]) < min_dist_sq)
+        {
+          min_dist_sq = dist_sq;
+          neares_p = j;
+        }
+      }
+      points.insert(neares_p);
+    }
+    while (points.size() < points_count)
+    {
+      points.insert(fast_lpng_rand(0, sphere->GetVertexCount()));
+    }
+    Mesh crown = GenerateMeshFromSphere(points);
+    ScaleObj(crown, v / sphere->GetSizeCoef());
+    MoveObj(crown, cluster.center);
+    crown.matType = MaterialTypes::CROWN;
+    ModifyCrown(crown, cluster.center);
+    model.push_back(std::move(crown));
+  }
+}
+
+
+void lpng::GenerateObjectTree::ModifyCrown(Mesh& crown, const float3& c)
+{
+  std::vector<float3> vertexes = crown.vertexCoords;
+  std::sort(vertexes.begin(), vertexes.end(), [](const float3& a, const float3& b) { return a.y < b.y; });
+  int quant_id = vertexes.size() * 0.6;
+  float3 quantile = vertexes[quant_id];
+  for (float3& v : crown.vertexCoords)
+  {
+    float n = v.y - quantile.y;
+    if (n > 0)
+    {
+      float k = fast_lpng_rand(800, 1001) / 1000.f;
+      v.x = c.x + (v.x - c.x) * k;
+      v.z = c.z + (v.z - c.z) * k;
+      float n_k = fast_lpng_rand(1400, 1450) / 1000.f;
+      v.y = quantile.y + n * n_k;
+    } 
+    if (n <= 0)
+    {
+      float k = fast_lpng_rand(950, 1200) / 1000.f;
+      v.x = c.x + (v.x - c.x) * k;
+      v.z = c.z + (v.z - c.z) * k;
+    }
+  }
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "lpng.h"
+#include <unordered_set>
 
 namespace lpng
 {
@@ -18,11 +19,12 @@ namespace lpng
   struct TreeBranch
   {
     std::vector<TreeRing> rings;
-    std::vector<int> childs_id;
+    std::vector<int> childsIds;
     std::vector<float2> freeDirections;
-    size_t weight = 0;
     float length = 0;
     float rad = 0;
+    int level = 0;
+    size_t weight = 0;
   };
 
   struct Quality
@@ -47,6 +49,15 @@ namespace lpng
     size_t rebuildNum = 0;
   };
 
+  struct CrownCluster
+  {
+    std::unordered_set<int> branchIds;
+    float3 center; 
+    float rad = 0;
+    float deltaRad = 0;
+    int mainBranchId = 0;
+  };
+
   class GenerateObjectTree : public GenerateObject
   {
   public:
@@ -58,7 +69,7 @@ namespace lpng
       params.firstRad = 0.5;
       params.lastRad = 0.03;
       params.upCoef = 0.3;
-      params.disp = float2(2.2, 2.8);
+      params.disp = float2(3, 3.4);
       params.sqBalance = 0.05;
       params.sqCentered = 0.1;
       params.branchCount = 7;
@@ -76,11 +87,16 @@ namespace lpng
     int SelectWeightedBranch();
     std::vector<float2> GetNDirections(int n);
     void InitBranch(const size_t parent_id, TreeBranch& branch, float3& point_start, float3& vec_in);
+    void GenerateCrown();
+    void InitClusters();
+    void ModifyCrown(Mesh& crown, const float3& c);
+    void RelaxCrown();
     void CalculateQuality();
     void ClearTree();
     std::vector<TreeBranch> tree;
     Quality quality;
     TreeParams params;
-    size_t build_id = 0;
+    size_t buildId = 0;
+    std::vector<CrownCluster> crownClusters;
   };
 }

@@ -12,7 +12,7 @@ std::vector<lpng::Mesh> lpng::GenerateObject::GetModel()
 
 void lpng::GenerateObject::Generate()
 {
-  //fast_lpng_rand(1711030902);
+  //fast_lpng_rand(1780338363);
   seed = get_lpng_seed();
   GenerateMesh();
   PolygonDecomposition();

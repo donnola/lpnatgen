@@ -556,6 +556,13 @@ void lpng::ScaleObj(Mesh& mesh, const float3& vec)
 }
 
 
+void lpng::ScaleObj(Mesh& mesh, const float3& vec, const float3& O)
+{
+  for (float3& v : mesh.vertexCoords)
+    v = (v - O) * vec + O;
+}
+
+
 void lpng::ScaleVertexes(Mesh& mesh, const float3& vec, const std::vector<int>& vertexesIds)
 {
   float3 mean_point;
