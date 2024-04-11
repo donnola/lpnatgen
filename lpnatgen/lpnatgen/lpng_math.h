@@ -2,6 +2,7 @@
 #include <cmath>
 #include <vector>
 #include <functional>
+#include <unordered_set>
 
 
 
@@ -197,4 +198,7 @@ namespace lpng
   std::vector<float3> GenerateEllipsoidUniformPoints(const float3& size, int pointsNum = 10);
   void FilterNearesPoints(std::vector<float3>& points, float d = 0.07);
   void DeleteUnusedVertexes(Mesh& mesh);
+  bool SortEdges(std::vector<Edge>& edges);
+  void CupFromEdges(const Mesh& mesh, std::vector<Face>& faces, std::vector<Edge> edges);
+  void FilterMeshWithPoints(Mesh& mesh, const std::unordered_set<size_t>& vertexes_ids);
 }

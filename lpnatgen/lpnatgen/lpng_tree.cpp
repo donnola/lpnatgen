@@ -290,9 +290,9 @@ void lpng::GenerateObjectTree::InitClusters()
   {
     CrownCluster cluster;
     int id = free_branch_ids.front().first;
-    float3 c = tree[id].rings.back().center - float3(0, tree[id].length * 0.2, 0);
+    float3 c = tree[id].rings.back().center - Normalized(tree[id].rings.back().vecIn) * tree[id].length * 0.2;
     cluster.rad = std::max(tree[id].rad * 5, tree[id].length * 0.4f);
-    cluster.rad = std::max(cluster.rad, tree[0].rad * 1.5f);
+    cluster.rad = std::max(cluster.rad, tree[0].rad * 2.5f);
     cluster.deltaRad = cluster.rad / 4.f;
     cluster.mainBranchId = id;
     cluster.center = c;
@@ -354,16 +354,16 @@ void lpng::GenerateObjectTree::GenerateCrown()
     v *= k;
     std::unordered_set<size_t> points;
     int points_count = 50;
-    const Mesh& s = sphere->GetSphere();
+    Mesh crown = sphere->GetSphere();
     for (int i : cluster.branchIds)
     {
       float3 p = tree[i].rings.back().center;
       int neares_p = 0;
-      float min_dist_sq = MagnitudeSq(p - s.vertexCoords[0]);
-      for (int j = 1; j < s.vertexCoords.size(); ++j)
+      float min_dist_sq = MagnitudeSq(p - crown.vertexCoords[0]);
+      for (int j = 1; j < crown.vertexCoords.size(); ++j)
       {
-        float dist_sq = MagnitudeSq(p - s.vertexCoords[j]);
-        if (MagnitudeSq(p - s.vertexCoords[j]) < min_dist_sq)
+        float dist_sq = MagnitudeSq(p - crown.vertexCoords[j]);
+        if (MagnitudeSq(p - crown.vertexCoords[j]) < min_dist_sq)
         {
           min_dist_sq = dist_sq;
           neares_p = j;
@@ -375,11 +375,12 @@ void lpng::GenerateObjectTree::GenerateCrown()
     {
       points.insert(fast_lpng_rand(0, sphere->GetVertexCount()));
     }
-    Mesh crown = GenerateMeshFromSphere(points);
+    FilterMeshWithPoints(crown, points);
+    ModifyCrown(crown, cluster.center);
     ScaleObj(crown, v / sphere->GetSizeCoef());
     MoveObj(crown, cluster.center);
     crown.matType = MaterialTypes::CROWN;
-    ModifyCrown(crown, cluster.center);
+    
     model.push_back(std::move(crown));
   }
 }

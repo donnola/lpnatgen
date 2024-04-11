@@ -56,6 +56,7 @@ namespace lpng
     float rad = 0;
     float deltaRad = 0;
     int mainBranchId = 0;
+    int pointsCount = 0;
   };
 
   class GenerateObjectTree : public GenerateObject

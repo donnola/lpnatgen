@@ -47,7 +47,8 @@ void lpng::GenerateObjectStone::GenerateMesh()
   {
     points.insert(fast_lpng_rand(0, sphere->GetVertexCount()));
   }
-  Mesh stone = GenerateMeshFromSphere(points);
+  Mesh stone = sphere->GetSphere();
+  FilterMeshWithPoints(stone, points);
   
   ScaleObj(stone, objectSize / (sphere->GetSizeCoef() * 2));
   
