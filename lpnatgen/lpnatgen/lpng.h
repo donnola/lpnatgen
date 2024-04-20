@@ -11,10 +11,10 @@ namespace lpng
   class GenerateObject
   {
   public:
-    GenerateObject(float3 size) : objectSize(size) {}
+    GenerateObject() {}
 
-    GenerateObject(float size) : objectSize({0, size, 0}) {}
-
+    void SetModelSeed(int seed) { fast_lpng_rand(seed); }
+    void SetSize(float3 size) { objectSize = size; }
     void AddObject(Mesh& mesh);
     virtual void GenerateMesh() = 0;
     virtual void GenerateTextureCoords();
@@ -27,16 +27,16 @@ namespace lpng
     unsigned int GetModelSeed() { return seed; }
     
   protected:
-    const float3 objectSize = float3(1,1,1);
+    float3 objectSize = float3(1,1,1);
     std::vector<Mesh> model;
     std::string fileFormat = ".obj";
-    unsigned int seed;
+    unsigned int seed = 0;
   };
 
   class GenerateObjectBush : public GenerateObject
   {
   public:
-    GenerateObjectBush(float3 size = float3(1.5, 2, 1.5)) : GenerateObject(size) {}
+    GenerateObjectBush(){}
 
     void GenerateMesh() override;
   };

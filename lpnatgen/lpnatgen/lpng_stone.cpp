@@ -37,6 +37,10 @@ void lpng::GenerateObjectStone::ModifyStone(Mesh& stone)
 
 void lpng::GenerateObjectStone::GenerateMesh()
 {
+  if (pointsCount < 4)
+  {
+    return;
+  }
   std::unordered_set<size_t> points;
   Sphere* sphere = Sphere::GetInstance();
   if (sphere->GetVertexCount() < pointsCount * 3)

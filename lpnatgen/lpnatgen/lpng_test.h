@@ -7,7 +7,7 @@ namespace lpng
   class GenerateObjectTest : public GenerateObject
   {
   public:
-    GenerateObjectTest(float3 size = float3(1, 2, 1)) : GenerateObject(size) {}
+    GenerateObjectTest() {}
 
     void GenerateMesh() override;
   };

@@ -3,8 +3,8 @@
 #include "lpng_test.h"
 #include "lpng_stone.h"
 #include "lpng_rand.h"
-#include "lpng_primitive.h"
 #include <iostream>
+#include <stdlib.h>
 #include <memory>
 #include <ctime>
 #include "raylib.h"
@@ -12,18 +12,29 @@
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 #undef RAYGUI_IMPLEMENTATION
-#define GUI_WINDOW_FILE_DIALOG_IMPLEMENTATION
-#include "gui_window_file_dialog.h"
 
 
-struct InputBoxDesc
+static enum class InputBoxType
 {
-  Rectangle box;
-  std::string box_name;
-  char text[1024];
+  NONE = -1,
+  TEXT,
+  VALUE_INT,
+  VALUE_FLOAT
 };
 
-enum ObjectTypes
+static struct InputBoxDesc
+{
+  Rectangle input_box_rect;
+  Rectangle name_rect;
+  std::string box_name = "";
+  char text[256] = "";
+  GuiState state = STATE_NORMAL;
+  InputBoxType type = InputBoxType::NONE;
+  int* value_int = nullptr;
+  float* value_float = nullptr;
+};
+
+static enum ObjectType
 {
   TEST = 0,
   STONE = 1,
@@ -32,10 +43,20 @@ enum ObjectTypes
   
 };
 
+static lpng::TreeParams treeParams;
+static lpng::TreeRebuildParams treeRebuildParams;
+static lpng::float3 objectSize(1, 2, 1);
+static bool treeRebuildCheck = false;
+static int stoneVertexCount = 30;
+static bool goalModelSeedCheck = false;
+static int goalModelSeed = 0;
+static char* selectedInputBox = nullptr;
+
+static Vector2 mousePoint = { 0.0f, 0.0f };
 
 static Mesh GenMesh(const std::vector<lpng::Mesh> &model);
 static bool GenerateObjectWithType(int type, std::unique_ptr<lpng::GenerateObject>& model_ptr);
-static void InputBox(std::vector<InputBoxDesc>& inputBoxes, const int activeInputBoxId);
+static void InputBox(InputBoxDesc& inputBox);
 
 
 int main(void)
@@ -44,6 +65,9 @@ int main(void)
   const int screenHeight = 800;
 
   InitWindow(screenWidth, screenHeight, "lpngUtility : object generation");
+  SetTargetFPS(60);
+  DisableCursor();
+  fast_lpng_rand(int(std::time(0)));
 
   RenderTexture screen1 = LoadRenderTexture(screenWidth / 2, screenHeight);
 
@@ -58,124 +82,274 @@ int main(void)
   Rectangle splitScreenRect = { 0.0f, 0.0f, (float)screen1.texture.width, (float)-screen1.texture.height };
   Vector3 modelPosition = { 0.0f, 0.0f, 0.0f };
 
-  DisableCursor();
+  // BUTTONS
 
-  SetTargetFPS(60);
+  Rectangle btnCopySeedBounds = { 320, 705, 140, 30 };
+  std::string copySeedText = "Copy seed";
 
-  fast_lpng_rand(int(std::time(0)));
-
-  int modelTypeActive = TEST;
-  bool modelTypeEditMode = false;
-
-  Rectangle btnCreateBounds = { 12, 100, 140, 30 };
+  Rectangle btnCreateBounds = { 12, 140, 140, 30 };
   std::string createModelText = "Create model";
 
   Rectangle btnSaveBounds = { 12, 220, 140, 30 };
   std::string saveModelText = "Save model";
 
-  std::vector<InputBoxDesc> inputBoxes{ 
-    {Rectangle{ 120, 140, 140, 30 }, "Model name", ""},
-    {Rectangle{ 120, 180, 140, 30 }, "Save path", ""}
-  };
+  // INPUT BOXES
 
-  char* textPathPtr = inputBoxes[1].text;
+  Rectangle checkBoxSeedRectangle = { 12, 100, 30, 30 };
+  InputBoxDesc inputBoxSeed;
+  inputBoxSeed.type = InputBoxType::VALUE_INT;
+  inputBoxSeed.input_box_rect = Rectangle{ 120, 100, 180, 30 };
+  inputBoxSeed.value_int = &goalModelSeed;
+  
+  InputBoxDesc inputBoxModelName;
+  inputBoxModelName.type = InputBoxType::TEXT;
+  inputBoxModelName.name_rect = Rectangle{ 12, 180, 100, 30 };
+  inputBoxModelName.input_box_rect = Rectangle{ 120, 180, 180, 30 };
+  inputBoxModelName.box_name = "Model name";
 
-  int inputState = 0;
-  bool inputAction = false;
-  bool isInputActive = false;
-  int activeInputBoxId = -1;
+  InputBoxDesc inputSizeX;
+  InputBoxDesc inputSizeY;
+  InputBoxDesc inputSizeZ;
+  snprintf(inputSizeX.text, sizeof inputSizeX.text, "%1.2f", objectSize.x);
+  snprintf(inputSizeY.text, sizeof inputSizeY.text, "%1.2f", objectSize.y);
+  snprintf(inputSizeZ.text, sizeof inputSizeZ.text, "%1.2f", objectSize.z);
+  inputSizeX.type = InputBoxType::VALUE_FLOAT;
+  inputSizeY.type = InputBoxType::VALUE_FLOAT;
+  inputSizeZ.type = InputBoxType::VALUE_FLOAT;
+  inputSizeX.name_rect = Rectangle{ 405, 20, 10, 30 };
+  inputSizeY.name_rect = Rectangle{ 495, 20, 10, 30 };
+  inputSizeZ.name_rect = Rectangle{ 585, 20, 10, 30 };
+  inputSizeX.input_box_rect = Rectangle{ 420, 20, 70, 30 };
+  inputSizeY.input_box_rect = Rectangle{ 510, 20, 70, 30 };
+  inputSizeZ.input_box_rect = Rectangle{ 600, 20, 70, 30 };
+  inputSizeX.box_name = "x";
+  inputSizeY.box_name = "y";
+  inputSizeZ.box_name = "z";
+  inputSizeX.value_float = &objectSize.x;
+  inputSizeY.value_float = &objectSize.y;
+  inputSizeZ.value_float = &objectSize.z;
 
-  Vector2 mousePoint = { 0.0f, 0.0f };
+  InputBoxDesc inputStoneVertexCount;
+  inputStoneVertexCount.type = InputBoxType::VALUE_INT;
+  inputStoneVertexCount.name_rect = Rectangle{ 320, 60, 80, 30 };
+  inputStoneVertexCount.input_box_rect = Rectangle{ 480, 60, 70, 30 };
+  inputStoneVertexCount.box_name = "Stone vertex count";
+  inputStoneVertexCount.value_int = &stoneVertexCount;
 
+  InputBoxDesc inputTreeHeight;
+  inputTreeHeight.type = InputBoxType::VALUE_FLOAT;
+  inputTreeHeight.name_rect = Rectangle{ 320, 20, 70, 30 };
+  inputTreeHeight.input_box_rect = Rectangle{ 480, 20, 70, 30 };
+  inputTreeHeight.box_name = "Tree height";
+  inputTreeHeight.value_float = &treeParams.height;
+  snprintf(inputTreeHeight.text, sizeof inputTreeHeight.text, "%1.2f", treeParams.height);
+
+  InputBoxDesc inputTreeFirstRad;
+  inputTreeFirstRad.type = InputBoxType::VALUE_FLOAT;
+  inputTreeFirstRad.name_rect = Rectangle{ 320, 60, 80, 30 };
+  inputTreeFirstRad.input_box_rect = Rectangle{ 480, 60, 70, 30 };
+  inputTreeFirstRad.box_name = "Tree base radius";
+  inputTreeFirstRad.value_float = &treeParams.firstRad;
+  snprintf(inputTreeFirstRad.text, sizeof inputTreeFirstRad.text, "%1.2f", treeParams.firstRad);
+
+  InputBoxDesc inputTreeLastRad;
+  inputTreeLastRad.type = InputBoxType::VALUE_FLOAT;
+  inputTreeLastRad.name_rect = Rectangle{ 320, 100, 80, 30 };
+  inputTreeLastRad.input_box_rect = Rectangle{ 480, 100, 70, 30 };
+  inputTreeLastRad.box_name = "Tree end radius";
+  inputTreeLastRad.value_float = &treeParams.lastRad;
+  snprintf(inputTreeLastRad.text, sizeof inputTreeLastRad.text, "%1.2f", treeParams.lastRad);
+
+  InputBoxDesc inputTreeUpCoef;
+  inputTreeUpCoef.type = InputBoxType::VALUE_FLOAT;
+  inputTreeUpCoef.name_rect = Rectangle{ 320, 140, 80, 30 };
+  inputTreeUpCoef.input_box_rect = Rectangle{ 480, 140, 70, 30 };
+  inputTreeUpCoef.box_name = "Tree branch up K";
+  inputTreeUpCoef.value_float = &treeParams.upCoef;
+  snprintf(inputTreeUpCoef.text, sizeof inputTreeUpCoef.text, "%1.2f", treeParams.upCoef);
+
+  InputBoxDesc inputTreeEdgeBase;
+  inputTreeEdgeBase.type = InputBoxType::VALUE_INT;
+  inputTreeEdgeBase.name_rect = Rectangle{ 320, 180, 80, 30 };
+  inputTreeEdgeBase.input_box_rect = Rectangle{ 480, 180, 70, 30 };
+  inputTreeEdgeBase.box_name = "Tree trunk edges";
+  inputTreeEdgeBase.value_int = &treeParams.edgeBase;
+  
+  InputBoxDesc inputTreeBranchCount;
+  inputTreeBranchCount.type = InputBoxType::VALUE_INT;
+  inputTreeBranchCount.name_rect = Rectangle{ 320, 220, 80, 30 };
+  inputTreeBranchCount.input_box_rect = Rectangle{ 480, 220, 70, 30 };
+  inputTreeBranchCount.box_name = "Tree branch count";
+  inputTreeBranchCount.value_int = &treeParams.branchCount;
+
+  Rectangle checkBoxTreeRebuildRectangle = { 320, 260, 30, 30 };
+  InputBoxDesc inputTreeDMin;
+  InputBoxDesc inputTreeDMax;
+  snprintf(inputTreeDMin.text, sizeof inputTreeDMin.text, "%1.2f", treeRebuildParams.disp.x);
+  snprintf(inputTreeDMax.text, sizeof inputTreeDMax.text, "%1.2f", treeRebuildParams.disp.y);
+  inputTreeDMin.type = InputBoxType::VALUE_FLOAT;
+  inputTreeDMax.type = InputBoxType::VALUE_FLOAT;
+  inputTreeDMin.name_rect = Rectangle{ 450, 300, 10, 30 };
+  inputTreeDMax.name_rect = Rectangle{ 560, 300, 10, 30 };
+  inputTreeDMin.input_box_rect = Rectangle{ 480, 300, 70, 30 };
+  inputTreeDMax.input_box_rect = Rectangle{ 590, 300, 70, 30 };
+  inputTreeDMin.box_name = "min";
+  inputTreeDMax.box_name = "max";
+  inputTreeDMin.value_float = &treeRebuildParams.disp.x;
+  inputTreeDMax.value_float = &treeRebuildParams.disp.y;
+
+  InputBoxDesc inputTreeBalance;
+  inputTreeBalance.type = InputBoxType::VALUE_FLOAT;
+  inputTreeBalance.name_rect = Rectangle{ 320, 340, 80, 30 };
+  inputTreeBalance.input_box_rect = Rectangle{ 480, 340, 70, 30 };
+  inputTreeBalance.box_name = "Tree balance";
+  inputTreeBalance.value_float = &treeRebuildParams.balance;
+  snprintf(inputTreeBalance.text, sizeof inputTreeBalance.text, "%1.2f", treeRebuildParams.balance);
+
+  InputBoxDesc inputTreeCentered;
+  inputTreeCentered.type = InputBoxType::VALUE_FLOAT;
+  inputTreeCentered.name_rect = Rectangle{ 320, 380, 80, 30 };
+  inputTreeCentered.input_box_rect = Rectangle{ 480, 380, 70, 30 };
+  inputTreeCentered.box_name = "Tree center accur";
+  inputTreeCentered.value_float = &treeRebuildParams.centered;
+  snprintf(inputTreeCentered.text, sizeof inputTreeCentered.text, "%1.2f", treeRebuildParams.centered);
+
+  InputBoxDesc inputTreeRebuildNum;
+  inputTreeRebuildNum.type = InputBoxType::VALUE_INT;
+  inputTreeRebuildNum.name_rect = Rectangle{ 320, 420, 80, 30 };
+  inputTreeRebuildNum.input_box_rect = Rectangle{ 480, 420, 70, 30 };
+  inputTreeRebuildNum.box_name = "Tree rebuild num";
+  inputTreeRebuildNum.value_int = &treeRebuildParams.rebuildNum;
+
+  // LOAD MODEL
+  int modelTypeActive = TEST;
+  bool modelTypeEditMode = false;
   std::unique_ptr<lpng::GenerateObject> modelPtr{ std::make_unique<lpng::GenerateObjectTest>() };
+  modelPtr->SetSize(objectSize);
   modelPtr->Generate();
   unsigned int modelSeed = modelPtr->GetModelSeed();
   std::vector<lpng::Mesh> generatedModel = modelPtr->GetModel();
   Model model = LoadModelFromMesh(GenMesh(generatedModel));
 
-  GuiWindowFileDialogState fileDialogState = InitGuiWindowFileDialog(GetWorkingDirectory());
-
   while (!WindowShouldClose())
   {
-
-    if (IsCursorHidden()) UpdateCamera(&camera, CAMERA_THIRD_PERSON);
-
-    if (IsKeyPressed(KEY_TAB))
+    // CURSOR ACT
     {
-      if (IsCursorHidden()) EnableCursor();
-      else DisableCursor();
-    }
-
-    mousePoint = GetMousePosition();
-
-    if (fileDialogState.SelectFilePressed)
-    {
-      char pathToLoad[1024] = { 0 };
-      if (IsFileExtension(fileDialogState.fileNameText, ".png"))
+      if (IsCursorHidden() && selectedInputBox == nullptr) UpdateCamera(&camera, CAMERA_THIRD_PERSON);
+      if (IsKeyPressed(KEY_TAB))
       {
-        strcpy(pathToLoad, TextFormat("%s" PATH_SEPERATOR "%s", fileDialogState.dirPathText, fileDialogState.fileNameText));
+        if (IsCursorHidden()) EnableCursor();
+        else DisableCursor();
+      }
+      mousePoint = GetMousePosition();
+    }
+    
+    // DRAW LEFT WINDOW PART
+    {
+      BeginTextureMode(screen1);
+      ClearBackground({ 230, 245, 255, 255 });
+
+      if (modelTypeEditMode) GuiLock();
+      GuiCheckBox(checkBoxSeedRectangle, "Use seed", &goalModelSeedCheck);
+      if (goalModelSeedCheck)
+      {
+        InputBox(inputBoxSeed);
+      }
+      if (GuiButton(btnCreateBounds, createModelText.c_str()))
+      {
+        bool isNewModel = GenerateObjectWithType(modelTypeActive, modelPtr);
+        if (!isNewModel)
+          break;
+        modelPtr->Generate();
+        modelSeed = modelPtr->GetModelSeed();
+        generatedModel = modelPtr->GetModel();
+        UnloadModel(model);
+        model = LoadModelFromMesh(GenMesh(generatedModel));
+      }
+      if (GuiButton(btnSaveBounds, saveModelText.c_str())) modelPtr->SaveModel();
+      InputBox(inputBoxModelName);
+      if (GuiButton(btnCopySeedBounds, copySeedText.c_str())) 
+      {
+        char buffer[16];
+        _itoa(modelSeed, buffer, 10);
+        SetClipboardText(buffer);
       }
 
-      fileDialogState.SelectFilePressed = false;
+      if (modelTypeActive == TREE)
+      {
+        InputBox(inputTreeHeight);
+        InputBox(inputTreeFirstRad);
+        InputBox(inputTreeLastRad);
+        InputBox(inputTreeUpCoef);
+        InputBox(inputTreeEdgeBase);
+        InputBox(inputTreeBranchCount);
+        GuiCheckBox(checkBoxTreeRebuildRectangle, "Use tree rebuild check", &treeRebuildCheck);
+        if (treeRebuildCheck)
+        {
+          DrawText(TextFormat("Branches disp"), 320, 308, 16, BLACK);
+          InputBox(inputTreeDMin);
+          InputBox(inputTreeDMax);
+          InputBox(inputTreeBalance);
+          InputBox(inputTreeCentered);
+          InputBox(inputTreeRebuildNum);
+        }
+      }
+      else
+      {
+        DrawText(TextFormat("Model size"), 320, 28, 16, BLACK);
+        InputBox(inputSizeX);
+        InputBox(inputSizeY);
+        InputBox(inputSizeZ);
+        if (modelTypeActive == STONE)
+        {
+          InputBox(inputStoneVertexCount);
+        }
+      }
+
+      GuiUnlock();
+
+      DrawText(TextFormat("MODEL SEED : %u", modelSeed), 10, 710, 22, MAROON);
+      DrawText("PRESS TAB TO ENABLE CURSOR", 10, 760, 22, MAROON);
+      if (GuiDropdownBox({ 12, 20, 140, 30 }, "TEST;STONE;TREE", &modelTypeActive, modelTypeEditMode)) modelTypeEditMode = !modelTypeEditMode;
+
+      EndTextureMode();
     }
 
-    BeginTextureMode(screen1);
-    ClearBackground({ 230, 245, 255, 255 });
-
-    if (modelTypeEditMode || fileDialogState.windowActive) GuiLock();
-
-    if (GuiButton(btnCreateBounds, createModelText.c_str()))
+    // DRAW RIGHT WINDOW PART
     {
-      bool isNewModel = GenerateObjectWithType(modelTypeActive, modelPtr);
-      if (!isNewModel)
-        break;
-      modelPtr->Generate();
-      modelSeed = modelPtr->GetModelSeed();
-      generatedModel = modelPtr->GetModel();
-      UnloadModel(model);
-      model = LoadModelFromMesh(GenMesh(generatedModel));
+      BeginTextureMode(screen2);
+      ClearBackground(RAYWHITE);
+
+      // DRAW MODEL
+      {
+        BeginMode3D(camera);
+
+        //for (const lpng::Mesh& m : generatedModel)
+        //{
+        //  for (const lpng::float3& v : m.vertexCoords)
+        //  {
+        //    
+        //    DrawSphere({v.x, v.y, v.z} , 0.04f, DARKPURPLE);
+        //  }
+        //}
+
+        DrawModel(model, modelPosition, 1.0f, RED);
+        DrawModelWires(model, modelPosition, 1.0f, DARKPURPLE);
+
+        DrawGrid(10, 1.0f);
+        EndMode3D();
+      }
+      EndTextureMode();
+    } 
+
+    // DRAW WINDOW 
+    {
+      BeginDrawing();
+      DrawTextureRec(screen1.texture, splitScreenRect, { 0, 0 }, WHITE);
+      DrawTextureRec(screen2.texture, splitScreenRect, { screenWidth / 2.0f, 0 }, WHITE);
+      DrawRectangle(GetScreenWidth() / 2 - 2, 0, 4, GetScreenHeight(), LIGHTGRAY);
+      EndDrawing();
     }
-    if (GuiButton(btnSaveBounds, saveModelText.c_str())) modelPtr->SaveModel();
-    InputBox(inputBoxes, activeInputBoxId);
-    if (GuiButton(Rectangle{ 270, 180, 30, 30 }, GuiIconText(ICON_FILE_OPEN, ""))) fileDialogState.windowActive = true;
-
-    GuiUnlock();
-
-    DrawText(TextFormat("MODEL SEED : %u", modelSeed), 10, 710, 22, MAROON);
-    DrawText("PRESS TAB TO ENABLE CURSOR", 10, 740, 22, MAROON);
-    if (GuiDropdownBox({ 12, 20, 140, 30 }, "TEST;STONE;TREE", &modelTypeActive, modelTypeEditMode)) modelTypeEditMode = !modelTypeEditMode; //;BUSH
-
-    EndTextureMode();
-
-    BeginTextureMode(screen2);
-    ClearBackground(RAYWHITE);
-
-    BeginMode3D(camera);
-
-    //for (const lpng::Mesh& m : generatedModel)
-    //{
-    //  for (const lpng::float3& v : m.vertexCoords)
-    //  {
-    //    
-    //    DrawSphere({v.x, v.y, v.z} , 0.04f, DARKPURPLE);
-    //  }
-    //}
-    
-    DrawModel(model, modelPosition, 1.0f, RED);
-    DrawModelWires(model, modelPosition, 1.0f, DARKPURPLE);
-
-    DrawGrid(10, 1.0f);
-    EndMode3D();
-
-    EndTextureMode();
-
-    BeginDrawing();
-
-    DrawTextureRec(screen1.texture, splitScreenRect, { 0, 0 }, WHITE);
-    DrawTextureRec(screen2.texture, splitScreenRect, { screenWidth / 2.0f, 0 }, WHITE);
-    DrawRectangle(GetScreenWidth() / 2 - 2, 0, 4, GetScreenHeight(), LIGHTGRAY);
-    GuiWindowFileDialog(&fileDialogState);
-    EndDrawing();
   }
   UnloadRenderTexture(screen1);
   UnloadRenderTexture(screen2);
@@ -225,49 +399,110 @@ static Mesh GenMesh(const std::vector<lpng::Mesh>& model)
     }
   }
   UploadMesh(&mesh, false);
-  lpng::Sphere::Destroy();
   return mesh;
 }
 
 
 static bool GenerateObjectWithType(int type, std::unique_ptr<lpng::GenerateObject>& model_ptr)
 {
+  bool res = false;
   switch (type)
   {
   case TEST:
   {
-    model_ptr.reset(new lpng::GenerateObjectTest());
-    return true;
+    lpng::GenerateObjectTest* test_ptr = new lpng::GenerateObjectTest();
+    model_ptr.reset(test_ptr);
+    res = true;
+    break;
   }
     
   case STONE:
   {
-    model_ptr.reset(new lpng::GenerateObjectStone());
-    return true;
+    lpng::GenerateObjectStone* stone_ptr = new lpng::GenerateObjectStone();
+    stone_ptr->SetVertexCount(stoneVertexCount);
+    model_ptr.reset(stone_ptr);
+    res = true;
+    break;
   }
     
   //case BUSH:
   //  return new lpng::GenerateObjectBush();
   case TREE:
   {
-    model_ptr.reset(new lpng::GenerateObjectTree());
-    return true;
+    lpng::GenerateObjectTree* tree_ptr = new lpng::GenerateObjectTree();
+    objectSize.x = 2 * treeParams.firstRad;
+    objectSize.z = 2 * treeParams.firstRad;
+    objectSize.y = treeParams.height;
+    tree_ptr->SetTreeParams(treeParams);
+    if (treeRebuildCheck)
+      tree_ptr->SetRebuildParams(treeRebuildParams);
+    model_ptr.reset(tree_ptr);
+    res = true;
+    break;
   }
   default:
-    return false;
+    break;
   }
-  return false;
+  if (res)
+  {
+    model_ptr->SetSize(objectSize);
+    if (goalModelSeedCheck && goalModelSeed >= 0)
+      model_ptr->SetModelSeed(goalModelSeed);
+  }
+  return res;
 }
 
 
-static void InputBox(std::vector<InputBoxDesc>& inputBoxes, const int activeInputBoxId)
+static void InputBox(InputBoxDesc& inputBox)
 {
-  for (int i = 0; i < inputBoxes.size(); ++i)
+  if (inputBox.box_name.size() > 0)
+    DrawText(inputBox.box_name.c_str(), (int)inputBox.name_rect.x, (int)inputBox.name_rect.y + 8, 16, BLACK);
+  if (CheckCollisionPointRec(mousePoint, inputBox.input_box_rect))
   {
-    char* text = inputBoxes[i].text;
-    const std::string& box_name = inputBoxes[i].box_name;
-    const Rectangle& box = inputBoxes[i].box;
-    DrawText(box_name.c_str(), 12, (int)box.y + 8, 16, BLACK);
-    GuiTextBox(box, text, 1024, true);
+    if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
+    {
+      inputBox.state = STATE_PRESSED;
+    }  
+    else if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON) && inputBox.state == STATE_PRESSED || IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+    {
+      selectedInputBox = inputBox.text;
+      inputBox.state = STATE_FOCUSED;
+    }
   }
+  else
+  {
+    if (IsMouseButtonDown(MOUSE_LEFT_BUTTON) && inputBox.state == STATE_PRESSED)
+    {
+      inputBox.state = STATE_PRESSED;
+    }
+    else if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON) || IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+    {
+      if (selectedInputBox == inputBox.text)
+        selectedInputBox = nullptr;
+      inputBox.state = STATE_NORMAL;
+    }
+  }
+  switch (inputBox.type)
+  {
+  case InputBoxType::TEXT:
+  {
+    GuiTextBox(inputBox.input_box_rect, inputBox.text, 1024, selectedInputBox == inputBox.text);
+    break;
+  }
+  case InputBoxType::VALUE_INT:
+  {
+    GuiValueBox(inputBox.input_box_rect, inputBox.text, inputBox.value_int, 0, INT_MAX, selectedInputBox == inputBox.text);
+    break;
+  }
+  case InputBoxType::VALUE_FLOAT:
+  {
+    GuiValueBoxF(inputBox.input_box_rect, nullptr, inputBox.text, inputBox.value_float, selectedInputBox == inputBox.text);
+    break;
+  }
+  default:
+  {
+    break;
+  }
+  }
+  
 }

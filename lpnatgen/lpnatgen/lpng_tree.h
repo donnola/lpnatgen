@@ -39,14 +39,18 @@ namespace lpng
   {
     float height = 5.f;
     float firstRad = 0.5;
-    float lastRad = 0;
-    float upCoef = 0;
-    float2 disp;
-    float sqBalance = 0;
-    float sqCentered = 0;
-    size_t branchCount = 7;
-    size_t edgeBase = 5;
-    size_t rebuildNum = 0;
+    float lastRad = 0.03;
+    float upCoef = 0.3;
+    int edgeBase = 5;
+    int branchCount = 7;
+  };
+
+  struct TreeRebuildParams
+  {
+    float2 disp = float2(3, 3.5);
+    float balance = 0.1;
+    float centered = 0.1;
+    int rebuildNum = 0;
   };
 
   struct CrownCluster
@@ -62,23 +66,16 @@ namespace lpng
   class GenerateObjectTree : public GenerateObject
   {
   public:
-    GenerateObjectTree(const TreeParams& p) : GenerateObject(p.height), params(p) {}
-
-    GenerateObjectTree() : GenerateObject(5.f)
-    {
-      params.height = 5.f;
-      params.firstRad = 0.5;
-      params.lastRad = 0.03;
-      params.upCoef = 0.3;
-      params.disp = float2(3, 3.4);
-      params.sqBalance = 0.05;
-      params.sqCentered = 0.1;
-      params.branchCount = 7;
-      params.edgeBase = 5;
-      params.rebuildNum = 5;
-    }
-
+    GenerateObjectTree() {}
     void GenerateMesh() override;
+    void SetTreeParams(const TreeParams& p)
+    {
+      params = p;
+    }
+    void SetRebuildParams(const TreeRebuildParams& p = TreeRebuildParams())
+    {
+      rebuildParams = p;
+    }
 
   private:
     void GenerateBranch(TreeBranch& branch, const float3& pointStart, const float3& vecIn, const float3& vecOut = float3());
@@ -97,6 +94,7 @@ namespace lpng
     std::vector<TreeBranch> tree;
     Quality quality;
     TreeParams params;
+    TreeRebuildParams rebuildParams;
     size_t buildId = 0;
     std::vector<CrownCluster> crownClusters;
   };

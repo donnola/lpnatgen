@@ -722,6 +722,7 @@ RAYGUIAPI int GuiComboBox(Rectangle bounds, const char *text, int *active);     
 RAYGUIAPI int GuiDropdownBox(Rectangle bounds, const char *text, int *active, bool editMode);          // Dropdown Box control, returns selected item
 RAYGUIAPI int GuiSpinner(Rectangle bounds, const char *text, int *value, int minValue, int maxValue, bool editMode); // Spinner control, returns selected value
 RAYGUIAPI int GuiValueBox(Rectangle bounds, const char *text, int *value, int minValue, int maxValue, bool editMode); // Value Box control, updates input text with numbers
+RAYGUIAPI int GuiValueBoxF(Rectangle bounds, const char* text, char* val_str, float* value, bool editMode); // Floating point Value box control, val_str is buffer where string representation is stored
 RAYGUIAPI int GuiTextBox(Rectangle bounds, char *text, int textSize, bool editMode);                   // Text Box control, updates input text
 
 RAYGUIAPI int GuiSlider(Rectangle bounds, const char *textLeft, const char *textRight, float *value, float minValue, float maxValue); // Slider control, returns selected value
@@ -1462,6 +1463,7 @@ static void DrawRectangleGradientV(int posX, int posY, int width, int height, Co
 //----------------------------------------------------------------------------------
 // Module specific Functions Declaration
 //----------------------------------------------------------------------------------
+static float TextToFloat(const char* text);                     // Get float value from text
 static void GuiLoadStyleFromMemory(const unsigned char *fileData, int dataSize);    // Load style from memory (binary only)
 
 static int GetTextWidth(const char *text);                      // Gui get text width using gui font and style
@@ -2928,6 +2930,121 @@ int GuiValueBox(Rectangle bounds, const char *text, int *value, int minValue, in
     //--------------------------------------------------------------------
 
     return result;
+}
+
+// Floating point Value Box control, updates input val_str with numbers
+// NOTE: Requires static variables: frameCounter
+int GuiValueBoxF(Rectangle bounds, const char* text, char* val_str, float* value, bool editMode)
+{
+#if !defined(RAYGUI_VALUEBOX_MAX_CHARS)
+#define RAYGUI_VALUEBOX_MAX_CHARS  32
+#endif
+
+  int result = 0;
+  GuiState state = guiState;
+
+  Rectangle textBounds = { 0 };
+  if (text != NULL)
+  {
+    textBounds.width = (float)GetTextWidth(text) + 2;
+    textBounds.height = (float)GuiGetStyle(DEFAULT, TEXT_SIZE);
+    textBounds.x = bounds.x + bounds.width + GuiGetStyle(VALUEBOX, TEXT_PADDING);
+    textBounds.y = bounds.y + bounds.height / 2 - GuiGetStyle(DEFAULT, TEXT_SIZE) / 2;
+    if (GuiGetStyle(VALUEBOX, TEXT_ALIGNMENT) == TEXT_ALIGN_LEFT)
+      textBounds.x = bounds.x - textBounds.width - GuiGetStyle(VALUEBOX, TEXT_PADDING);
+  }
+
+  // Update control
+  //--------------------------------------------------------------------
+  if ((state != STATE_DISABLED) && !guiLocked && !guiSliderDragging)
+  {
+    Vector2 mousePoint = GetMousePosition();
+
+    bool valueHasChanged = false;
+
+    if (editMode)
+    {
+      state = STATE_PRESSED;
+
+      int keyCount = (int)strlen(val_str);
+
+      // Only allow keys in range [48..57]
+      if (keyCount < RAYGUI_VALUEBOX_MAX_CHARS)
+      {
+        if (GetTextWidth(val_str) < bounds.width)
+        {
+          int key = GetCharPressed();
+          if (
+            ((key >= 48) && (key <= 57))
+            || key == '.'
+            || (!keyCount && key == '+') //sign can only be in first position
+            || (!keyCount && key == '-')
+            )
+          {
+            val_str[keyCount] = (char)key;
+            keyCount++;
+            valueHasChanged = true;
+          }
+        }
+      }
+
+      // Pressed backspace
+      if (IsKeyPressed(KEY_BACKSPACE))
+      {
+        if (keyCount > 0)
+        {
+          keyCount--;
+          val_str[keyCount] = '\0';
+          valueHasChanged = true;
+        }
+      }
+
+      if (valueHasChanged) *value = TextToFloat(val_str);
+
+      if (IsKeyPressed(KEY_ENTER) ||
+        (!CheckCollisionPointRec(mousePoint, bounds) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)))
+        result = 1;
+    }
+    else
+    {
+      if (CheckCollisionPointRec(mousePoint, bounds))
+      {
+        state = STATE_FOCUSED;
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+          result = 1;
+      }
+    }
+  }
+  //--------------------------------------------------------------------
+
+  // Draw control
+  //--------------------------------------------------------------------
+  Color baseColor = BLANK;
+  if (state == STATE_PRESSED) baseColor = GetColor(GuiGetStyle(VALUEBOX, BASE_COLOR_PRESSED));
+  else if (state == STATE_DISABLED) baseColor = GetColor(GuiGetStyle(VALUEBOX, BASE_COLOR_DISABLED));
+
+  GuiDrawRectangle(bounds, GuiGetStyle(VALUEBOX, BORDER_WIDTH), GetColor(GuiGetStyle(VALUEBOX, BORDER + (state * 3))),
+    baseColor);
+  GuiDrawText(val_str, GetTextBounds(VALUEBOX, bounds), TEXT_ALIGN_CENTER,
+    GetColor(GuiGetStyle(VALUEBOX, TEXT + (state * 3))));
+
+  // Draw cursor
+  if (editMode)
+  {
+    // NOTE: ValueBox internal text is always centered
+    Rectangle cursor = { bounds.x + GetTextWidth(val_str) / 2 + bounds.width / 2 + 1,
+                        bounds.y + 2 * GuiGetStyle(VALUEBOX, BORDER_WIDTH), 4,
+                        bounds.height - 4 * GuiGetStyle(VALUEBOX, BORDER_WIDTH) };
+    GuiDrawRectangle(cursor, 0, BLANK, GetColor(GuiGetStyle(VALUEBOX, BORDER_COLOR_PRESSED)));
+  }
+
+  // Draw text label if provided
+  GuiDrawText(text, textBounds,
+    (GuiGetStyle(VALUEBOX, TEXT_ALIGNMENT) == TEXT_ALIGN_RIGHT) ? TEXT_ALIGN_LEFT : TEXT_ALIGN_RIGHT,
+    GetColor(GuiGetStyle(LABEL, TEXT + (state * 3))));
+  //--------------------------------------------------------------------
+
+  return result;
 }
 
 // Slider control with pro parameters
@@ -5332,6 +5449,28 @@ static Color GuiFade(Color color, float alpha)
     Color result = { color.r, color.g, color.b, (unsigned char)(color.a*alpha) };
 
     return result;
+}
+
+static float TextToFloat(const char* text)
+{
+  float value = 0.0f;
+  float sign = 1.0f;
+
+  if ((text[0] == '+') || (text[0] == '-'))
+  {
+    if (text[0] == '-') sign = -1;
+    text++;
+  }
+  int i = 0;
+  for (; ((text[i] >= '0') && (text[i] <= '9')); ++i) value = value * 10.0f + (float)(text[i] - '0');
+  if (text[i++] != '.') return value * sign;
+  float divisor = 10.0f;
+  for (; ((text[i] >= '0') && (text[i] <= '9')); ++i)
+  {
+    value += ((float)(text[i] - '0')) / divisor;
+    divisor = divisor * 10.0f;
+  }
+  return value;
 }
 
 #if defined(RAYGUI_STANDALONE)
