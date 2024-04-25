@@ -201,4 +201,8 @@ namespace lpng
   bool SortEdges(std::vector<Edge>& edges);
   void CupFromEdges(const Mesh& mesh, std::vector<Face>& faces, std::vector<Edge> edges);
   void FilterMeshWithPoints(Mesh& mesh, const std::unordered_set<size_t>& vertexes_ids);
+
+  std::vector<float2> GetNDirections(int n);
+  float3 GenOutVec(const float3& vecIn, int fromAngle, int toAngle);
+  float3 GenOutVec(std::vector<float2>& dirs, const float3& vecIn, int fromAngle, int toAngle);
 }

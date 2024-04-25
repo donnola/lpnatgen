@@ -144,6 +144,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="lpng_bush.h" />
     <ClInclude Include="lpng_math.h" />
     <ClInclude Include="lpng.h" />
     <ClInclude Include="lpng_primitive.h" />
@@ -153,6 +154,7 @@
     <ClInclude Include="lpng_tree.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="lpng_bush.cpp" />
     <ClCompile Include="lpng_math.cpp" />
     <ClCompile Include="lpng.cpp" />
     <ClCompile Include="lpng_test.cpp" />

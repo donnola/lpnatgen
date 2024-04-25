@@ -2,6 +2,7 @@
 #include "lpng_tree.h"
 #include "lpng_test.h"
 #include "lpng_stone.h"
+#include "lpng_bush.h"
 #include "lpng_rand.h"
 #include <iostream>
 #include <stdlib.h>
@@ -39,12 +40,12 @@ static enum ObjectType
   TEST = 0,
   STONE = 1,
   TREE = 2,
-  //BUSH = 2,
-  
+  BUSH = 3,
 };
 
 static lpng::TreeParams treeParams;
 static lpng::TreeRebuildParams treeRebuildParams;
+static lpng::BushParams bushParams;
 static lpng::float3 objectSize(1, 2, 1);
 static bool treeRebuildCheck = false;
 static int stoneVertexCount = 30;
@@ -157,8 +158,8 @@ int main(void)
   inputTreeLastRad.name_rect = Rectangle{ 320, 100, 80, 30 };
   inputTreeLastRad.input_box_rect = Rectangle{ 480, 100, 70, 30 };
   inputTreeLastRad.box_name = "Tree end radius";
-  inputTreeLastRad.value_float = &treeParams.lastRad;
-  snprintf(inputTreeLastRad.text, sizeof inputTreeLastRad.text, "%1.2f", treeParams.lastRad);
+  inputTreeLastRad.value_float = &treeParams.finalRad;
+  snprintf(inputTreeLastRad.text, sizeof inputTreeLastRad.text, "%1.2f", treeParams.finalRad);
 
   InputBoxDesc inputTreeUpCoef;
   inputTreeUpCoef.type = InputBoxType::VALUE_FLOAT;
@@ -310,7 +311,7 @@ int main(void)
 
       DrawText(TextFormat("MODEL SEED : %u", modelSeed), 10, 710, 22, MAROON);
       DrawText("PRESS TAB TO ENABLE CURSOR", 10, 760, 22, MAROON);
-      if (GuiDropdownBox({ 12, 20, 140, 30 }, "TEST;STONE;TREE", &modelTypeActive, modelTypeEditMode)) modelTypeEditMode = !modelTypeEditMode;
+      if (GuiDropdownBox({ 12, 20, 140, 30 }, "TEST;STONE;TREE;BUSH", &modelTypeActive, modelTypeEditMode)) modelTypeEditMode = !modelTypeEditMode;
 
       EndTextureMode();
     }
@@ -424,9 +425,19 @@ static bool GenerateObjectWithType(int type, std::unique_ptr<lpng::GenerateObjec
     res = true;
     break;
   }
-    
-  //case BUSH:
-  //  return new lpng::GenerateObjectBush();
+
+  case BUSH:
+  {
+    lpng::GenerateObjectBush* bush_ptr = new lpng::GenerateObjectBush();
+    objectSize.x = 2 * bushParams.firstRad;
+    objectSize.z = 2 * bushParams.firstRad;
+    objectSize.y = bushParams.height;
+    bush_ptr->SetBushParams(bushParams);
+    model_ptr.reset(bush_ptr);
+    res = true;
+    break;
+  }
+
   case TREE:
   {
     lpng::GenerateObjectTree* tree_ptr = new lpng::GenerateObjectTree();

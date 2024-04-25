@@ -5,28 +5,6 @@
 
 namespace lpng
 {
-  struct TreeRing
-  {
-    float3 vecIn;
-    float3 vecOut;
-    float rad;
-    float3 center;
-    float curLength;
-    std::vector<int> facesIds;
-    std::vector<int> vertexesIds;
-  };
-
-  struct TreeBranch
-  {
-    std::vector<TreeRing> rings;
-    std::vector<int> childsIds;
-    std::vector<float2> freeDirections;
-    float length = 0;
-    float rad = 0;
-    int level = 0;
-    size_t weight = 0;
-  };
-
   struct Quality
   {
     float3 C;
@@ -39,10 +17,10 @@ namespace lpng
   {
     float height = 5.f;
     float firstRad = 0.5;
-    float lastRad = 0.03;
+    float finalRad = 0.03;
     float upCoef = 0.3;
     int edgeBase = 5;
-    int branchCount = 7;
+    int branchCount = 7; // make min max
   };
 
   struct TreeRebuildParams
@@ -63,14 +41,23 @@ namespace lpng
     int pointsCount = 0;
   };
 
-  class GenerateObjectTree : public GenerateObject
+  class GenerateObjectTree : public GenerateObjectPlant
   {
   public:
-    GenerateObjectTree() {}
+    GenerateObjectTree() 
+    {
+      branchMinCoefStart = 0.25;
+      branchMaxCoefStart = 0.8;
+      branchMinCoefLen = 0.85;
+      branchMaxCoefLen = 1.1;
+    }
     void GenerateMesh() override;
     void SetTreeParams(const TreeParams& p)
     {
-      params = p;
+      treeParams = p;
+      upCoef = p.upCoef;
+      branchBase = p.edgeBase;
+      finalBranchRad = p.finalRad;
     }
     void SetRebuildParams(const TreeRebuildParams& p = TreeRebuildParams())
     {
@@ -78,22 +65,13 @@ namespace lpng
     }
 
   private:
-    void GenerateBranch(TreeBranch& branch, const float3& pointStart, const float3& vecIn, const float3& vecOut = float3());
-    void RelaxBranch(TreeBranch& branch, size_t meshId);
-    float3 GenOutVec(const float3& vecIn, int fromAngle, int toAngle) const;
-    float3 GenOutVec(std::vector<float2>& dirs, const float3& vecIn, int fromAngle, int toAngle) const;
-    int SelectWeightedBranch();
-    std::vector<float2> GetNDirections(int n);
-    void InitBranch(const size_t parent_id, TreeBranch& branch, float3& point_start, float3& vec_in);
-    void GenerateCrown();
+    void GenerateCrown() override;
+    void ModifyCrown(Mesh& crown, const float3& c) override;
     void InitClusters();
-    void ModifyCrown(Mesh& crown, const float3& c);
-    void RelaxCrown();
     void CalculateQuality();
     void ClearTree();
-    std::vector<TreeBranch> tree;
     Quality quality;
-    TreeParams params;
+    TreeParams treeParams;
     TreeRebuildParams rebuildParams;
     size_t buildId = 0;
     std::vector<CrownCluster> crownClusters;

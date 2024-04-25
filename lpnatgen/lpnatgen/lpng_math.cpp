@@ -1,3 +1,5 @@
+#define _USE_MATH_DEFINES
+
 #include "lpng_math.h"
 #include "lpng_rand.h"
 
@@ -988,4 +990,65 @@ void lpng::FilterMeshWithPoints(Mesh& mesh, const std::unordered_set<size_t>& ve
     }
   }
   DeleteUnusedVertexes(mesh);
+}
+
+
+std::vector<lpng::float2> lpng::GetNDirections(int n)
+{
+  std::vector<lpng::float2> dirs;
+  float seg_angle = 2 * M_PI / n;
+  float angle_cum = DEG2RAD(fast_lpng_rand(0, 360));
+  for (int i = 0; i < n; ++i)
+  {
+    dirs.emplace_back(sin(angle_cum), cos(angle_cum));
+    float angle = seg_angle * fast_lpng_rand(700, 1300) / 1000.f;
+    angle_cum += angle;
+  }
+  return dirs;
+}
+
+
+lpng::float3 lpng::GenOutVec(const float3& vecIn, int fromAngle, int toAngle)
+{
+  float3 vec(fast_lpng_rand(-50, 51), 0, fast_lpng_rand(-50, 51));
+  Normalize(vec);
+  if (vec == float3())
+    vec.y = 1;
+  else
+  {
+    int angle = fast_lpng_rand(fromAngle, toAngle);
+    if (angle == 0)
+      vec = float3(0, 1, 0);
+    else
+      vec.y = 1 / tan(DEG2RAD(angle));
+  }
+  float angle = Angle(float3(0, 1, 0), vecIn);
+  if (angle > FLT_EPSILON)
+  {
+    Quat q(Cross(float3(0, 1, 0), vecIn), angle);
+    vec = QuatTransformVec(q, vec);
+  }
+  return Normalized(vec);
+}
+
+
+lpng::float3 lpng::GenOutVec(std::vector<float2>& dirs, const float3& vecIn, int fromAngle, int toAngle)
+{
+  int d_id = fast_lpng_rand(0, dirs.size());
+  float2 dir = dirs[d_id];
+  dirs.erase(dirs.begin() + d_id);
+  float3 vec = float3(dir.x, 0, dir.y);
+  Normalize(vec);
+  int branch_angle = fast_lpng_rand(fromAngle, toAngle);
+  if (branch_angle == 0)
+    vec = float3(0, 1, 0);
+  else
+    vec.y = 1 / tan(DEG2RAD(branch_angle));
+  float angle = Angle(float3(0, 1, 0), vecIn);
+  if (angle > FLT_EPSILON)
+  {
+    Quat q(Cross(float3(0, 1, 0), vecIn), angle);
+    vec = QuatTransformVec(q, vec);
+  }
+  return Normalized(vec);
 }
