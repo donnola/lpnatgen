@@ -20,7 +20,8 @@ namespace lpng
     float finalRad = 0.03;
     float upCoef = 0.3;
     int edgeBase = 5;
-    int branchCount = 7; // make min max
+    int branchMinCount = 5;
+    int branchMaxCount = 7;
   };
 
   struct TreeRebuildParams

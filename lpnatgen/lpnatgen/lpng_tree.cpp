@@ -25,7 +25,8 @@ void lpng::GenerateObjectTree::GenerateMesh()
   mainBranch.freeDirections = GetNDirections(treeParams.edgeBase);
   mainBranch.edgeBase = treeParams.edgeBase;
   GenerateBranch(mainBranch, { 0, 0, 0 }, {0, 1, 0});
-  while (branches.size() < treeParams.branchCount)
+  int children_count = fast_lpng_rand(treeParams.branchMinCount, treeParams.branchMaxCount + 1);
+  while (branches.size() < children_count + 1)
   {
     int parent_id = SelectWeightedBranch();
     if (parent_id < 0)
@@ -43,13 +44,13 @@ void lpng::GenerateObjectTree::GenerateMesh()
   }
   // TODO: move root of tree down
   CalculateQuality();
-  if (buildId < rebuildParams.rebuildNum || rebuildParams.rebuildNum < 0)
+  if (buildId < rebuildParams.rebuildNum)
   {   
     bool nead_rebuild_tree = false;
     bool is_balanced = Magnitude(float2(quality.C.x, quality.C.z)) <= rebuildParams.balance;
     bool is_centered = Magnitude(float2(quality.mean.x, quality.mean.z)) <= rebuildParams.centered;
     bool is_spreading = quality.D > rebuildParams.disp.x && quality.D < rebuildParams.disp.y;
-    nead_rebuild_tree = !is_balanced || !is_centered || !is_spreading || branches[0].childsIds.size() < treeParams.branchCount / 3;
+    nead_rebuild_tree = !is_balanced || !is_centered || !is_spreading || branches[0].childsIds.size() < children_count / 3;
     if (nead_rebuild_tree)
     {
       ClearTree();

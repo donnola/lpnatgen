@@ -212,8 +212,8 @@ void lpng::GenerateObjectPlant::InitBranch(const size_t parent_id, Branch& branc
   branch.baseRad *= 0.9;
   branch.lastRad = std::min(branch.baseRad / 2, finalBranchRad);
   branch.edgeBase = branchBase;
-  float weight_r = parent.weight / parent.baseRad * branch.baseRad;
-  float weight_l = parent.weight / parent.length * branch.length;
+  float weight_r = parent.weight / parent.baseRad * branch.baseRad * 0.8;
+  float weight_l = parent.weight / parent.length * branch.length * 0.8;
   branch.weight = size_t((weight_r + weight_l) / 2);
   if (branch.weight > 0)
     branch.freeDirections = GetNDirections(branchBase);

@@ -141,7 +141,7 @@ int main(void)
   inputTreeHeight.type = InputBoxType::VALUE_FLOAT;
   inputTreeHeight.name_rect = Rectangle{ 320, 20, 70, 30 };
   inputTreeHeight.input_box_rect = Rectangle{ 480, 20, 70, 30 };
-  inputTreeHeight.box_name = "Tree height";
+  inputTreeHeight.box_name = "Height";
   inputTreeHeight.value_float = &treeParams.height;
   snprintf(inputTreeHeight.text, sizeof inputTreeHeight.text, "%1.2f", treeParams.height);
 
@@ -149,7 +149,7 @@ int main(void)
   inputTreeFirstRad.type = InputBoxType::VALUE_FLOAT;
   inputTreeFirstRad.name_rect = Rectangle{ 320, 60, 80, 30 };
   inputTreeFirstRad.input_box_rect = Rectangle{ 480, 60, 70, 30 };
-  inputTreeFirstRad.box_name = "Tree base radius";
+  inputTreeFirstRad.box_name = "Base radius";
   inputTreeFirstRad.value_float = &treeParams.firstRad;
   snprintf(inputTreeFirstRad.text, sizeof inputTreeFirstRad.text, "%1.2f", treeParams.firstRad);
 
@@ -157,7 +157,7 @@ int main(void)
   inputTreeLastRad.type = InputBoxType::VALUE_FLOAT;
   inputTreeLastRad.name_rect = Rectangle{ 320, 100, 80, 30 };
   inputTreeLastRad.input_box_rect = Rectangle{ 480, 100, 70, 30 };
-  inputTreeLastRad.box_name = "Tree end radius";
+  inputTreeLastRad.box_name = "End radius";
   inputTreeLastRad.value_float = &treeParams.finalRad;
   snprintf(inputTreeLastRad.text, sizeof inputTreeLastRad.text, "%1.2f", treeParams.finalRad);
 
@@ -165,7 +165,7 @@ int main(void)
   inputTreeUpCoef.type = InputBoxType::VALUE_FLOAT;
   inputTreeUpCoef.name_rect = Rectangle{ 320, 140, 80, 30 };
   inputTreeUpCoef.input_box_rect = Rectangle{ 480, 140, 70, 30 };
-  inputTreeUpCoef.box_name = "Tree branch up K";
+  inputTreeUpCoef.box_name = "Branch up K";
   inputTreeUpCoef.value_float = &treeParams.upCoef;
   snprintf(inputTreeUpCoef.text, sizeof inputTreeUpCoef.text, "%1.2f", treeParams.upCoef);
 
@@ -173,15 +173,21 @@ int main(void)
   inputTreeEdgeBase.type = InputBoxType::VALUE_INT;
   inputTreeEdgeBase.name_rect = Rectangle{ 320, 180, 80, 30 };
   inputTreeEdgeBase.input_box_rect = Rectangle{ 480, 180, 70, 30 };
-  inputTreeEdgeBase.box_name = "Tree trunk edges";
+  inputTreeEdgeBase.box_name = "Trunk edges";
   inputTreeEdgeBase.value_int = &treeParams.edgeBase;
   
-  InputBoxDesc inputTreeBranchCount;
-  inputTreeBranchCount.type = InputBoxType::VALUE_INT;
-  inputTreeBranchCount.name_rect = Rectangle{ 320, 220, 80, 30 };
-  inputTreeBranchCount.input_box_rect = Rectangle{ 480, 220, 70, 30 };
-  inputTreeBranchCount.box_name = "Tree branch count";
-  inputTreeBranchCount.value_int = &treeParams.branchCount;
+  InputBoxDesc inputTreeBranchMinCount;
+  InputBoxDesc inputTreeBranchMaxCount;
+  inputTreeBranchMinCount.value_int = &treeParams.branchMinCount;
+  inputTreeBranchMaxCount.value_int = &treeParams.branchMaxCount;
+  inputTreeBranchMinCount.type = InputBoxType::VALUE_INT;
+  inputTreeBranchMaxCount.type = InputBoxType::VALUE_INT;
+  inputTreeBranchMinCount.name_rect = Rectangle{ 450, 220, 10, 30 };
+  inputTreeBranchMaxCount.name_rect = Rectangle{ 560, 220, 10, 30 };
+  inputTreeBranchMinCount.input_box_rect = Rectangle{ 480, 220, 70, 30 };
+  inputTreeBranchMaxCount.input_box_rect = Rectangle{ 590, 220, 70, 30 };
+  inputTreeBranchMinCount.box_name = "min";
+  inputTreeBranchMaxCount.box_name = "max";
 
   Rectangle checkBoxTreeRebuildRectangle = { 320, 260, 30, 30 };
   InputBoxDesc inputTreeDMin;
@@ -203,7 +209,7 @@ int main(void)
   inputTreeBalance.type = InputBoxType::VALUE_FLOAT;
   inputTreeBalance.name_rect = Rectangle{ 320, 340, 80, 30 };
   inputTreeBalance.input_box_rect = Rectangle{ 480, 340, 70, 30 };
-  inputTreeBalance.box_name = "Tree balance";
+  inputTreeBalance.box_name = "Balance";
   inputTreeBalance.value_float = &treeRebuildParams.balance;
   snprintf(inputTreeBalance.text, sizeof inputTreeBalance.text, "%1.2f", treeRebuildParams.balance);
 
@@ -211,7 +217,7 @@ int main(void)
   inputTreeCentered.type = InputBoxType::VALUE_FLOAT;
   inputTreeCentered.name_rect = Rectangle{ 320, 380, 80, 30 };
   inputTreeCentered.input_box_rect = Rectangle{ 480, 380, 70, 30 };
-  inputTreeCentered.box_name = "Tree center accur";
+  inputTreeCentered.box_name = "Center accur";
   inputTreeCentered.value_float = &treeRebuildParams.centered;
   snprintf(inputTreeCentered.text, sizeof inputTreeCentered.text, "%1.2f", treeRebuildParams.centered);
 
@@ -219,8 +225,73 @@ int main(void)
   inputTreeRebuildNum.type = InputBoxType::VALUE_INT;
   inputTreeRebuildNum.name_rect = Rectangle{ 320, 420, 80, 30 };
   inputTreeRebuildNum.input_box_rect = Rectangle{ 480, 420, 70, 30 };
-  inputTreeRebuildNum.box_name = "Tree rebuild num";
+  inputTreeRebuildNum.box_name = "Rebuild num";
   inputTreeRebuildNum.value_int = &treeRebuildParams.rebuildNum;
+
+  InputBoxDesc inputBushHeight;
+  inputBushHeight.type = InputBoxType::VALUE_FLOAT;
+  inputBushHeight.name_rect = Rectangle{ 320, 20, 70, 30 };
+  inputBushHeight.input_box_rect = Rectangle{ 480, 20, 70, 30 };
+  inputBushHeight.box_name = "Height";
+  inputBushHeight.value_float = &bushParams.height;
+  snprintf(inputBushHeight.text, sizeof inputBushHeight.text, "%1.2f", bushParams.height);
+
+  InputBoxDesc inputBushFirstRad;
+  inputBushFirstRad.type = InputBoxType::VALUE_FLOAT;
+  inputBushFirstRad.name_rect = Rectangle{ 320, 60, 80, 30 };
+  inputBushFirstRad.input_box_rect = Rectangle{ 480, 60, 70, 30 };
+  inputBushFirstRad.box_name = "Base radius";
+  inputBushFirstRad.value_float = &bushParams.firstRad;
+  snprintf(inputBushFirstRad.text, sizeof inputBushFirstRad.text, "%1.2f", bushParams.firstRad);
+
+  InputBoxDesc inputBushLastRad;
+  inputBushLastRad.type = InputBoxType::VALUE_FLOAT;
+  inputBushLastRad.name_rect = Rectangle{ 320, 100, 80, 30 };
+  inputBushLastRad.input_box_rect = Rectangle{ 480, 100, 70, 30 };
+  inputBushLastRad.box_name = "End radius";
+  inputBushLastRad.value_float = &bushParams.finalRad;
+  snprintf(inputBushLastRad.text, sizeof inputBushLastRad.text, "%1.2f", bushParams.finalRad);
+
+  InputBoxDesc inputBushUpCoef;
+  inputBushUpCoef.type = InputBoxType::VALUE_FLOAT;
+  inputBushUpCoef.name_rect = Rectangle{ 320, 140, 80, 30 };
+  inputBushUpCoef.input_box_rect = Rectangle{ 480, 140, 70, 30 };
+  inputBushUpCoef.box_name = "Branch up K";
+  inputBushUpCoef.value_float = &bushParams.upCoef;
+  snprintf(inputBushUpCoef.text, sizeof inputBushUpCoef.text, "%1.2f", bushParams.upCoef);
+
+  InputBoxDesc inputBushEdgeBase;
+  inputBushEdgeBase.type = InputBoxType::VALUE_INT;
+  inputBushEdgeBase.name_rect = Rectangle{ 320, 180, 80, 30 };
+  inputBushEdgeBase.input_box_rect = Rectangle{ 480, 180, 70, 30 };
+  inputBushEdgeBase.box_name = "Trunk edges";
+  inputBushEdgeBase.value_int = &bushParams.edgeBase;
+
+  InputBoxDesc inputBushBranchMinCount;
+  InputBoxDesc inputBushBranchMaxCount;
+  inputBushBranchMinCount.value_int = &bushParams.baseBranchMinCount;
+  inputBushBranchMaxCount.value_int = &bushParams.baseBranchMaxCount;
+  inputBushBranchMinCount.type = InputBoxType::VALUE_INT;
+  inputBushBranchMaxCount.type = InputBoxType::VALUE_INT;
+  inputBushBranchMinCount.name_rect = Rectangle{ 450, 220, 10, 30 };
+  inputBushBranchMaxCount.name_rect = Rectangle{ 560, 220, 10, 30 };
+  inputBushBranchMinCount.input_box_rect = Rectangle{ 480, 220, 70, 30 };
+  inputBushBranchMaxCount.input_box_rect = Rectangle{ 590, 220, 70, 30 };
+  inputBushBranchMinCount.box_name = "min";
+  inputBushBranchMaxCount.box_name = "max";
+
+  InputBoxDesc inputBushChildrenMinCount;
+  InputBoxDesc inputBushChildrenMaxCount;
+  inputBushChildrenMinCount.value_int = &bushParams.childrenMinCount;
+  inputBushChildrenMaxCount.value_int = &bushParams.childrenMaxCount;
+  inputBushChildrenMinCount.type = InputBoxType::VALUE_INT;
+  inputBushChildrenMaxCount.type = InputBoxType::VALUE_INT;
+  inputBushChildrenMinCount.name_rect = Rectangle{ 450, 260, 10, 30 };
+  inputBushChildrenMaxCount.name_rect = Rectangle{ 560, 260, 10, 30 };
+  inputBushChildrenMinCount.input_box_rect = Rectangle{ 480, 260, 70, 30 };
+  inputBushChildrenMaxCount.input_box_rect = Rectangle{ 590, 260, 70, 30 };
+  inputBushChildrenMinCount.box_name = "min";
+  inputBushChildrenMaxCount.box_name = "max";
 
   // LOAD MODEL
   int modelTypeActive = TEST;
@@ -283,7 +354,9 @@ int main(void)
         InputBox(inputTreeLastRad);
         InputBox(inputTreeUpCoef);
         InputBox(inputTreeEdgeBase);
-        InputBox(inputTreeBranchCount);
+        DrawText(TextFormat("Branches"), 320, 228, 16, BLACK);
+        InputBox(inputTreeBranchMinCount);
+        InputBox(inputTreeBranchMaxCount);
         GuiCheckBox(checkBoxTreeRebuildRectangle, "Use tree rebuild check", &treeRebuildCheck);
         if (treeRebuildCheck)
         {
@@ -295,7 +368,21 @@ int main(void)
           InputBox(inputTreeRebuildNum);
         }
       }
-      else
+      else if (modelTypeActive == BUSH)
+      {
+        InputBox(inputBushHeight);
+        InputBox(inputBushFirstRad);
+        InputBox(inputBushLastRad);
+        InputBox(inputBushUpCoef);
+        InputBox(inputBushEdgeBase);
+        DrawText(TextFormat("Base branches"), 320, 228, 16, BLACK);
+        InputBox(inputBushBranchMinCount);
+        InputBox(inputBushBranchMaxCount);
+        DrawText(TextFormat("Children branches"), 320, 268, 16, BLACK);
+        InputBox(inputBushChildrenMinCount);
+        InputBox(inputBushChildrenMaxCount);
+      }
+      else 
       {
         DrawText(TextFormat("Model size"), 320, 28, 16, BLACK);
         InputBox(inputSizeX);
