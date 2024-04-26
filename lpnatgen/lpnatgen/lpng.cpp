@@ -88,6 +88,24 @@ void lpng::GenerateObject::AddObject(Mesh& mesh)
 
 void lpng::GenerateObjectPlant::RelaxBranch(Branch& branch, size_t meshId)
 {
+  if (branch.level == 0)
+  {
+    BranchRing& p_ring = branch.rings.front();
+    BranchRing ring = BranchRing();
+    float seg_len = branch.length / 5.f;
+    ring.curLength = p_ring.curLength - seg_len;
+    ring.rad = p_ring.rad * 1.1;
+    ring.vecIn = {0,1,0};
+    ring.vecOut = p_ring.vecOut;
+    ring.center = p_ring.center - p_ring.vecIn * seg_len;
+    p_ring.vecIn = p_ring.vecOut;
+    Mesh& mesh = model[meshId];
+    ring.facesIds = Extrude(mesh, p_ring.facesIds, -seg_len * p_ring.vecIn);
+    p_ring.facesIds.clear();
+    ring.vertexesIds = GetVertexesIds(mesh, ring.facesIds);
+    ScaleVertexes(mesh, float3(ring.rad / p_ring.rad, 1.f, ring.rad / p_ring.rad), ring.vertexesIds);
+    branch.rings.insert(branch.rings.begin(), std::move(ring));
+  }
   for (size_t i = 0; i < branch.rings.size(); ++i)
   {
     BranchRing& ring = branch.rings[i];
@@ -146,8 +164,10 @@ void lpng::GenerateObjectPlant::GenerateBranch(Branch& branch, const float3& poi
     if (branch.rings.size() == 1)
       ring.facesIds = ExtrudeWithCap(mesh, p_ring.facesIds, ring.vecIn * seg_len);
     else
+    {
       ring.facesIds = Extrude(mesh, p_ring.facesIds, ring.vecIn * seg_len);
-    p_ring.facesIds.clear();
+      p_ring.facesIds.clear();
+    }
     ring.vertexesIds = GetVertexesIds(mesh, ring.facesIds);
     ScaleVertexes(mesh, float3(ring.rad / p_ring.rad, 1.f, ring.rad / p_ring.rad), ring.vertexesIds);
     branch.rings.push_back(std::move(ring));

@@ -12,7 +12,7 @@ void lpng::GenerateObjectBush::GenerateMesh()
     branch.lastRad = std::min(branch.baseRad / 2, bushParams.finalRad);
     branch.freeDirections = GetNDirections(bushParams.edgeBase);
     branch.edgeBase = bushParams.edgeBase;
-    float3 vec_in = GenOutVec(mainDirections, float3(0, 1, 0), 30, 50);
+    float3 vec_in = GenOutVec(mainDirections, float3(0, 1, 0), 30, 55);
     branch.length = bushParams.height * fast_lpng_rand(850, 1100) / (vec_in.y * 1000.f);
     float3 point_start = -branch.length * vec_in / 3;
     point_start.x *= fast_lpng_rand(-1100, 1100) / 1000.f;
