@@ -48,7 +48,7 @@ static lpng::TreeRebuildParams treeRebuildParams;
 static lpng::BushParams bushParams;
 static lpng::float3 objectSize(1, 2, 1);
 static bool treeRebuildCheck = false;
-static int stoneVertexCount = 30;
+static int stoneVertexCount = 40;
 static bool goalModelSeedCheck = false;
 static int goalModelSeed = 0;
 static char* selectedInputBox = nullptr;

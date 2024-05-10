@@ -12,6 +12,6 @@ namespace lpng
     void SetVertexCount(size_t c) { pointsCount = c; };
   private:
     void ModifyStone(Mesh& stone);
-    size_t pointsCount = 30;
+    size_t pointsCount = 40;
   };
 }

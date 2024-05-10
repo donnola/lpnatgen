@@ -17,21 +17,23 @@ void lpng::GenerateObjectStone::ModifyStone(Mesh& stone)
     {
       float n = quantile.y - v.y;
       if (n > 0)
-        v.y = quantile.y - n * 0.5;
+        v.y = quantile.y - n * 0.2;
     }
     quant_id /= 2;
+    quantile = vertexes[quant_id];
   }
-  float3 max_vertex;
-  float3 min_vertex;
+  float max_vertex = stone.vertexCoords[0].y;
+  float min_vertex = stone.vertexCoords[0].y;
   for (const float3& v : stone.vertexCoords)
   {
-    if (v.y < min_vertex.y)
-      min_vertex = v;
-    if (v.y > max_vertex.y)
-      max_vertex = v;
+    if (v.y < min_vertex)
+      min_vertex = v.y;
+    if (v.y > max_vertex)
+      max_vertex = v.y;
   }
-  MoveObj(stone, float3(0, -min_vertex.y * 0.9, 0));
-  ScaleObj(stone, float3(1, objectSize.y / (max_vertex.y - min_vertex.y), 1));
+  MoveObj(stone, float3(0, -min_vertex * 0.7, 0));
+  max_vertex -= min_vertex * 0.7;
+  ScaleObj(stone, float3(1, objectSize.y / max_vertex, 1));
 }
 
 
