@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lpng.h"
+#include "lpng_plant.h"
 
 
 namespace lpng

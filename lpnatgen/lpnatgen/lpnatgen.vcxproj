@@ -147,6 +147,7 @@
     <ClInclude Include="lpng_bush.h" />
     <ClInclude Include="lpng_math.h" />
     <ClInclude Include="lpng.h" />
+    <ClInclude Include="lpng_plant.h" />
     <ClInclude Include="lpng_primitive.h" />
     <ClInclude Include="lpng_rand.h" />
     <ClInclude Include="lpng_stone.h" />
@@ -157,6 +158,7 @@
     <ClCompile Include="lpng_bush.cpp" />
     <ClCompile Include="lpng_math.cpp" />
     <ClCompile Include="lpng.cpp" />
+    <ClCompile Include="lpng_plant.cpp" />
     <ClCompile Include="lpng_test.cpp" />
     <ClCompile Include="lpng_primitive.cpp" />
     <ClCompile Include="lpng_rand.cpp" />

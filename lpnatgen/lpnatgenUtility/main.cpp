@@ -494,11 +494,14 @@ static Mesh GenMesh(const std::vector<lpng::Mesh>& model)
 static bool GenerateObjectWithType(int type, std::unique_ptr<lpng::GenerateObject>& model_ptr)
 {
   bool res = false;
+  lpng::float3 model_size;
+
   switch (type)
   {
   case TEST:
   {
     lpng::GenerateObjectTest* test_ptr = new lpng::GenerateObjectTest();
+    model_size = objectSize;
     model_ptr.reset(test_ptr);
     res = true;
     break;
@@ -507,6 +510,7 @@ static bool GenerateObjectWithType(int type, std::unique_ptr<lpng::GenerateObjec
   case STONE:
   {
     lpng::GenerateObjectStone* stone_ptr = new lpng::GenerateObjectStone();
+    model_size = objectSize;
     stone_ptr->SetVertexCount(stoneVertexCount);
     model_ptr.reset(stone_ptr);
     res = true;
@@ -516,9 +520,9 @@ static bool GenerateObjectWithType(int type, std::unique_ptr<lpng::GenerateObjec
   case BUSH:
   {
     lpng::GenerateObjectBush* bush_ptr = new lpng::GenerateObjectBush();
-    objectSize.x = 2 * bushParams.firstRad;
-    objectSize.z = 2 * bushParams.firstRad;
-    objectSize.y = bushParams.height;
+    model_size.x = 2 * bushParams.firstRad;
+    model_size.z = 2 * bushParams.firstRad;
+    model_size.y = bushParams.height;
     bush_ptr->SetBushParams(bushParams);
     model_ptr.reset(bush_ptr);
     res = true;
@@ -528,9 +532,9 @@ static bool GenerateObjectWithType(int type, std::unique_ptr<lpng::GenerateObjec
   case TREE:
   {
     lpng::GenerateObjectTree* tree_ptr = new lpng::GenerateObjectTree();
-    objectSize.x = 2 * treeParams.firstRad;
-    objectSize.z = 2 * treeParams.firstRad;
-    objectSize.y = treeParams.height;
+    model_size.x = 2 * treeParams.firstRad;
+    model_size.z = 2 * treeParams.firstRad;
+    model_size.y = treeParams.height;
     tree_ptr->SetTreeParams(treeParams);
     if (treeRebuildCheck)
       tree_ptr->SetRebuildParams(treeRebuildParams);
@@ -543,7 +547,7 @@ static bool GenerateObjectWithType(int type, std::unique_ptr<lpng::GenerateObjec
   }
   if (res)
   {
-    model_ptr->SetSize(objectSize);
+    model_ptr->SetSize(model_size);
     if (goalModelSeedCheck && goalModelSeed >= 0)
       model_ptr->SetModelSeed(goalModelSeed);
   }

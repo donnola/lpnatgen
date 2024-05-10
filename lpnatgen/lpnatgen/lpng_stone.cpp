@@ -31,8 +31,8 @@ void lpng::GenerateObjectStone::ModifyStone(Mesh& stone)
     if (v.y > max_vertex)
       max_vertex = v.y;
   }
-  MoveObj(stone, float3(0, -min_vertex * 0.7, 0));
-  max_vertex -= min_vertex * 0.7;
+  MoveObj(stone, float3(0, -min_vertex * 0.6, 0));
+  max_vertex -= min_vertex * 0.6;
   ScaleObj(stone, float3(1, objectSize.y / max_vertex, 1));
 }
 
