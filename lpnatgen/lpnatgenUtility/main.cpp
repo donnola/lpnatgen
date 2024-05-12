@@ -338,7 +338,7 @@ int main(void)
         UnloadModel(model);
         model = LoadModelFromMesh(GenMesh(generatedModel));
       }
-      if (GuiButton(btnSaveBounds, saveModelText.c_str())) modelPtr->SaveModel();
+      if (GuiButton(btnSaveBounds, saveModelText.c_str())) modelPtr->SaveModel(inputBoxModelName.text);
       InputBox(inputBoxModelName);
       if (GuiButton(btnCopySeedBounds, copySeedText.c_str())) 
       {

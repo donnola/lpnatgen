@@ -3,6 +3,7 @@
 #include "lpng_math.h"
 #include "lpng_rand.h"
 
+#include <filesystem>
 #include <string>
 
 
@@ -20,7 +21,9 @@ namespace lpng
     void GenerateTextureCoords();
     void PolygonDecomposition();
     void GenerateNormals();
-    void SaveModel(std::string file_name, std::string save_path) const;
+    void SaveModel(std::string file_name, const std::filesystem::path& save_path) const;
+    void SaveModel(std::string file_name, const std::string& save_path) const;
+    void SaveModel(std::string file_name) const;
     void SaveModel() const;
     void Generate();
     std::vector<Mesh> GetModel();
@@ -30,7 +33,17 @@ namespace lpng
     float3 objectSize = float3(1,1,1);
     std::vector<Mesh> model;
     std::string fileFormat = ".obj";
+    std::string modelsFolder = "models";
     unsigned int seed = 0;
+  };
+
+  struct IdsOffset
+  {
+    int v;
+    int vt;
+    int vn;
+    IdsOffset() : v(0), vt(0), vn(0) {}
+    IdsOffset(int a, int b, int c) : v(a), vt(b), vn(c) {}
   };
 
   std::ostream& operator<<(std::ostream& out, const float3& v);
@@ -39,5 +52,9 @@ namespace lpng
 
   std::ostream& operator<<(std::ostream& out, const Vertex& v);
 
-  std::ostream& operator<<(std::ostream& out, const Face& v);
+  std::ostream& writeFace(std::ostream& out, const Face& v, const IdsOffset& offs);
+
+  std::ostream& writeMeshObj(std::ostream& out, const Mesh& m, const IdsOffset& offs, const std::string& name);
+
+  std::ostream& operator<<(std::ostream& out, const std::vector<Mesh>& m);
 }
