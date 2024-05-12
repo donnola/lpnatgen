@@ -14,9 +14,9 @@ void lpng::GenerateObjectBush::GenerateMesh()
     branch.edgeBase = bushParams.edgeBase;
     float3 vec_in = GenOutVec(mainDirections, float3(0, 1, 0), 30, 50);
     branch.length = bushParams.height * fast_lpng_rand(850, 1100) / (vec_in.y * 1000.f);
-    float3 point_start = -branch.length * vec_in / 3;
-    point_start.x *= fast_lpng_rand(-1100, 1100) / 1000.f;
-    point_start.z *= fast_lpng_rand(-1100, 1100) / 1000.f;
+    float3 point_start = branch.length * vec_in / 3;
+    point_start.x *= fast_lpng_rand(300, 1100) / 1000.f;
+    point_start.z *= fast_lpng_rand(300, 1100) / 1000.f;
     point_start.y = 0.f;
     GenerateBranch(branch, point_start, { 0, 1, 0 }, vec_in);
   }
