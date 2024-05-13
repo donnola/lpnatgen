@@ -149,7 +149,7 @@ std::ostream& lpng::writeMeshObj(std::ostream& out, const Mesh& m, const IdsOffs
   for (float3 vn : m.vertexNormals)
     out << "vn " << vn;
   out << "s off\n";
-  out << name << "\n";
+  out << "g " << name << "\n";
   for (const Face& f : m.faces)
   {
     writeFace(out, f, offs);
