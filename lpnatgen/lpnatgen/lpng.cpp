@@ -11,23 +11,22 @@ std::vector<lpng::Mesh> lpng::GenerateObject::GetModel()
 }
 
 
-void lpng::GenerateObject::Generate()
+void lpng::GenerateObject::Generate(bool smoothness)
 {
   //fast_lpng_rand(1780338363);
   seed = get_lpng_seed();
   GenerateMesh();
   PolygonDecomposition();
-  GenerateNormals();
+  GenerateNormals(smoothness);
   GenerateTextureCoords();
 }
 
 
-void lpng::GenerateObject::GenerateNormals()
+void lpng::GenerateObject::GenerateNormals(bool smoothness)
 {
   for (Mesh& mesh : model)
   {
-    std::vector<float3> normals = CalculateObjNormals(mesh);
-
+    std::vector<float3> normals = CalculateObjNormals(mesh, smoothness);
     mesh.vertexNormals = std::move(normals);
     for (Face& f : mesh.faces)
     {
@@ -65,31 +64,34 @@ void lpng::GenerateObject::PolygonDecomposition()
 }
 
 
-void lpng::GenerateObject::SaveModel(std::string file_name, const std::filesystem::path& save_path) const
+void lpng::GenerateObject::SaveModel(const std::string& file_name, std::filesystem::path save_path) const
 {
+  std::string model_folder = file_name;
+  save_path /= model_folder;
+  while (std::filesystem::exists(save_path))
+  {
+    save_path = save_path.parent_path();
+    model_folder += "_copy";
+    save_path /= model_folder;
+  }
   std::filesystem::create_directories(save_path);
   std::filesystem::path file_path = save_path / (file_name + fileFormat);
-  std::ofstream ofs;
-  while (std::filesystem::exists(file_path))
-  {
-    file_path = file_path.parent_path();
-    file_name += "_copy";
-    file_path /= file_name + fileFormat;
-  }
-  ofs.open(file_path);
-  ofs << model;
+  std::ofstream ofs(file_path);
+  writeModel(ofs, model, ModelMaterial::MatFile, ModelMaterial::MatName);
   ofs.close();
+  ModelMaterial::CreateModelMaterial(save_path);
+  ModelMaterial::CreateModelTexture(save_path);
 }
 
 
-void lpng::GenerateObject::SaveModel(std::string file_name, const std::string& save_path) const
+void lpng::GenerateObject::SaveModel(const std::string& file_name, std::string save_path) const
 {
   std::filesystem::path dir_path(save_path);
   SaveModel(file_name, dir_path);
 }
 
 
-void lpng::GenerateObject::SaveModel(std::string file_name) const
+void lpng::GenerateObject::SaveModel(const std::string& file_name) const
 {
   std::filesystem::path dir_path = std::filesystem::current_path();
   dir_path /= modelsFolder;
@@ -127,7 +129,7 @@ inline std::ostream& lpng::operator<<(std::ostream& out, const Vertex& v)
 }
 
 
-std::ostream& lpng::writeFace(std::ostream& out, const Face& f, const IdsOffset& offs)
+void lpng::writeFace(std::ostream& out, const Face& f, const IdsOffset& offs)
 {
   out << "f";
   for (int i = 0; i < f.vi.size(); ++i)
@@ -135,11 +137,11 @@ std::ostream& lpng::writeFace(std::ostream& out, const Face& f, const IdsOffset&
     Vertex v(f.vi[i] + offs.v, f.vti[i] + offs.vt, f.vni[i] + offs.vn);
     out << " " << v;
   }
-  return out << "\n";
+  out << "\n";
 }
 
 
-std::ostream& lpng::writeMeshObj(std::ostream& out, const Mesh& m, const IdsOffset& offs, const std::string& name)
+void lpng::writeMeshObj(std::ostream& out, const Mesh& m, const IdsOffset& offs, const std::string& name, const std::string& mat_name)
 {
   out << "g default\n";
   for (float3 v : m.vertexCoords)
@@ -150,25 +152,72 @@ std::ostream& lpng::writeMeshObj(std::ostream& out, const Mesh& m, const IdsOffs
     out << "vn " << vn;
   out << "s off\n";
   out << "g " << name << "\n";
+  out << "usemtl " << mat_name << "\n";
   for (const Face& f : m.faces)
   {
     writeFace(out, f, offs);
   }
-  return out;
 }
 
 
-std::ostream& lpng::operator<<(std::ostream& out, const std::vector<Mesh>& m)
+void lpng::writeModel(std::ostream& out, const std::vector<Mesh>& m, const std::string& mat_file, const std::string& mat_name)
 {
-  out << "# This file uses meters as units for non - parametric coordinates.\n";
+  out << "# This file uses meters as units for non - parametric coordinates.\n\n";
+  out << "mtllib " << mat_file << "\n";
   int size = m.size();
   IdsOffset offs;
   for (int i = 0; i < size; ++i)
   {
-    writeMeshObj(out, m[i], offs, "obj_" + std::to_string(i+1));
+    writeMeshObj(out, m[i], offs, "obj_" + std::to_string(i+1), mat_name);
     offs.v += m[i].vertexCoords.size();
     offs.vt += m[i].vertexTextCoords.size();
     offs.vn += m[i].vertexNormals.size();
   }
-  return out;
+}
+
+
+void lpng::ModelMaterial::CreateModelTexture(const std::filesystem::path& save_path)
+{
+  std::filesystem::path file_path = save_path / TextureName;
+  std::ofstream ofs(file_path, std::ios::binary);
+  const int width = 256;
+  const int height = 256;
+
+  uint8_t header[18] = { 0,0,2,0,0,0,0,0,0,0,0,0, (uint8_t)(width % 256), (uint8_t)(width / 256), (uint8_t)(height % 256), (uint8_t)(height / 256), 24, 0x20 };
+
+  // Write the header to the file
+  ofs.write(reinterpret_cast<const char*>(&header), 18);
+
+  // Magenta color (24-bit)
+  const unsigned char magenta[3] = { 255, 0, 255 };
+  const unsigned char white[3] = { 255, 255, 255 };
+
+  // Write the magenta texture to the file
+  for (int y = 0; y < height; ++y)
+  {
+    for (int x = 0; x < width; ++x)
+    {
+      if (x % 2 == 1)
+        ofs.write(reinterpret_cast<const char*>(magenta), sizeof(magenta));
+      else
+        ofs.write(reinterpret_cast<const char*>(white), sizeof(white));
+    }
+  }
+  ofs.close();
+}
+
+
+void lpng::ModelMaterial::CreateModelMaterial(const std::filesystem::path& save_path)
+{
+  std::filesystem::path file_path = save_path / MatFile;
+  std::ofstream ofs(file_path);
+  ofs << "newmtl " << MatName << "\n";
+  ofs << "illum 1\n";
+  ofs << "Kd 1.00 1.00 1.00\n";
+  ofs << "Ka 0.00 0.00 0.00\n";
+  ofs << "Tf 1.00 1.00 1.00\n";
+  ofs << "Ni 1.00\n";
+  ofs << "Tr 1.00\n";
+  ofs << "map_Kd " << TextureName << "\n";
+  ofs.close();
 }

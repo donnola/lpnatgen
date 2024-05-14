@@ -658,7 +658,7 @@ void lpng::DecomposeObj(Mesh& mesh)
 }
 
 
-std::vector<lpng::float3> lpng::CalculateObjNormals(const Mesh& mesh)
+std::vector<lpng::float3> lpng::CalculateObjNormals(const Mesh& mesh, bool smoothness)
 {
   std::vector<float3> normals(mesh.vertexCoords.size());
   for (const Face& f : mesh.faces)

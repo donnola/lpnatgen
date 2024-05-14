@@ -302,7 +302,8 @@ int main(void)
   unsigned int modelSeed = modelPtr->GetModelSeed();
   std::vector<lpng::Mesh> generatedModel = modelPtr->GetModel();
   Model model = LoadModelFromMesh(GenMesh(generatedModel));
-
+  //Texture2D modelTexture = LoadTexture("resources/texture.png");
+  //model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = modelTexture;
   while (!WindowShouldClose())
   {
     // CURSOR ACT
@@ -337,6 +338,7 @@ int main(void)
         generatedModel = modelPtr->GetModel();
         UnloadModel(model);
         model = LoadModelFromMesh(GenMesh(generatedModel));
+        //model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = modelTexture;
       }
       if (GuiButton(btnSaveBounds, saveModelText.c_str())) modelPtr->SaveModel(inputBoxModelName.text);
       InputBox(inputBoxModelName);
@@ -421,8 +423,8 @@ int main(void)
         //  }
         //}
 
-        DrawModel(model, modelPosition, 1.0f, RED);
-        DrawModelWires(model, modelPosition, 1.0f, DARKPURPLE);
+        DrawModel(model, modelPosition, 1.0f, WHITE);
+        DrawModelWires(model, modelPosition, 1.0f, BLACK);
 
         DrawGrid(10, 1.0f);
         EndMode3D();
@@ -443,7 +445,7 @@ int main(void)
   UnloadRenderTexture(screen2);
   UnloadModel(model);
   modelPtr.reset();
-
+  //UnloadTexture(modelTexture);
   CloseWindow();
 
   return 0;
@@ -462,6 +464,7 @@ static Mesh GenMesh(const std::vector<lpng::Mesh>& model)
   mesh.vertices = (float*)MemAlloc(mesh.vertexCount * 3 * sizeof(float));
   mesh.texcoords = (float*)MemAlloc(mesh.vertexCount * 2 * sizeof(float));
   mesh.normals = (float*)MemAlloc(mesh.vertexCount * 3 * sizeof(float));
+  mesh.colors = (unsigned char*)MemAlloc(mesh.vertexCount * 4 * sizeof(unsigned char));
 
   int nextVertId = 0;
   for (const lpng::Mesh& obj : model)
@@ -481,7 +484,41 @@ static Mesh GenMesh(const std::vector<lpng::Mesh>& model)
         mesh.normals[nextVertId * 3 + 2] = vn.z;
         mesh.texcoords[nextVertId * 2] = vt.x;
         mesh.texcoords[nextVertId * 2 + 1] = vt.y;
-
+        switch (obj.matType)
+        {
+        case lpng::MaterialTypes::WOOD:
+        {
+          mesh.colors[nextVertId * 4] = 127;
+          mesh.colors[nextVertId * 4 + 1] = 106;
+          mesh.colors[nextVertId * 4 + 2] = 79;
+          mesh.colors[nextVertId * 4 + 3] = 255;
+          break;
+        }
+        case lpng::MaterialTypes::STONE:
+        {
+          mesh.colors[nextVertId * 4] = 200;
+          mesh.colors[nextVertId * 4 + 1] = 200;
+          mesh.colors[nextVertId * 4 + 2] = 200;
+          mesh.colors[nextVertId * 4 + 3] = 255;
+          break;
+        }
+        case lpng::MaterialTypes::CROWN:
+        {
+          mesh.colors[nextVertId * 4] = 0;
+          mesh.colors[nextVertId * 4 + 1] = 228;
+          mesh.colors[nextVertId * 4 + 2] = 48;
+          mesh.colors[nextVertId * 4 + 3] = 255;
+          break;
+        }
+        default:
+        {
+          mesh.colors[nextVertId * 4] = 130;
+          mesh.colors[nextVertId * 4 + 1] = 130;
+          mesh.colors[nextVertId * 4 + 2] = 130;
+          mesh.colors[nextVertId * 4 + 3] = 255;
+          break;
+        }
+        }
         ++nextVertId;
       }
     }
