@@ -34,7 +34,7 @@ namespace lpng
     void SaveModel(const std::string& file_name) const;
     void SaveModel() const;
     void Generate();
-    std::vector<Mesh> GetModel();
+    const std::vector<Mesh>& GetModel();
     unsigned int GetModelSeed() { return seed; }
     
   protected:
@@ -53,9 +53,22 @@ namespace lpng
   public:
     static void CreateModelTexture(const std::filesystem::path& save_path);
     static void CreateModelMaterial(const std::filesystem::path& save_path);
-    static const inline std::string MatName = "obj_mat";
     static const inline std::string MatFile = "material.mtl";
-    static const inline std::string TextureName = "texture.png";
+    static const inline std::string TextureName = "texture.tga";
+    static const inline std::unordered_map<int, std::string> TextureNames =
+    {
+      {int(MaterialTypes::NONE), "obj.tga"},
+      {int(MaterialTypes::WOOD), "wood.tga"},
+      {int(MaterialTypes::CROWN), "crown.tga"},
+      {int(MaterialTypes::STONE), "stone.tga"}
+    };
+    static const inline std::unordered_map<int, std::string> MatNames =
+    {
+      {int(MaterialTypes::NONE), "obj_mat"},
+      {int(MaterialTypes::WOOD), "wood_mat"},
+      {int(MaterialTypes::CROWN), "crown_mat"},
+      {int(MaterialTypes::STONE), "stone_mat"}
+    };
   };
 
 
@@ -76,7 +89,7 @@ namespace lpng
 
   void writeFace(std::ostream& out, const Face& v, const IdsOffset& offs);
 
-  void writeMeshObj(std::ostream& out, const Mesh& m, const IdsOffset& offs, const std::string& name, const std::string& mat_name);
+  void writeMeshObj(std::ostream& out, const Mesh& m, const IdsOffset& offs, const std::string& name);
 
-  void writeModel(std::ostream& out, const std::vector<Mesh>& m, const std::string& mat_file, const std::string& mat_name);
+  void writeModel(std::ostream& out, const std::vector<Mesh>& m);
 }

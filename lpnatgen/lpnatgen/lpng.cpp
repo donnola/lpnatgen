@@ -4,7 +4,7 @@
 #include <fstream>
 
 
-std::vector<lpng::Mesh> lpng::GenerateObject::GetModel()
+const std::vector<lpng::Mesh>& lpng::GenerateObject::GetModel()
 {
   PolygonDecomposition();
   return model;
@@ -91,7 +91,7 @@ void lpng::GenerateObject::SaveModel(const std::string& file_name, std::filesyst
   std::filesystem::create_directories(save_path);
   std::filesystem::path file_path = save_path / (file_name + fileFormat);
   std::ofstream ofs(file_path);
-  writeModel(ofs, model, ModelMaterial::MatFile, ModelMaterial::MatName);
+  writeModel(ofs, model);
   ofs.close();
   ModelMaterial::CreateModelMaterial(save_path);
   ModelMaterial::CreateModelTexture(save_path);
@@ -155,7 +155,7 @@ void lpng::writeFace(std::ostream& out, const Face& f, const IdsOffset& offs)
 }
 
 
-void lpng::writeMeshObj(std::ostream& out, const Mesh& m, const IdsOffset& offs, const std::string& name, const std::string& mat_name)
+void lpng::writeMeshObj(std::ostream& out, const Mesh& m, const IdsOffset& offs, const std::string& name)
 {
   out << "g default\n";
   for (float3 v : m.vertexCoords)
@@ -166,7 +166,7 @@ void lpng::writeMeshObj(std::ostream& out, const Mesh& m, const IdsOffset& offs,
     out << "vn " << vn;
   out << "s off\n";
   out << "g " << name << "\n";
-  out << "usemtl " << mat_name << "\n";
+  out << "usemtl " << ModelMaterial::MatNames.at(int(m.matType)) << "\n";
   for (const Face& f : m.faces)
   {
     writeFace(out, f, offs);
@@ -174,15 +174,15 @@ void lpng::writeMeshObj(std::ostream& out, const Mesh& m, const IdsOffset& offs,
 }
 
 
-void lpng::writeModel(std::ostream& out, const std::vector<Mesh>& m, const std::string& mat_file, const std::string& mat_name)
+void lpng::writeModel(std::ostream& out, const std::vector<Mesh>& m)
 {
   out << "# This file uses meters as units for non - parametric coordinates.\n\n";
-  out << "mtllib " << mat_file << "\n";
+  out << "mtllib " << ModelMaterial::MatFile << "\n";
   int size = m.size();
   IdsOffset offs;
   for (int i = 0; i < size; ++i)
   {
-    writeMeshObj(out, m[i], offs, "obj_" + std::to_string(i+1), mat_name);
+    writeMeshObj(out, m[i], offs, "obj_" + std::to_string(i+1));
     offs.v += m[i].vertexCoords.size();
     offs.vt += m[i].vertexTextCoords.size();
     offs.vn += m[i].vertexNormals.size();
@@ -192,46 +192,68 @@ void lpng::writeModel(std::ostream& out, const std::vector<Mesh>& m, const std::
 
 void lpng::ModelMaterial::CreateModelTexture(const std::filesystem::path& save_path)
 {
-  std::filesystem::path file_path = save_path / TextureName;
-  std::ofstream ofs(file_path, std::ios::binary);
-  const int width = 256;
-  const int height = 256;
+  const unsigned char base[3] = { 125, 125, 125 };
+  const unsigned char brown[3] = { 14, 34, 77 };
+  const unsigned char green[3] = { 38, 129, 23 };
+  const unsigned char grey[3] = { 84, 84, 84 };
 
-  uint8_t header[18] = { 0,0,2,0,0,0,0,0,0,0,0,0, (uint8_t)(width % 256), (uint8_t)(width / 256), (uint8_t)(height % 256), (uint8_t)(height / 256), 24, 0x20 };
-
-  // Write the header to the file
-  ofs.write(reinterpret_cast<const char*>(&header), 18);
-
-  // Magenta color (24-bit)
-  const unsigned char magenta[3] = { 255, 0, 255 };
-  const unsigned char white[3] = { 255, 255, 255 };
-
-  // Write the magenta texture to the file
-  for (int y = 0; y < height; ++y)
+  for (const auto& name : TextureNames)
   {
-    for (int x = 0; x < width; ++x)
+    std::filesystem::path file_path = save_path / name.second;
+    if(std::filesystem::exists(file_path))
     {
-      if (x % 2 == 1)
-        ofs.write(reinterpret_cast<const char*>(magenta), sizeof(magenta));
-      else
-        ofs.write(reinterpret_cast<const char*>(white), sizeof(white));
+      continue;
     }
+    std::ofstream ofs(file_path, std::ios::binary);
+    const int width = 128;
+    const int height = 128;
+    uint8_t header[18] = { 0,0,2,0,0,0,0,0,0,0,0,0, (uint8_t)(width % 256), (uint8_t)(width / 256), (uint8_t)(height % 256), (uint8_t)(height / 256), 24, 0x20 };
+    ofs.write(reinterpret_cast<const char*>(&header), 18);
+    for (int y = 0; y < height; ++y)
+    {
+      for (int x = 0; x < width; ++x)
+      {
+        if (name.first == int(MaterialTypes::NONE))
+        {
+          ofs.write(reinterpret_cast<const char*>(base), sizeof(base));
+        }
+        else if (name.first == int(MaterialTypes::WOOD))
+        {
+          ofs.write(reinterpret_cast<const char*>(brown), sizeof(brown));
+        }
+        else if (name.first == int(MaterialTypes::CROWN))
+        {
+          ofs.write(reinterpret_cast<const char*>(green), sizeof(green));
+        }
+        else if (name.first == int(MaterialTypes::STONE))
+        {
+          ofs.write(reinterpret_cast<const char*>(grey), sizeof(grey));
+        }    
+      }
+    }
+    ofs.close();
   }
-  ofs.close();
 }
 
 
 void lpng::ModelMaterial::CreateModelMaterial(const std::filesystem::path& save_path)
 {
   std::filesystem::path file_path = save_path / MatFile;
+  if (std::filesystem::exists(file_path))
+  {
+    return;
+  }
   std::ofstream ofs(file_path);
-  ofs << "newmtl " << MatName << "\n";
-  ofs << "illum 1\n";
-  ofs << "Kd 1.00 1.00 1.00\n";
-  ofs << "Ka 0.00 0.00 0.00\n";
-  ofs << "Tf 1.00 1.00 1.00\n";
-  ofs << "Ni 1.00\n";
-  ofs << "Tr 1.00\n";
-  ofs << "map_Kd " << TextureName << "\n";
+  for (const auto& mat : MatNames)
+  {
+    ofs << "newmtl " << mat.second << "\n";
+    ofs << "illum 1\n";
+    ofs << "Kd 1.00 1.00 1.00\n";
+    ofs << "Ka 0.00 0.00 0.00\n";
+    ofs << "Tf 1.00 1.00 1.00\n";
+    ofs << "Ni 1.00\n";
+    ofs << "Tr 1.00\n";
+    ofs << "map_Kd " << TextureNames.at(mat.first) << "\n";
+  }
   ofs.close();
 }

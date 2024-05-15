@@ -54,9 +54,15 @@ static int goalModelSeed = 0;
 static bool modelSmoothness = false;
 static char* selectedInputBox = nullptr;
 
+static Texture2D modelBaseTex;
+static Texture2D modelWoodTex;
+static Texture2D modelCrownTex;
+static Texture2D modelStoneTex;
+
 static Vector2 mousePoint = { 0.0f, 0.0f };
 
-static Mesh GenMesh(const std::vector<lpng::Mesh> &model);
+static void GenModels(std::vector<Model>& models, const std::vector<lpng::Mesh>& generated_model);
+static Mesh GenMesh(const lpng::Mesh& model);
 static bool GenerateObjectWithType(int type, std::unique_ptr<lpng::GenerateObject>& model_ptr);
 static void InputBox(InputBoxDesc& inputBox);
 
@@ -304,9 +310,15 @@ int main(void)
   modelPtr->Generate();
   unsigned int modelSeed = modelPtr->GetModelSeed();
   std::vector<lpng::Mesh> generatedModel = modelPtr->GetModel();
-  Model model = LoadModelFromMesh(GenMesh(generatedModel));
-  Texture2D modelTexture = LoadTexture("resources/texture.tga");
-  model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = modelTexture;
+  std::vector<Model> models;
+  std::filesystem::path dir_path = std::filesystem::current_path();
+  lpng::ModelMaterial::CreateModelTexture(dir_path/"resources");
+  modelBaseTex = LoadTexture("resources/obj.tga");
+  modelWoodTex = LoadTexture("resources/wood.tga");
+  modelCrownTex = LoadTexture("resources/crown.tga");
+  modelStoneTex = LoadTexture("resources/stone.tga");
+  GenModels(models, generatedModel);
+  
   while (!WindowShouldClose())
   {
     // CURSOR ACT
@@ -340,9 +352,12 @@ int main(void)
         modelPtr->Generate();
         modelSeed = modelPtr->GetModelSeed();
         generatedModel = modelPtr->GetModel();
-        UnloadModel(model);
-        model = LoadModelFromMesh(GenMesh(generatedModel));
-        model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = modelTexture;
+        for (const Model& m : models)
+        {
+          UnloadModel(m);
+        }
+        models.clear();
+        GenModels(models, generatedModel);
       }
       if (GuiButton(btnSaveBounds, saveModelText.c_str())) modelPtr->SaveModel(inputBoxModelName.text);
       InputBox(inputBoxModelName);
@@ -418,18 +433,11 @@ int main(void)
       {
         BeginMode3D(camera);
 
-        //for (const lpng::Mesh& m : generatedModel)
-        //{
-        //  for (const lpng::float3& v : m.vertexCoords)
-        //  {
-        //    
-        //    DrawSphere({v.x, v.y, v.z} , 0.04f, DARKPURPLE);
-        //  }
-        //}
-
-        DrawModel(model, modelPosition, 1.0f, WHITE);
-        DrawModelWires(model, modelPosition, 1.0f, BLACK);
-
+        for (const Model& m : models)
+        {
+          DrawModel(m, modelPosition, 1.0f, WHITE);
+          DrawModelWires(m, modelPosition, 1.0f, BLACK);
+        }
         DrawGrid(10, 1.0f);
         EndMode3D();
       }
@@ -447,21 +455,24 @@ int main(void)
   }
   UnloadRenderTexture(screen1);
   UnloadRenderTexture(screen2);
-  UnloadModel(model);
+  for (const Model& m : models)
+  {
+    UnloadModel(m);
+  }
   modelPtr.reset();
-  UnloadTexture(modelTexture);
+  UnloadTexture(modelBaseTex);
+  UnloadTexture(modelWoodTex);
+  UnloadTexture(modelCrownTex);
+  UnloadTexture(modelStoneTex);
   CloseWindow();
 
   return 0;
 }
 
-static Mesh GenMesh(const std::vector<lpng::Mesh>& model)
+
+static Mesh GenMesh(const lpng::Mesh& model)
 {
-  int triangleCount = 0;
-  for (const lpng::Mesh& m : model)
-  {
-    triangleCount += m.faces.size();
-  }
+  int triangleCount = model.faces.size();
   Mesh mesh = { 0 };
   mesh.triangleCount = triangleCount;
   mesh.vertexCount = mesh.triangleCount * 3;
@@ -470,29 +481,51 @@ static Mesh GenMesh(const std::vector<lpng::Mesh>& model)
   mesh.normals = (float*)MemAlloc(mesh.vertexCount * 3 * sizeof(float));
 
   int nextVertId = 0;
-  for (const lpng::Mesh& obj : model)
+  for (const lpng::Face& f : model.faces)
   {
-    for (const lpng::Face& f : obj.faces)
+    for (int i = 0; i < 3; i++)
     {
-      for (int i = 0; i < 3; i++)
-      {
-        lpng::float3 vc = obj.vertexCoords[f.vi[i] - 1];
-        lpng::float3 vn = obj.vertexNormals[f.vni[i] - 1];
-        lpng::float2 vt = obj.vertexTextCoords[f.vti[i] - 1];
-        mesh.vertices[nextVertId * 3] = vc.x;
-        mesh.vertices[nextVertId * 3 + 1] = vc.y;
-        mesh.vertices[nextVertId * 3 + 2] = vc.z;
-        mesh.normals[nextVertId * 3] = vn.x;
-        mesh.normals[nextVertId * 3 + 1] = vn.y;
-        mesh.normals[nextVertId * 3 + 2] = vn.z;
-        mesh.texcoords[nextVertId * 2] = vt.x;
-        mesh.texcoords[nextVertId * 2 + 1] = vt.y;
-        ++nextVertId;
-      }
+      lpng::float3 vc = model.vertexCoords[f.vi[i] - 1];
+      lpng::float3 vn = model.vertexNormals[f.vni[i] - 1];
+      lpng::float2 vt = model.vertexTextCoords[f.vti[i] - 1];
+      mesh.vertices[nextVertId * 3] = vc.x;
+      mesh.vertices[nextVertId * 3 + 1] = vc.y;
+      mesh.vertices[nextVertId * 3 + 2] = vc.z;
+      mesh.normals[nextVertId * 3] = vn.x;
+      mesh.normals[nextVertId * 3 + 1] = vn.y;
+      mesh.normals[nextVertId * 3 + 2] = vn.z;
+      mesh.texcoords[nextVertId * 2] = vt.x;
+      mesh.texcoords[nextVertId * 2 + 1] = vt.y;
+      ++nextVertId;
     }
   }
   UploadMesh(&mesh, false);
   return mesh;
+}
+
+
+static void GenModels(std::vector<Model>& models, const std::vector<lpng::Mesh>& generated_model)
+{
+  for (const lpng::Mesh& mesh : generated_model)
+  {
+    models.emplace_back(LoadModelFromMesh(GenMesh(mesh)));
+    if (mesh.matType == lpng::MaterialTypes::NONE)
+    {
+      models.back().materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = modelBaseTex;
+    }
+    else if (mesh.matType == lpng::MaterialTypes::WOOD)
+    {
+      models.back().materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = modelWoodTex;
+    }
+    else if (mesh.matType == lpng::MaterialTypes::CROWN)
+    {
+      models.back().materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = modelCrownTex;
+    }
+    else if (mesh.matType == lpng::MaterialTypes::STONE)
+    {
+      models.back().materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = modelStoneTex;
+    }
+  }
 }
 
 
