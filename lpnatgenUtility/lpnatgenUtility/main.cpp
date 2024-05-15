@@ -51,6 +51,7 @@ static bool treeRebuildCheck = false;
 static int stoneVertexCount = 40;
 static bool goalModelSeedCheck = false;
 static int goalModelSeed = 0;
+static bool modelSmoothness = false;
 static char* selectedInputBox = nullptr;
 
 static Vector2 mousePoint = { 0.0f, 0.0f };
@@ -96,12 +97,14 @@ int main(void)
 
   // INPUT BOXES
 
+  Rectangle checkBoxSmoothnessRectangle = { 12, 60, 30, 30 };
+
   Rectangle checkBoxSeedRectangle = { 12, 100, 30, 30 };
   InputBoxDesc inputBoxSeed;
   inputBoxSeed.type = InputBoxType::VALUE_INT;
   inputBoxSeed.input_box_rect = Rectangle{ 120, 100, 180, 30 };
   inputBoxSeed.value_int = &goalModelSeed;
-  
+
   InputBoxDesc inputBoxModelName;
   inputBoxModelName.type = InputBoxType::TEXT;
   inputBoxModelName.name_rect = Rectangle{ 12, 180, 100, 30 };
@@ -302,8 +305,8 @@ int main(void)
   unsigned int modelSeed = modelPtr->GetModelSeed();
   std::vector<lpng::Mesh> generatedModel = modelPtr->GetModel();
   Model model = LoadModelFromMesh(GenMesh(generatedModel));
-  //Texture2D modelTexture = LoadTexture("resources/texture.png");
-  //model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = modelTexture;
+  Texture2D modelTexture = LoadTexture("resources/texture.tga");
+  model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = modelTexture;
   while (!WindowShouldClose())
   {
     // CURSOR ACT
@@ -323,6 +326,7 @@ int main(void)
       ClearBackground({ 230, 245, 255, 255 });
 
       if (modelTypeEditMode) GuiLock();
+      GuiCheckBox(checkBoxSmoothnessRectangle, "Smoothness", &modelSmoothness);
       GuiCheckBox(checkBoxSeedRectangle, "Use seed", &goalModelSeedCheck);
       if (goalModelSeedCheck)
       {
@@ -330,15 +334,15 @@ int main(void)
       }
       if (GuiButton(btnCreateBounds, createModelText.c_str()))
       {
-        bool isNewModel = GenerateObjectWithType(modelTypeActive, modelPtr);
-        if (!isNewModel)
+        bool success = GenerateObjectWithType(modelTypeActive, modelPtr);
+        if (!success)
           break;
         modelPtr->Generate();
         modelSeed = modelPtr->GetModelSeed();
         generatedModel = modelPtr->GetModel();
         UnloadModel(model);
         model = LoadModelFromMesh(GenMesh(generatedModel));
-        //model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = modelTexture;
+        model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = modelTexture;
       }
       if (GuiButton(btnSaveBounds, saveModelText.c_str())) modelPtr->SaveModel(inputBoxModelName.text);
       InputBox(inputBoxModelName);
@@ -445,7 +449,7 @@ int main(void)
   UnloadRenderTexture(screen2);
   UnloadModel(model);
   modelPtr.reset();
-  //UnloadTexture(modelTexture);
+  UnloadTexture(modelTexture);
   CloseWindow();
 
   return 0;
@@ -464,7 +468,6 @@ static Mesh GenMesh(const std::vector<lpng::Mesh>& model)
   mesh.vertices = (float*)MemAlloc(mesh.vertexCount * 3 * sizeof(float));
   mesh.texcoords = (float*)MemAlloc(mesh.vertexCount * 2 * sizeof(float));
   mesh.normals = (float*)MemAlloc(mesh.vertexCount * 3 * sizeof(float));
-  mesh.colors = (unsigned char*)MemAlloc(mesh.vertexCount * 4 * sizeof(unsigned char));
 
   int nextVertId = 0;
   for (const lpng::Mesh& obj : model)
@@ -484,41 +487,6 @@ static Mesh GenMesh(const std::vector<lpng::Mesh>& model)
         mesh.normals[nextVertId * 3 + 2] = vn.z;
         mesh.texcoords[nextVertId * 2] = vt.x;
         mesh.texcoords[nextVertId * 2 + 1] = vt.y;
-        switch (obj.matType)
-        {
-        case lpng::MaterialTypes::WOOD:
-        {
-          mesh.colors[nextVertId * 4] = 127;
-          mesh.colors[nextVertId * 4 + 1] = 106;
-          mesh.colors[nextVertId * 4 + 2] = 79;
-          mesh.colors[nextVertId * 4 + 3] = 255;
-          break;
-        }
-        case lpng::MaterialTypes::STONE:
-        {
-          mesh.colors[nextVertId * 4] = 200;
-          mesh.colors[nextVertId * 4 + 1] = 200;
-          mesh.colors[nextVertId * 4 + 2] = 200;
-          mesh.colors[nextVertId * 4 + 3] = 255;
-          break;
-        }
-        case lpng::MaterialTypes::CROWN:
-        {
-          mesh.colors[nextVertId * 4] = 0;
-          mesh.colors[nextVertId * 4 + 1] = 228;
-          mesh.colors[nextVertId * 4 + 2] = 48;
-          mesh.colors[nextVertId * 4 + 3] = 255;
-          break;
-        }
-        default:
-        {
-          mesh.colors[nextVertId * 4] = 130;
-          mesh.colors[nextVertId * 4 + 1] = 130;
-          mesh.colors[nextVertId * 4 + 2] = 130;
-          mesh.colors[nextVertId * 4 + 3] = 255;
-          break;
-        }
-        }
         ++nextVertId;
       }
     }
@@ -585,6 +553,7 @@ static bool GenerateObjectWithType(int type, std::unique_ptr<lpng::GenerateObjec
   if (res)
   {
     model_ptr->SetSize(model_size);
+    model_ptr->SetModelSmoothness(modelSmoothness);
     if (goalModelSeedCheck && goalModelSeed >= 0)
       model_ptr->SetModelSeed(goalModelSeed);
   }

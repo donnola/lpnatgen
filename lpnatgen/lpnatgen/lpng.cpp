@@ -11,26 +11,37 @@ std::vector<lpng::Mesh> lpng::GenerateObject::GetModel()
 }
 
 
-void lpng::GenerateObject::Generate(bool smoothness)
+void lpng::GenerateObject::Generate()
 {
-  //fast_lpng_rand(1780338363);
-  seed = get_lpng_seed();
+  if (seed_set)
+    fast_lpng_rand(seed);
+  else
+    seed = get_lpng_seed();
   GenerateMesh();
   PolygonDecomposition();
-  GenerateNormals(smoothness);
+  GenerateNormals();
   GenerateTextureCoords();
 }
 
 
-void lpng::GenerateObject::GenerateNormals(bool smoothness)
+void lpng::GenerateObject::GenerateNormals()
 {
   for (Mesh& mesh : model)
   {
-    std::vector<float3> normals = CalculateObjNormals(mesh, smoothness);
-    mesh.vertexNormals = std::move(normals);
-    for (Face& f : mesh.faces)
+    if (smoothness)
     {
-      f.vni = f.vi;
+      std::vector<float3> normals = CalculateSmoothObjNormals(mesh);
+      mesh.vertexNormals = std::move(normals);
+      for (Face& f : mesh.faces)
+      {
+        f.vni = f.vi;
+      }
+    }
+    else
+    {
+      std::vector<float3> normals = CalculateObjNormals(mesh);
+      mesh.vertexNormals = std::move(normals);
+
     }
   }
 }

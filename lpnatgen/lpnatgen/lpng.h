@@ -14,18 +14,26 @@ namespace lpng
   public:
     GenerateObject() {}
 
-    void SetModelSeed(int seed) { fast_lpng_rand(seed); }
+    void SetModelSeed(unsigned int s)
+    {
+      seed = s;
+      seed_set = true;
+    }
+    void SetModelSmoothness(bool s)
+    {
+      smoothness = s;
+    }
     void SetSize(float3 size) { objectSize = size; }
     void AddObject(Mesh& mesh);
     virtual void GenerateMesh() = 0;
     void GenerateTextureCoords();
     void PolygonDecomposition();
-    void GenerateNormals(bool smoothness);
+    void GenerateNormals();
     void SaveModel(const std::string& file_name, std::filesystem::path save_path) const;
     void SaveModel(const std::string& file_name, std::string save_path) const;
     void SaveModel(const std::string& file_name) const;
     void SaveModel() const;
-    void Generate(bool smoothness = true);
+    void Generate();
     std::vector<Mesh> GetModel();
     unsigned int GetModelSeed() { return seed; }
     
@@ -35,6 +43,8 @@ namespace lpng
     const std::string fileFormat = ".obj";
     const std::string modelsFolder = "models";
     unsigned int seed = 0;
+    bool seed_set = false;
+    bool smoothness = true;
   };
 
 
