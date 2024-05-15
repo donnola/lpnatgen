@@ -41,7 +41,10 @@ void lpng::GenerateObject::GenerateNormals()
     {
       std::vector<float3> normals = CalculateObjNormals(mesh);
       mesh.vertexNormals = std::move(normals);
-
+      for (int i = 0; i < mesh.faces.size(); ++i)
+      {
+        mesh.faces[i].vni = std::vector<int>(mesh.faces[i].vi.size(), i + 1);
+      }
     }
   }
 }
