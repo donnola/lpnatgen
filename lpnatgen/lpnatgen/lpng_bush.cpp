@@ -67,7 +67,7 @@ void lpng::GenerateObjectBush::GenerateCrown()
 
   Sphere* sphere = Sphere::GetInstance();
   std::unordered_set<size_t> points;
-  int points_count = 40;
+  int points_count = 40; // TODO : var
   Mesh crown = sphere->GetSphere();
   for (const Branch& b : branches)
   {
@@ -110,13 +110,13 @@ void lpng::GenerateObjectBush::ModifyCrown(Mesh& crown, const float3& c)
     float n = v.y - quantile.y;
     if (n > 0)
     {
-      k = fast_lpng_rand(900, 1001) / 1000.f;
-      float n_k = fast_lpng_rand(4000, 5000) / 1000.f;
+      k = fast_lpng_rand(900, 1001) / 1000.f; // TODO : var
+      float n_k = fast_lpng_rand(4000, 5000) / 1000.f; // TODO : var
       v.y = quantile.y + n * n_k;
     }
     if (n <= 0)
     {
-      k = fast_lpng_rand(950, 1200) / 1000.f;
+      k = fast_lpng_rand(950, 1200) / 1000.f; // TODO : var
     }
     v.x = c.x + (v.x - c.x) * k;
     v.z = c.z + (v.z - c.z) * k;
