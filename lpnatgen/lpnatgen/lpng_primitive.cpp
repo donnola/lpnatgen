@@ -66,7 +66,7 @@ lpng::Sphere::Sphere()
 }
 
 
-void lpng::Sphere::RaiseToMinSubdiv(int min_point_count)
+void lpng::Sphere::RaiseToMinSubdiv(size_t min_point_count)
 {
   while (vertex_num < min_point_count)
   {

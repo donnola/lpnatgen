@@ -52,7 +52,7 @@ namespace lpng
       return size_coef;
     }
 
-    void RaiseToMinSubdiv(int min_point_count);
+    void RaiseToMinSubdiv(size_t min_point_count);
     void Subdiv();
   };
 }

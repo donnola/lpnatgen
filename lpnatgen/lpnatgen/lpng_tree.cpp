@@ -155,7 +155,7 @@ void lpng::GenerateObjectTree::GenerateCrown()
         v.z = abs(p.z);
       }
     }
-    float v_r = Magnitude(v);
+    double v_r = Magnitude(v);
     if (v_r < cluster.rad)
     {
       v *= cluster.rad / v_r;
@@ -171,10 +171,10 @@ void lpng::GenerateObjectTree::GenerateCrown()
     {
       float3 p = branches[i].rings.back().center;
       int neares_p = 0;
-      float min_dist_sq = MagnitudeSq(p - crown.vertexCoords[0]);
+      double min_dist_sq = MagnitudeSq(p - crown.vertexCoords[0]);
       for (int j = 1; j < crown.vertexCoords.size(); ++j)
       {
-        float dist_sq = MagnitudeSq(p - crown.vertexCoords[j]);
+        double dist_sq = MagnitudeSq(p - crown.vertexCoords[j]);
         if (MagnitudeSq(p - crown.vertexCoords[j]) < min_dist_sq)
         {
           min_dist_sq = dist_sq;
@@ -185,7 +185,7 @@ void lpng::GenerateObjectTree::GenerateCrown()
     }
     while (points.size() < points_count)
     {
-      points.insert(fast_lpng_rand(0, sphere->GetVertexCount()));
+      points.insert(fast_lpng_rand(0, int(sphere->GetVertexCount())));
     }
     FilterMeshWithPoints(crown, points);
     ModifyCrown(crown, cluster.center);
@@ -202,7 +202,7 @@ void lpng::GenerateObjectTree::ModifyCrown(Mesh& crown, const float3& c)
 {
   std::vector<float3> vertexes = crown.vertexCoords;
   std::sort(vertexes.begin(), vertexes.end(), [](const float3& a, const float3& b) { return a.y < b.y; });
-  int quant_id = vertexes.size() * 0.6;
+  int quant_id = int(vertexes.size() * 0.6);
   float3 quantile = vertexes[quant_id];
   for (float3& v : crown.vertexCoords)
   {
