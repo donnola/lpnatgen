@@ -206,20 +206,19 @@ void lpng::GenerateObjectTree::ModifyCrown(Mesh& crown, const float3& c)
   float3 quantile = vertexes[quant_id];
   for (float3& v : crown.vertexCoords)
   {
+    float k;
     float n = v.y - quantile.y;
     if (n > 0)
     {
-      float k = fast_lpng_rand(800, 1001) / 1000.f;
-      v.x = c.x + (v.x - c.x) * k;
-      v.z = c.z + (v.z - c.z) * k;
+      k = fast_lpng_rand(800, 1001) / 1000.f;
       float n_k = fast_lpng_rand(1400, 1450) / 1000.f;
       v.y = quantile.y + n * n_k;
-    } 
+    }
     if (n <= 0)
     {
-      float k = fast_lpng_rand(950, 1200) / 1000.f;
-      v.x = c.x + (v.x - c.x) * k;
-      v.z = c.z + (v.z - c.z) * k;
+      k = fast_lpng_rand(950, 1200) / 1000.f;
     }
+    v.x = c.x + (v.x - c.x) * k;
+    v.z = c.z + (v.z - c.z) * k;
   }
 }

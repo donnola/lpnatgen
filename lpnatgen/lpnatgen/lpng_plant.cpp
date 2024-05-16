@@ -22,6 +22,7 @@ int lpng::GenerateObjectPlant::SelectWeightedBranch()
       return i;
     }
   }
+  return -1;
 }
 
 

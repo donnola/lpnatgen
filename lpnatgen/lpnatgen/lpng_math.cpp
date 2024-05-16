@@ -1014,7 +1014,7 @@ std::vector<lpng::float2> lpng::GetNDirections(int n)
   for (int i = 0; i < n; ++i)
   {
     dirs.emplace_back(sin(angle_cum), cos(angle_cum));
-    float angle = seg_angle * fast_lpng_rand(700, 1300) / 1000.f;
+    float angle = seg_angle * (fast_lpng_rand(700, 1300) / 1000.f);
     angle_cum += angle;
   }
   return dirs;
