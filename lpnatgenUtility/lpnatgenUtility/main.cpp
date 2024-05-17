@@ -4,12 +4,7 @@
 #include "lpng_stone.h"
 #include "lpng_bush.h"
 #include "lpng_rand.h"
-#include <iostream>
-#include <stdlib.h>
-#include <memory>
-#include <ctime>
 #include "raylib.h"
-#include "raymath.h"
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 #undef RAYGUI_IMPLEMENTATION
@@ -63,7 +58,7 @@ static Vector2 mousePoint = { 0.0f, 0.0f };
 
 static void GenModels(std::vector<Model>& models, const std::vector<lpng::Mesh>& generated_model);
 static Mesh GenMesh(const lpng::Mesh& model);
-static bool GenerateObjectWithType(int type, std::unique_ptr<lpng::GenerateObject>& model_ptr);
+static bool SetModelParams(int type, std::unique_ptr<lpng::GenerateObject>& model_ptr);
 static void InputBox(InputBoxDesc& inputBox);
 
 
@@ -324,7 +319,7 @@ int main(void)
 
   // LOAD MODEL
   int modelTypeActive = TEST;
-  bool modelTypeEditMode = false;
+  bool modelTypeChangeMode = false;
   std::unique_ptr<lpng::GenerateObject> modelPtr{ std::make_unique<lpng::GenerateObjectTest>() };
   modelPtr->SetSize(objectSize);
   modelPtr->Generate();
@@ -357,7 +352,7 @@ int main(void)
       BeginTextureMode(screen1);
       ClearBackground({ 230, 245, 255, 255 });
 
-      if (modelTypeEditMode) GuiLock();
+      if (modelTypeChangeMode) GuiLock();
       GuiCheckBox(checkBoxSmoothnessRectangle, "Smoothness", &modelSmoothness);
       GuiCheckBox(checkBoxSeedRectangle, "Use seed", &goalModelSeedCheck);
       if (goalModelSeedCheck)
@@ -366,7 +361,7 @@ int main(void)
       }
       if (GuiButton(btnCreateBounds, createModelText.c_str()))
       {
-        bool success = GenerateObjectWithType(modelTypeActive, modelPtr);
+        bool success = SetModelParams(modelTypeActive, modelPtr);
         if (!success)
           break;
         modelPtr->Generate();
@@ -441,7 +436,7 @@ int main(void)
 
       DrawText(TextFormat("MODEL SEED : %u", modelSeed), 10, 710, 22, MAROON);
       DrawText("PRESS TAB TO ENABLE CURSOR", 10, 760, 22, MAROON);
-      if (GuiDropdownBox({ 12, 20, 140, 30 }, "TEST;STONE;TREE;BUSH", &modelTypeActive, modelTypeEditMode)) modelTypeEditMode = !modelTypeEditMode;
+      if (GuiDropdownBox({ 12, 20, 140, 30 }, "TEST;STONE;TREE;BUSH", &modelTypeActive, modelTypeChangeMode)) modelTypeChangeMode = !modelTypeChangeMode;
 
       EndTextureMode();
     }
@@ -551,7 +546,7 @@ static void GenModels(std::vector<Model>& models, const std::vector<lpng::Mesh>&
 }
 
 
-static bool GenerateObjectWithType(int type, std::unique_ptr<lpng::GenerateObject>& model_ptr)
+static bool SetModelParams(int type, std::unique_ptr<lpng::GenerateObject>& model_ptr)
 {
   bool res = false;
   lpng::float3 model_size;
