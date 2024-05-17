@@ -42,7 +42,6 @@ void lpng::GenerateObjectTree::GenerateMesh()
   {
     RelaxBranch(branches[i], i);
   }
-  // TODO: move root of tree down
   CalculateQuality();
   if (buildId < rebuildParams.rebuildNum)
   {   
@@ -165,10 +164,11 @@ void lpng::GenerateObjectTree::GenerateCrown()
     cluster.rad = v_r * k;
     v *= k;
     std::unordered_set<size_t> points;
-    int points_count = 50; // TODO : var
     Mesh crown = sphere->GetSphere();
     for (int i : cluster.branchIds)
     {
+      if (points.size() == treeParams.crownVertexNum)
+        break;
       float3 p = branches[i].rings.back().center;
       int neares_p = 0;
       double min_dist_sq = MagnitudeSq(p - crown.vertexCoords[0]);
@@ -183,7 +183,7 @@ void lpng::GenerateObjectTree::GenerateCrown()
       }
       points.insert(neares_p);
     }
-    while (points.size() < points_count)
+    while (points.size() < treeParams.crownVertexNum)
     {
       points.insert(fast_lpng_rand(0, int(sphere->GetVertexCount())));
     }

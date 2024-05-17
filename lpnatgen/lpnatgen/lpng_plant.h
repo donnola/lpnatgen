@@ -47,5 +47,7 @@ namespace lpng
     float branchMaxCoefStart = 1;
     float branchMinCoefLen = 0;
     float branchMaxCoefLen = 1;
+    int branchAngleMin = 0;
+    int branchAngleMax = 180;
   };
 }

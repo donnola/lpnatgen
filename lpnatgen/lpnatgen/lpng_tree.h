@@ -22,6 +22,7 @@ namespace lpng
     int edgeBase = 5;
     int branchMinCount = 5;
     int branchMaxCount = 7;
+    int crownVertexNum = 50;
   };
 
   struct TreeRebuildParams
@@ -51,6 +52,8 @@ namespace lpng
       branchMaxCoefStart = 0.8;
       branchMinCoefLen = 0.85;
       branchMaxCoefLen = 1.1;
+      branchAngleMin = 40;
+      branchAngleMax = 60;
     }
     void GenerateMesh() override;
     void SetTreeParams(const TreeParams& p)

@@ -14,7 +14,7 @@ void lpng::GenerateObjectBush::GenerateMesh()
     branch.lastRad = std::min(branch.baseRad / 2, bushParams.finalRad);
     branch.freeDirections = GetNDirections(bushParams.edgeBase);
     branch.edgeBase = bushParams.edgeBase;
-    float3 vec_in = GenOutVec(mainDirections, float3(0, 1, 0), 30, 34);
+    float3 vec_in = GenOutVec(mainDirections, float3(0, 1, 0), baseBranchAngleMin, baseBranchAngleMax);
     branch.length = bushParams.height * (fast_lpng_rand(850, 1100) / (vec_in.y * 1000.f));
     float3 point_start = branch.length * vec_in / 3;
     point_start.x *= fast_lpng_rand(300, 1100) / 1000.f;
@@ -46,7 +46,7 @@ void lpng::GenerateObjectBush::GenerateMesh()
 void lpng::GenerateObjectBush::GenerateCrown()
 {
   float3 crown_center;
-  crown_center.y = bushParams.height * (fast_lpng_rand(700, 800) / 1000.f);
+  crown_center.y = bushParams.height * (fast_lpng_rand(800, 900) / 1000.f);
   float min_r_sq = 0;
   float min_h = 0;
   for (const Branch& b : branches)
@@ -61,31 +61,14 @@ void lpng::GenerateObjectBush::GenerateCrown()
   }
   float crown_rad = sqrt(min_r_sq);
   float3 crown_size;
-  crown_size.y = min_h * (fast_lpng_rand(1100, 1200) / 1000.f);
   crown_size.x = crown_rad * (fast_lpng_rand(1100, 1200) / 1000.f);
   crown_size.z = crown_rad * (fast_lpng_rand(1100, 1200) / 1000.f);
+  crown_size.y = std::max(min_h, (crown_size.x + crown_size.z) / 6.f);
 
   Sphere* sphere = Sphere::GetInstance();
   std::unordered_set<size_t> points;
-  int points_count = 40; // TODO : var
   Mesh crown = sphere->GetSphere();
-  for (const Branch& b : branches)
-  {
-    float3 p = b.rings.back().center;
-    int neares_p = 0;
-    float min_dist_sq = MagnitudeSq(p - crown.vertexCoords[0]);
-    for (int j = 1; j < crown.vertexCoords.size(); ++j)
-    {
-      float dist_sq = MagnitudeSq(p - crown.vertexCoords[j]);
-      if (MagnitudeSq(p - crown.vertexCoords[j]) < min_dist_sq)
-      {
-        min_dist_sq = dist_sq;
-        neares_p = j;
-      }
-    }
-    points.insert(neares_p);
-  }
-  while (points.size() < points_count)
+  while (points.size() < bushParams.crownVertexNum)
   {
     points.insert(fast_lpng_rand(0, sphere->GetVertexCount()));
   }
@@ -106,17 +89,12 @@ void lpng::GenerateObjectBush::ModifyCrown(Mesh& crown, const float3& c)
   float3 quantile = vertexes[quant_id];
   for (float3& v : crown.vertexCoords)
   {
-    float k;
+    float k = fast_lpng_rand(950, 1050) / 1000.f;;
     float n = v.y - quantile.y;
     if (n > 0)
     {
-      k = fast_lpng_rand(900, 1001) / 1000.f; // TODO : var
-      float n_k = fast_lpng_rand(4000, 5000) / 1000.f; // TODO : var
+      float n_k = fast_lpng_rand(4000, 4500) / 1000.f;
       v.y = quantile.y + n * n_k;
-    }
-    if (n <= 0)
-    {
-      k = fast_lpng_rand(950, 1200) / 1000.f; // TODO : var
     }
     v.x = c.x + (v.x - c.x) * k;
     v.z = c.z + (v.z - c.z) * k;

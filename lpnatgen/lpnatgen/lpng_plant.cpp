@@ -51,7 +51,7 @@ void lpng::GenerateObjectPlant::InitBranch(const size_t parent_id, Branch& branc
       continue;
     float d = ring.curLength - l_start;
     point_start = ring.center - Normalized(ring.vecIn) * d;
-    vec_in = GenOutVec(parent.freeDirections, Normalized(ring.vecIn), 40, 60);
+    vec_in = GenOutVec(parent.freeDirections, Normalized(ring.vecIn), branchAngleMin, branchAngleMax);
     if (parent.freeDirections.size() == 0)
       parent.weight = 0;
     break;

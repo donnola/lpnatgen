@@ -16,6 +16,7 @@ namespace lpng
     int baseBranchMaxCount = 5;
     int childrenMinCount = 5;
     int childrenMaxCount = 8;
+    int crownVertexNum = 40;
   };
 
   class GenerateObjectBush : public GenerateObjectPlant
@@ -27,6 +28,8 @@ namespace lpng
       branchMaxCoefStart = 0.7;
       branchMinCoefLen = 0.85;
       branchMaxCoefLen = 1;
+      branchAngleMin = 40;
+      branchAngleMax = 60;
     }
     void GenerateMesh() override;
     void SetBushParams(const BushParams& p)
@@ -41,5 +44,7 @@ namespace lpng
     void GenerateCrown() override;
     void ModifyCrown(Mesh& crown, const float3& c) override;
     BushParams bushParams;
+    int baseBranchAngleMin = 30;
+    int baseBranchAngleMax = 45;
   };
 }
