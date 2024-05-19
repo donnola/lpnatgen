@@ -317,6 +317,14 @@ int main(void)
   inputBushCrownBase.box_name = "Crown vertex num";
   inputBushCrownBase.value_int = &bushParams.crownVertexNum;
 
+  std::filesystem::path dir_path = std::filesystem::current_path();
+  std::filesystem::create_directories(dir_path / "resources");
+  lpng::ModelMaterial::CreateModelTexture(dir_path / "resources");
+  modelBaseTex = LoadTexture("resources/obj.tga");
+  modelWoodTex = LoadTexture("resources/wood.tga");
+  modelCrownTex = LoadTexture("resources/crown.tga");
+  modelStoneTex = LoadTexture("resources/stone.tga");
+
   // LOAD MODEL
   int modelTypeActive = TEST;
   bool modelTypeChangeMode = false;
@@ -326,12 +334,6 @@ int main(void)
   unsigned int modelSeed = modelPtr->GetModelSeed();
   std::vector<lpng::Mesh> generatedModel = modelPtr->GetModel();
   std::vector<Model> models;
-  std::filesystem::path dir_path = std::filesystem::current_path();
-  lpng::ModelMaterial::CreateModelTexture(dir_path/"resources");
-  modelBaseTex = LoadTexture("resources/obj.tga");
-  modelWoodTex = LoadTexture("resources/wood.tga");
-  modelCrownTex = LoadTexture("resources/crown.tga");
-  modelStoneTex = LoadTexture("resources/stone.tga");
   GenModels(models, generatedModel);
   
   while (!WindowShouldClose())

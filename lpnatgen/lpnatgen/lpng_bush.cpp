@@ -55,15 +55,18 @@ void lpng::GenerateObjectBush::GenerateCrown()
     float r_sq = MagnitudeSq(float2(branch_p.x, branch_p.z) - float2(crown_center.x, crown_center.z));
     if (r_sq > min_r_sq)
       min_r_sq = r_sq;
-    float h = abs(branch_p.y - crown_center.y);
-    if (h > min_h)
-      min_h = h;
+    if (branch_p.y < crown_center.y)
+    {
+      float h = crown_center.y - branch_p.y;
+      if (h > min_h)
+        min_h = h;
+    } 
   }
   float crown_rad = sqrt(min_r_sq);
   float3 crown_size;
-  crown_size.x = crown_rad * (fast_lpng_rand(1100, 1200) / 1000.f);
-  crown_size.z = crown_rad * (fast_lpng_rand(1100, 1200) / 1000.f);
-  crown_size.y = std::max(min_h, (crown_size.x + crown_size.z) / 6.f);
+  crown_size.x = crown_rad * (fast_lpng_rand(950, 1050) / 1000.f);
+  crown_size.z = crown_rad * (fast_lpng_rand(950, 1050) / 1000.f);
+  crown_size.y = std::max(min_h, (crown_size.x + crown_size.z) / 7.f);
 
   Sphere* sphere = Sphere::GetInstance();
   std::unordered_set<size_t> points;
@@ -89,11 +92,16 @@ void lpng::GenerateObjectBush::ModifyCrown(Mesh& crown, const float3& c)
   float3 quantile = vertexes[quant_id];
   for (float3& v : crown.vertexCoords)
   {
-    float k = fast_lpng_rand(950, 1050) / 1000.f;;
+    float k = fast_lpng_rand(1050, 1200) / 1000.f;;
     float n = v.y - quantile.y;
     if (n > 0)
     {
-      float n_k = fast_lpng_rand(4000, 4500) / 1000.f;
+      float n_k = fast_lpng_rand(4500, 5500) / 1000.f;
+      v.y = quantile.y + n * n_k;
+    }
+    else
+    {
+      float n_k = fast_lpng_rand(1200, 2200) / 1000.f;
       v.y = quantile.y + n * n_k;
     }
     v.x = c.x + (v.x - c.x) * k;
