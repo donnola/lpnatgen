@@ -19,7 +19,7 @@ namespace lpng
     int crownVertexNum = 45;
   };
 
-  class GenerateObjectBush : public GenerateObjectPlant
+  class GenerateObjectBush : public GenerateObjectBaseTree
   {
   public:
     GenerateObjectBush() 
@@ -31,7 +31,6 @@ namespace lpng
       branchAngleMin = 30;
       branchAngleMax = 45;
     }
-    void GenerateMesh() override;
     void SetBushParams(const BushParams& p)
     {
       bushParams = p;
@@ -41,8 +40,9 @@ namespace lpng
     }
 
   private:
+    void GenerateMesh() override;
     void GenerateCrown() override;
-    void ModifyCrown(Mesh& crown, const float3& c) override;
+    void ModifyCrown(Mesh& crown, const float3& c);
     BushParams bushParams;
     int baseBranchAngleMin = 15;
     int baseBranchAngleMax = 45;

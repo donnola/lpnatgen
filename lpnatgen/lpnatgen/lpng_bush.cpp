@@ -11,7 +11,7 @@ void lpng::GenerateObjectBush::GenerateMesh()
     Branch branch;
     branch.weight = 10000;
     branch.baseRad = bushParams.firstRad;
-    branch.lastRad = std::min(branch.baseRad / 2, bushParams.finalRad);
+    branch.lastRad = bushParams.finalRad;
     branch.freeDirections = GetNDirections(bushParams.edgeBase);
     branch.edgeBase = bushParams.edgeBase;
     float3 vec_in = GenOutVec(mainDirections, float3(0, 1, 0), baseBranchAngleMin, baseBranchAngleMax);

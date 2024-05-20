@@ -24,11 +24,6 @@ namespace lpng
       smoothness = s;
     }
     void SetSize(float3 size) { objectSize = size; }
-    void AddObject(Mesh& mesh);
-    virtual void GenerateMesh() = 0;
-    void GenerateTextureCoords();
-    void PolygonDecomposition();
-    void GenerateNormals();
     void SaveModel(const std::string& file_name, std::filesystem::path save_path) const;
     void SaveModel(const std::string& file_name, std::string save_path) const;
     void SaveModel(const std::string& file_name) const;
@@ -38,6 +33,11 @@ namespace lpng
     unsigned int GetModelSeed() { return seed; }
     
   protected:
+    virtual void GenerateMesh() = 0;
+    void AddObject(Mesh& mesh);
+    void GenerateTextureCoords();
+    void PolygonDecomposition();
+    void GenerateNormals();
     float3 objectSize = float3(1,1,1);
     std::vector<Mesh> model;
     const std::string fileFormat = ".obj";

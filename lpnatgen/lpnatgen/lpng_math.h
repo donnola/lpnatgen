@@ -5,7 +5,6 @@
 #include <unordered_set>
 
 
-
 namespace lpng
 {
 #define CMP(x, y)  (fabs(x - y) <= FLT_EPSILON * fmax(1.0, fmax(fabs(x), fabs(y))))

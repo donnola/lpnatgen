@@ -3,6 +3,7 @@
 #include "lpng_plant.h"
 #include <unordered_set>
 
+
 namespace lpng
 {
   struct Quality
@@ -43,7 +44,7 @@ namespace lpng
     int pointsCount = 0;
   };
 
-  class GenerateObjectTree : public GenerateObjectPlant
+  class GenerateObjectTree : public GenerateObjectBaseTree
   {
   public:
     GenerateObjectTree() 
@@ -55,7 +56,6 @@ namespace lpng
       branchAngleMin = 40;
       branchAngleMax = 60;
     }
-    void GenerateMesh() override;
     void SetTreeParams(const TreeParams& p)
     {
       treeParams = p;
@@ -69,8 +69,9 @@ namespace lpng
     }
 
   private:
+    void GenerateMesh() override;
     void GenerateCrown() override;
-    void ModifyCrown(Mesh& crown, const float3& c) override;
+    void ModifyCrown(Mesh& crown, const float3& c);
     void InitClusters();
     void CalculateQuality();
     void ClearTree();

@@ -21,7 +21,7 @@ void lpng::GenerateObjectTree::GenerateMesh()
   mainBranch.weight = 10000;
   mainBranch.length = treeParams.height;
   mainBranch.baseRad = treeParams.firstRad;
-  mainBranch.lastRad = std::min(mainBranch.baseRad / 2, treeParams.finalRad);
+  mainBranch.lastRad = treeParams.finalRad;
   mainBranch.freeDirections = GetNDirections(treeParams.edgeBase);
   mainBranch.edgeBase = treeParams.edgeBase;
   GenerateBranch(mainBranch, { 0, 0, 0 }, {0, 1, 0});

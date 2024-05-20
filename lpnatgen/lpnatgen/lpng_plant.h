@@ -2,6 +2,7 @@
 
 #include "lpng.h"
 
+
 namespace lpng
 {
   struct BranchRing
@@ -28,17 +29,16 @@ namespace lpng
     int edgeBase = 0;
   };
 
-  class GenerateObjectPlant : public GenerateObject
+  class GenerateObjectBaseTree : public GenerateObject
   {
   public:
-    GenerateObjectPlant() {}
+    GenerateObjectBaseTree() {}
   protected:
     virtual int SelectWeightedBranch();
     virtual void InitBranch(const size_t parent_id, Branch& branch, float3& point_start, float3& vec_in);
     virtual void GenerateBranch(Branch& branch, const float3& pointStart, const float3& vecIn, const float3& vecOut = float3());
     virtual void RelaxBranch(Branch& branch, size_t meshId);
     virtual void GenerateCrown() = 0;
-    virtual void ModifyCrown(Mesh& crown, const float3& c) = 0;
     std::vector<Branch> branches;
     float upCoef = 0;
     float finalBranchRad = 0.03;

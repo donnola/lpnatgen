@@ -192,6 +192,10 @@ void lpng::writeModel(std::ostream& out, const std::vector<Mesh>& m)
 
 void lpng::ModelMaterial::CreateModelTexture(const std::filesystem::path& save_path)
 {
+  if (!std::filesystem::exists(save_path))
+  {
+    std::filesystem::create_directories(save_path);
+  }
   const unsigned char base[3] = { 125, 125, 125 };
   const unsigned char brown[3] = { 14, 34, 77 };
   const unsigned char green[3] = { 38, 129, 23 };
@@ -238,6 +242,10 @@ void lpng::ModelMaterial::CreateModelTexture(const std::filesystem::path& save_p
 
 void lpng::ModelMaterial::CreateModelMaterial(const std::filesystem::path& save_path)
 {
+  if (!std::filesystem::exists(save_path))
+  {
+    std::filesystem::create_directories(save_path);
+  }
   std::filesystem::path file_path = save_path / MatFile;
   if (std::filesystem::exists(file_path))
   {

@@ -3,7 +3,7 @@
 #include "lpng_plant.h"
 
 
-int lpng::GenerateObjectPlant::SelectWeightedBranch()
+int lpng::GenerateObjectBaseTree::SelectWeightedBranch()
 {
   size_t weight_sum = 0;
   for (Branch& branch : branches)
@@ -26,13 +26,13 @@ int lpng::GenerateObjectPlant::SelectWeightedBranch()
 }
 
 
-void lpng::GenerateObjectPlant::InitBranch(const size_t parent_id, Branch& branch, float3& point_start, float3& vec_in)
+void lpng::GenerateObjectBaseTree::InitBranch(const size_t parent_id, Branch& branch, float3& point_start, float3& vec_in)
 {
   Branch& parent = branches[parent_id];
   branch.level = parent.level + 1;
-  float c_start = fast_lpng_rand(branchMinCoefStart * 10000, branchMaxCoefStart * 10000) / 10000.f;
+  float c_start = fast_lpng_rand(branchMinCoefStart * 10000.f, branchMaxCoefStart * 10000.f) / 10000.f;
   float l_start = parent.length * c_start;
-  float c_len = fast_lpng_rand(branchMinCoefLen * 1000, branchMaxCoefLen * 1000) / 1000.f;
+  float c_len = fast_lpng_rand(branchMinCoefLen * 1000.f, branchMaxCoefLen * 1000.f) / 1000.f;
   branch.length = (parent.length - l_start) * c_len;
   branch.baseRad = (parent.rings.front().rad - parent.rings.back().rad) * (1.f - c_start) + parent.rings.back().rad;
   branch.baseRad *= 0.9;
@@ -59,7 +59,7 @@ void lpng::GenerateObjectPlant::InitBranch(const size_t parent_id, Branch& branc
 }
 
 
-void lpng::GenerateObjectPlant::GenerateBranch(Branch& branch, const float3& pointStart, const float3& vecIn, const float3& vecOut)
+void lpng::GenerateObjectBaseTree::GenerateBranch(Branch& branch, const float3& pointStart, const float3& vecIn, const float3& vecOut)
 {
   Mesh mesh;
   mesh.matType = MaterialTypes::WOOD;
@@ -117,7 +117,7 @@ void lpng::GenerateObjectPlant::GenerateBranch(Branch& branch, const float3& poi
 }
 
 
-void lpng::GenerateObjectPlant::RelaxBranch(Branch& branch, size_t meshId)
+void lpng::GenerateObjectBaseTree::RelaxBranch(Branch& branch, size_t meshId)
 {
   if (branch.level == 0)
   {
