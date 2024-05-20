@@ -32,7 +32,7 @@ static Texture2D modelStoneTex;
 
 static Vector2 mousePoint = { 0.0f, 0.0f };
 
-static void SetModelsPos(int count_x, int count_y, float cell_size, const std::vector<std::vector<float>>& height_map, std::vector<Vector3>& pos);
+static bool SetModelsPos(float cell_size, const std::vector<std::vector<float>>& height_map, std::vector<std::vector<bool>>& free, Vector3& p);
 static Mesh GenLandscape(int size_x, int size_y, float cell_size, std::vector<std::vector<float>>& height_map);
 static void GenModels(std::vector<Model>& models, const std::vector<lpng::Mesh>& generated_model);
 static Mesh GenMesh(const lpng::Mesh& model);
@@ -58,7 +58,6 @@ int main(void)
   camera.projection = CAMERA_PERSPECTIVE;  
 
   std::filesystem::path dir_path = std::filesystem::current_path();
-  std::filesystem::create_directories(dir_path / "resources");
   lpng::ModelMaterial::CreateModelTexture(dir_path / "resources");
   modelBaseTex = LoadTexture("resources/obj.tga");
   modelWoodTex = LoadTexture("resources/wood.tga");
@@ -66,7 +65,7 @@ int main(void)
   modelStoneTex = LoadTexture("resources/stone.tga");
 
   // LOAD MODEL
-  int models_count = 225;
+  int models_count = 500;
   std::vector<std::vector<Model>> models;
   std::unique_ptr<lpng::GenerateObject> modelPtr{ std::make_unique<lpng::GenerateObjectTest>() };
   std::vector<Model> model;
@@ -84,14 +83,47 @@ int main(void)
     models.emplace_back(std::move(model));
   }
   modelPtr.reset();
+  
 
-  std::vector<Vector3> models_pos;
   int size_x = 100;
   int size_y = 100;
   float cell_size = 1.f;
   std::vector<std::vector<float>> height_map;
   Model landscape = LoadModelFromMesh(GenLandscape(size_x, size_y, cell_size, height_map));
-  SetModelsPos(std::sqrt(models_count), std::sqrt(models_count), cell_size, height_map, models_pos);
+  std::vector<std::vector<bool>> free(height_map.size(), std::vector<bool>(height_map.front().size(), true));
+  Vector3 water_pos = { 0, -2.5, 0 };
+  for (int i = 0; i < size_x; ++i)
+  {
+    for (int j = 0; j < size_y; ++j)
+    {
+      if (height_map[i][j] <= water_pos.y + 0.5)
+      {
+        free[i][j] = false;
+      }
+    }
+  }
+  Model water = LoadModelFromMesh(GenMeshPlane(float(size_x)*cell_size, float(size_y) * cell_size, 4, 3));
+  
+  std::vector<Vector3> models_pos;
+  for (int i = 0; i < models.size(); ++i)
+  {
+    Vector3 p;
+    bool success = SetModelsPos(cell_size, height_map, free, p);
+    if (success)
+    {
+      models_pos.push_back(p);
+    }
+    else
+    {
+      for (int j = 0; j < models[i].size(); ++j)
+      {
+        UnloadModel(models[i][j]);
+      }
+      models_pos.erase(models_pos.begin()+i);
+      --i;
+    }
+  }
+
   while (!WindowShouldClose())
   {  
     UpdateCamera(&camera, CAMERA_FREE);
@@ -100,7 +132,8 @@ int main(void)
     {
       ClearBackground(SKYBLUE);
       BeginMode3D(camera);
-      DrawModel(landscape, {0, 0, 0}, 1.0f, { 0, 55, 25, 255 });
+      DrawModel(water, water_pos, 1.0f, DARKBLUE);
+      DrawModel(landscape, {0, 0, 0}, 1.0f, { 15, 75, 25, 255 });
       DrawModelWires(landscape, { 0, 0, 0 }, 1.0f, BLACK);
       for (int i = 0; i < models.size(); ++i)
       {
@@ -123,6 +156,7 @@ int main(void)
       UnloadModel(models[i][j]);
     }
   }
+  UnloadModel(water);
   UnloadModel(landscape);
   UnloadTexture(modelBaseTex);
   UnloadTexture(modelWoodTex);
@@ -204,9 +238,9 @@ static bool SetModelParams(int type, std::unique_ptr<lpng::GenerateObject>& mode
   case STONE:
   {
     lpng::GenerateObjectStone* stone_ptr = new lpng::GenerateObjectStone();
-    float x = float(fast_lpng_rand(700, 900)) / 1000.f;
-    float y = float(fast_lpng_rand(900, 1200)) / 1000.f;
-    model_size = {x, y, x};
+    float x_k = float(fast_lpng_rand(500, 1200)) / 1000.f;
+    float y = float(fast_lpng_rand(900, 1500)) / 1000.f;
+    model_size = {y * x_k, y, y * x_k};
     stone_ptr->SetVertexCount(stoneVertexCount);
     model_ptr.reset(stone_ptr);
     res = true;
@@ -229,8 +263,8 @@ static bool SetModelParams(int type, std::unique_ptr<lpng::GenerateObject>& mode
   case TREE:
   {
     lpng::GenerateObjectTree* tree_ptr = new lpng::GenerateObjectTree();
-    treeParams.height = float(fast_lpng_rand(4000, 7000)) / 1000.f;
-    treeParams.firstRad = treeParams.height / 10.f;
+    treeParams.height = float(fast_lpng_rand(8000, 11000)) / 1000.f;
+    treeParams.firstRad = float(fast_lpng_rand(500, 1000)) / 1000.f;
     model_size.x = 2 * treeParams.firstRad;
     model_size.z = 2 * treeParams.firstRad;
     model_size.y = treeParams.height;
@@ -257,14 +291,15 @@ static Mesh GenLandscape(int size_x, int size_y, float cell_size, std::vector<st
   landscape.triangleCount = size_x * size_y * 2;
   landscape.vertexCount = landscape.triangleCount * 3;
   landscape.vertices = (float*)MemAlloc(landscape.vertexCount * 3 * sizeof(float));
+  landscape.normals = (float*)MemAlloc(landscape.vertexCount * 3 * sizeof(float));
 
   for (int x = 0; x < size_x; ++x)
   {
     std::vector<float> noise;
     for (int y = 0; y < size_y; ++y)
     {
-      float n = db::perlin(double(x) / 16.0, double(y) / 16.0);
-      float v = db::lerp(0.f, 8.f, n);
+      float n = db::perlin(double(x) / 12.0, double(y) / 12.0);
+      float v = db::lerp(0.f, 12.f, n);
       noise.push_back(v);
     }
     height_map.emplace_back(std::move(noise));
@@ -274,29 +309,73 @@ static Mesh GenLandscape(int size_x, int size_y, float cell_size, std::vector<st
   {
     for (int y = 0; y < size_y - 1; ++y)
     {
-      landscape.vertices[sq_id * 18] = float(x) * cell_size - float(size_x) * cell_size / 2.f;
-      landscape.vertices[sq_id * 18 + 1] = height_map[x][y];
-      landscape.vertices[sq_id * 18 + 2] = float(y) * cell_size - float(size_y) * cell_size / 2.f;
+      float p1x = float(x) * cell_size - float(size_x) * cell_size / 2.f;
+      float p1y = height_map[x][y];
+      float p1z = float(y) * cell_size - float(size_y) * cell_size / 2.f;
+
+      float p2y = height_map[x][y + 1];
+      float p2z = float(y + 1) * cell_size - float(size_y) * cell_size / 2.f;
+
+      float p3x = float(x + 1) * cell_size - float(size_x) * cell_size / 2.f;
+      float p3y = height_map[x + 1][y];
+
+      float p4y = height_map[x + 1][y + 1];
+
+      lpng::float3 a1 = { p3x - p1x , p3y - p2y , p1z - p2z };
+      lpng::float3 b1 = { p1x - p1x , p1y - p2y , p1z - p2z };
+      lpng::float3 n1 = Normalized(Cross(a1, b1));
+
+      lpng::float3 a2 = { p1x - p3x , p2y - p3y , p2z - p1z };
+      lpng::float3 b2 = { p3x - p3x , p4y - p3y , p2z - p1z };
+      lpng::float3 n2 = Normalized(Cross(a2, b2));
+
+      landscape.vertices[sq_id * 18] = p1x;
+      landscape.vertices[sq_id * 18 + 1] = p1y;
+      landscape.vertices[sq_id * 18 + 2] = p1z;
+
+      landscape.normals[sq_id * 18] = n1.x;
+      landscape.normals[sq_id * 18 + 1] = n1.y;
+      landscape.normals[sq_id * 18 + 2] = n1.z;
       
-      landscape.vertices[sq_id * 18 + 3] = float(x) * cell_size - float(size_x) * cell_size / 2.f;
-      landscape.vertices[sq_id * 18 + 4] = height_map[x][y+1];
-      landscape.vertices[sq_id * 18 + 5] = float(y + 1) * cell_size - float(size_y) * cell_size / 2.f;
-    
-      landscape.vertices[sq_id * 18 + 6] = float(x + 1) * cell_size - float(size_x) * cell_size / 2.f;
-      landscape.vertices[sq_id * 18 + 7] = height_map[x + 1][y];
-      landscape.vertices[sq_id * 18 + 8] = float(y) * cell_size - float(size_y) * cell_size / 2.f;
-    
-      landscape.vertices[sq_id * 18 + 9] = float(x + 1) * cell_size - float(size_x) * cell_size / 2.f;
-      landscape.vertices[sq_id * 18 + 10] = height_map[x + 1][y + 1];
-      landscape.vertices[sq_id * 18 + 11] = float(y + 1) * cell_size - float(size_y) * cell_size / 2.f;
+      landscape.vertices[sq_id * 18 + 3] = p1x;
+      landscape.vertices[sq_id * 18 + 4] = p2y;
+      landscape.vertices[sq_id * 18 + 5] = p2z;
 
-      landscape.vertices[sq_id * 18 + 12] = float(x + 1) * cell_size - float(size_x) * cell_size / 2.f;
-      landscape.vertices[sq_id * 18 + 13] = height_map[x + 1][y];
-      landscape.vertices[sq_id * 18 + 14] = float(y) * cell_size - float(size_y) * cell_size / 2.f;
+      landscape.normals[sq_id * 18 + 3] = n1.x;
+      landscape.normals[sq_id * 18 + 4] = n1.y;
+      landscape.normals[sq_id * 18 + 5] = n1.z;
+    
+      landscape.vertices[sq_id * 18 + 6] = p3x;
+      landscape.vertices[sq_id * 18 + 7] = p3y;
+      landscape.vertices[sq_id * 18 + 8] = p1z;
 
-      landscape.vertices[sq_id * 18 + 15] = float(x) * cell_size - float(size_x) * cell_size / 2.f;
-      landscape.vertices[sq_id * 18 + 16] = height_map[x][y + 1];
-      landscape.vertices[sq_id * 18 + 17] = float(y + 1) * cell_size - float(size_y) * cell_size / 2.f;
+      landscape.normals[sq_id * 18 + 6] = n1.x;
+      landscape.normals[sq_id * 18 + 7] = n1.y;
+      landscape.normals[sq_id * 18 + 8] = n1.z;
+    
+      landscape.vertices[sq_id * 18 + 9] = p3x;
+      landscape.vertices[sq_id * 18 + 10] = p4y;
+      landscape.vertices[sq_id * 18 + 11] = p2z;
+
+      landscape.normals[sq_id * 18 + 9] = n2.x;
+      landscape.normals[sq_id * 18 + 10] = n2.y;
+      landscape.normals[sq_id * 18 + 11] = n2.z;
+
+      landscape.vertices[sq_id * 18 + 12] = p3x;
+      landscape.vertices[sq_id * 18 + 13] = p3y;
+      landscape.vertices[sq_id * 18 + 14] = p1z;
+
+      landscape.normals[sq_id * 18 + 12] = n2.x;
+      landscape.normals[sq_id * 18 + 13] = n2.y;
+      landscape.normals[sq_id * 18 + 14] = n2.z;
+
+      landscape.vertices[sq_id * 18 + 15] = p1x;
+      landscape.vertices[sq_id * 18 + 16] = p2y;
+      landscape.vertices[sq_id * 18 + 17] = p2z;
+
+      landscape.normals[sq_id * 18 + 15] = n2.x;
+      landscape.normals[sq_id * 18 + 16] = n2.y;
+      landscape.normals[sq_id * 18 + 17] = n2.z;
       ++sq_id;
     }
   }
@@ -305,19 +384,27 @@ static Mesh GenLandscape(int size_x, int size_y, float cell_size, std::vector<st
 }
 
 
-static void SetModelsPos(int count_x, int count_y, float cell_size, const std::vector<std::vector<float>>& height_map, std::vector<Vector3>& pos)
+static bool SetModelsPos(float cell_size, const std::vector<std::vector<float>>& height_map, std::vector<std::vector<bool>>& free, Vector3& p)
 {
-  int size_x = height_map.front().size();
-  int size_y = height_map.size();
-  int step_x = (size_x - 10) / count_x;
-  int step_y = (size_y - 10) / count_y;
-  for (int i = 0; i < count_x; ++i)
+  int i = 0;
+  int size_x = height_map.size();
+  int size_y = height_map.front().size();
+  while (i <= 10)
   {
-    int x = 5 + step_x * i;
-    for (int j = 0; j < count_y; ++j)
+    int x = fast_lpng_rand(4, size_x - 3);
+    int y = fast_lpng_rand(4, size_y - 3);
+    if (free[x][y])
     {
-      int y = 5 + step_y * j;
-      pos.emplace_back(float(x) * cell_size - float(size_x) * cell_size / 2.f, height_map[x][y], float(y) * cell_size - float(size_y) * cell_size / 2.f);
+      for (int i = -1; i < 2; ++i)
+      {
+        for (int j = -1; j < 2; ++j)
+        {
+          free[x + i][y + j] = false;
+        }
+      }
+      p = { float(x) * cell_size - float(size_x) * cell_size / 2.f, height_map[x][y], float(y) * cell_size - float(size_y) * cell_size / 2.f };
+      return true;
     }
   }
+  return false;
 }
