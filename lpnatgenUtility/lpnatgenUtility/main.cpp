@@ -3,6 +3,7 @@
 #include "lpng_test.h"
 #include "lpng_stone.h"
 #include "lpng_bush.h"
+#include "lpng_fir.h"
 #include "lpng_rand.h"
 #include "raylib.h"
 #define RAYGUI_IMPLEMENTATION
@@ -36,9 +37,11 @@ static enum ObjectType
   STONE = 1,
   TREE = 2,
   BUSH = 3,
+  FIR = 4
 };
 
 static lpng::TreeParams treeParams;
+static lpng::FirParams firParams;
 static lpng::TreeRebuildParams treeRebuildParams;
 static lpng::BushParams bushParams;
 static lpng::float3 objectSize(1, 2, 1);
@@ -317,8 +320,97 @@ int main(void)
   inputBushCrownBase.box_name = "Crown vertex num";
   inputBushCrownBase.value_int = &bushParams.crownVertexNum;
 
+  // FIR
+  InputBoxDesc inputFirHeight;
+  inputFirHeight.type = InputBoxType::VALUE_FLOAT;
+  inputFirHeight.name_rect = Rectangle{ 320, 20, 70, 30 };
+  inputFirHeight.input_box_rect = Rectangle{ 480, 20, 70, 30 };
+  inputFirHeight.box_name = "Height";
+  inputFirHeight.value_float = &firParams.height;
+  snprintf(inputFirHeight.text, sizeof inputFirHeight.text, "%1.2f", firParams.height);
+
+  InputBoxDesc inputFirFirstRad;
+  inputFirFirstRad.type = InputBoxType::VALUE_FLOAT;
+  inputFirFirstRad.name_rect = Rectangle{ 320, 60, 80, 30 };
+  inputFirFirstRad.input_box_rect = Rectangle{ 480, 60, 70, 30 };
+  inputFirFirstRad.box_name = "Base radius";
+  inputFirFirstRad.value_float = &firParams.firstRad;
+  snprintf(inputFirFirstRad.text, sizeof inputFirFirstRad.text, "%1.2f", firParams.firstRad);
+
+  InputBoxDesc inputFirLastRad;
+  inputFirLastRad.type = InputBoxType::VALUE_FLOAT;
+  inputFirLastRad.name_rect = Rectangle{ 320, 100, 80, 30 };
+  inputFirLastRad.input_box_rect = Rectangle{ 480, 100, 70, 30 };
+  inputFirLastRad.box_name = "End radius";
+  inputFirLastRad.value_float = &firParams.finalRad;
+  snprintf(inputFirLastRad.text, sizeof inputFirLastRad.text, "%1.2f", firParams.finalRad);
+
+  InputBoxDesc inputFirUpCoef;
+  inputFirUpCoef.type = InputBoxType::VALUE_FLOAT;
+  inputFirUpCoef.name_rect = Rectangle{ 320, 140, 80, 30 };
+  inputFirUpCoef.input_box_rect = Rectangle{ 480, 140, 70, 30 };
+  inputFirUpCoef.box_name = "Branch up K";
+  inputFirUpCoef.value_float = &firParams.upCoef;
+  snprintf(inputFirUpCoef.text, sizeof inputFirUpCoef.text, "%1.2f", firParams.upCoef);
+
+  InputBoxDesc inputFirCrownCoefMin;
+  InputBoxDesc inputFirCrownCoefMax;
+  inputFirCrownCoefMin.value_float = &firParams.crownMinCoefStart;
+  snprintf(inputFirCrownCoefMin.text, sizeof inputFirCrownCoefMin.text, "%1.2f", firParams.crownMinCoefStart);
+  inputFirCrownCoefMax.value_float = &firParams.crownMaxCoefStart;
+  snprintf(inputFirCrownCoefMax.text, sizeof inputFirCrownCoefMax.text, "%1.2f", firParams.crownMaxCoefStart);
+  inputFirCrownCoefMin.type = InputBoxType::VALUE_FLOAT;
+  inputFirCrownCoefMax.type = InputBoxType::VALUE_FLOAT;
+  inputFirCrownCoefMin.name_rect = Rectangle{ 450, 180, 10, 30 };
+  inputFirCrownCoefMax.name_rect = Rectangle{ 560, 180, 10, 30 };
+  inputFirCrownCoefMin.input_box_rect = Rectangle{ 480, 180, 70, 30 };
+  inputFirCrownCoefMax.input_box_rect = Rectangle{ 590, 180, 70, 30 };
+  inputFirCrownCoefMin.box_name = "min";
+  inputFirCrownCoefMax.box_name = "max";
+
+  InputBoxDesc inputFirBaseCrownRadCoefMin;
+  InputBoxDesc inputFirBaseCrownRadCoefMax;
+  inputFirBaseCrownRadCoefMin.value_float = &firParams.baseCrownRadMinCoefStart;
+  snprintf(inputFirBaseCrownRadCoefMin.text, sizeof inputFirBaseCrownRadCoefMin.text, "%1.2f", firParams.baseCrownRadMinCoefStart);
+  inputFirBaseCrownRadCoefMax.value_float = &firParams.baseCrownRadMaxCoefStart;
+  snprintf(inputFirBaseCrownRadCoefMax.text, sizeof inputFirBaseCrownRadCoefMax.text, "%1.2f", firParams.baseCrownRadMaxCoefStart);
+  inputFirBaseCrownRadCoefMin.type = InputBoxType::VALUE_FLOAT;
+  inputFirBaseCrownRadCoefMax.type = InputBoxType::VALUE_FLOAT;
+  inputFirBaseCrownRadCoefMin.name_rect = Rectangle{ 450, 220, 10, 30 };
+  inputFirBaseCrownRadCoefMax.name_rect = Rectangle{ 560, 220, 10, 30 };
+  inputFirBaseCrownRadCoefMin.input_box_rect = Rectangle{ 480, 220, 70, 30 };
+  inputFirBaseCrownRadCoefMax.input_box_rect = Rectangle{ 590, 220, 70, 30 };
+  inputFirBaseCrownRadCoefMin.box_name = "min";
+  inputFirBaseCrownRadCoefMax.box_name = "max";
+
+  InputBoxDesc inputFirEdgeBase;
+  inputFirEdgeBase.type = InputBoxType::VALUE_INT;
+  inputFirEdgeBase.name_rect = Rectangle{ 320, 260, 80, 30 };
+  inputFirEdgeBase.input_box_rect = Rectangle{ 480, 260, 70, 30 };
+  inputFirEdgeBase.box_name = "Trunk edges";
+  inputFirEdgeBase.value_int = &firParams.edgeBase;
+
+  InputBoxDesc inputFirCrownEdgeBase;
+  inputFirCrownEdgeBase.type = InputBoxType::VALUE_INT;
+  inputFirCrownEdgeBase.name_rect = Rectangle{ 320, 300, 80, 30 };
+  inputFirCrownEdgeBase.input_box_rect = Rectangle{ 480, 300, 70, 30 };
+  inputFirCrownEdgeBase.box_name = "Crown edges";
+  inputFirCrownEdgeBase.value_int = &firParams.crownBase;
+
+  InputBoxDesc inputFirCrownMinCount;
+  InputBoxDesc inputFirCrownMaxCount;
+  inputFirCrownMinCount.value_int = &firParams.crownCountMin;
+  inputFirCrownMaxCount.value_int = &firParams.crownCountMax;
+  inputFirCrownMinCount.type = InputBoxType::VALUE_INT;
+  inputFirCrownMaxCount.type = InputBoxType::VALUE_INT;
+  inputFirCrownMinCount.name_rect = Rectangle{ 450, 340, 10, 30 };
+  inputFirCrownMaxCount.name_rect = Rectangle{ 560, 340, 10, 30 };
+  inputFirCrownMinCount.input_box_rect = Rectangle{ 480, 340, 70, 30 };
+  inputFirCrownMaxCount.input_box_rect = Rectangle{ 590, 340, 70, 30 };
+  inputFirCrownMinCount.box_name = "min";
+  inputFirCrownMaxCount.box_name = "max";
+
   std::filesystem::path dir_path = std::filesystem::current_path();
-  std::filesystem::create_directories(dir_path / "resources");
   lpng::ModelMaterial::CreateModelTexture(dir_path / "resources");
   modelBaseTex = LoadTexture("resources/obj.tga");
   modelWoodTex = LoadTexture("resources/wood.tga");
@@ -422,6 +514,24 @@ int main(void)
         InputBox(inputBushChildrenMaxCount);
         InputBox(inputBushCrownBase);
       }
+      else if (modelTypeActive == FIR)
+      {
+        InputBox(inputFirHeight);
+        InputBox(inputFirFirstRad);
+        InputBox(inputFirLastRad);
+        InputBox(inputFirUpCoef);
+        DrawText(TextFormat("Crown start K"), 320, 188, 16, BLACK);
+        InputBox(inputFirCrownCoefMin);
+        InputBox(inputFirCrownCoefMax);
+        DrawText(TextFormat("Base crown rad"), 320, 228, 16, BLACK);
+        InputBox(inputFirBaseCrownRadCoefMin);
+        InputBox(inputFirBaseCrownRadCoefMax);
+        InputBox(inputFirEdgeBase);
+        InputBox(inputFirCrownEdgeBase);
+        DrawText(TextFormat("Crown count"), 320, 348, 16, BLACK);
+        InputBox(inputFirCrownMinCount);
+        InputBox(inputFirCrownMaxCount);    
+      }
       else 
       {
         DrawText(TextFormat("Model size"), 320, 28, 16, BLACK);
@@ -438,7 +548,7 @@ int main(void)
 
       DrawText(TextFormat("MODEL SEED : %u", modelSeed), 10, 710, 22, MAROON);
       DrawText("PRESS TAB TO ENABLE CURSOR", 10, 760, 22, MAROON);
-      if (GuiDropdownBox({ 12, 20, 140, 30 }, "TEST;STONE;TREE;BUSH", &modelTypeActive, modelTypeChangeMode)) modelTypeChangeMode = !modelTypeChangeMode;
+      if (GuiDropdownBox({ 12, 20, 140, 30 }, "TEST;STONE;TREE;BUSH;FIR", &modelTypeActive, modelTypeChangeMode)) modelTypeChangeMode = !modelTypeChangeMode;
 
       EndTextureMode();
     }
@@ -596,6 +706,17 @@ static bool SetModelParams(int type, std::unique_ptr<lpng::GenerateObject>& mode
     if (treeRebuildCheck)
       tree_ptr->SetRebuildParams(treeRebuildParams);
     model_ptr.reset(tree_ptr);
+    res = true;
+    break;
+  }
+  case FIR:
+  {
+    lpng::GenerateObjectFir* fir_ptr = new lpng::GenerateObjectFir();
+    model_size.x = 2 * firParams.firstRad;
+    model_size.z = 2 * firParams.firstRad;
+    model_size.y = firParams.height;
+    fir_ptr->SetFirParams(firParams);
+    model_ptr.reset(fir_ptr);
     res = true;
     break;
   }

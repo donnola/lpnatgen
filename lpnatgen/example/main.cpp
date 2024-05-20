@@ -91,12 +91,12 @@ int main(void)
   std::vector<std::vector<float>> height_map;
   Model landscape = LoadModelFromMesh(GenLandscape(size_x, size_y, cell_size, height_map));
   std::vector<std::vector<bool>> free(height_map.size(), std::vector<bool>(height_map.front().size(), true));
-  Vector3 water_pos = { 0, -2.5, 0 };
+  Vector3 water_pos = { 0, -2.8, 0 };
   for (int i = 0; i < size_x; ++i)
   {
     for (int j = 0; j < size_y; ++j)
     {
-      if (height_map[i][j] <= water_pos.y + 0.5)
+      if (height_map[i][j] <= water_pos.y + 1.0)
       {
         free[i][j] = false;
       }
@@ -263,8 +263,8 @@ static bool SetModelParams(int type, std::unique_ptr<lpng::GenerateObject>& mode
   case TREE:
   {
     lpng::GenerateObjectTree* tree_ptr = new lpng::GenerateObjectTree();
-    treeParams.height = float(fast_lpng_rand(8000, 11000)) / 1000.f;
-    treeParams.firstRad = float(fast_lpng_rand(500, 1000)) / 1000.f;
+    treeParams.height = float(fast_lpng_rand(4000, 6000)) / 1000.f;
+    treeParams.firstRad = float(fast_lpng_rand(200, 400)) / 1000.f;
     model_size.x = 2 * treeParams.firstRad;
     model_size.z = 2 * treeParams.firstRad;
     model_size.y = treeParams.height;

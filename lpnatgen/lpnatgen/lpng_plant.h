@@ -9,8 +9,8 @@ namespace lpng
   {
     float3 vecIn;
     float3 vecOut;
-    float rad;
     float3 center;
+    float rad;
     float curLength;
     std::vector<int> facesIds;
     std::vector<int> vertexesIds;
@@ -37,7 +37,8 @@ namespace lpng
     virtual int SelectWeightedBranch();
     virtual void InitBranch(const size_t parent_id, Branch& branch, float3& point_start, float3& vec_in);
     virtual void GenerateBranch(Branch& branch, const float3& pointStart, const float3& vecIn, const float3& vecOut = float3());
-    virtual void RelaxBranch(Branch& branch, size_t meshId);
+    virtual void RelaxBranch(const Branch& branch, size_t meshId);
+    virtual void TreeRoot(Branch& branch, size_t meshId);
     virtual void GenerateCrown() = 0;
     std::vector<Branch> branches;
     float upCoef = 0;

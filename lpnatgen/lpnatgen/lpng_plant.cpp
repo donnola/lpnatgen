@@ -117,7 +117,23 @@ void lpng::GenerateObjectBaseTree::GenerateBranch(Branch& branch, const float3& 
 }
 
 
-void lpng::GenerateObjectBaseTree::RelaxBranch(Branch& branch, size_t meshId)
+void lpng::GenerateObjectBaseTree::RelaxBranch(const Branch& branch, size_t meshId)
+{
+  for (size_t i = 0; i < branch.rings.size(); ++i)
+  {
+    const BranchRing& ring = branch.rings[i];
+    float3 normal = i == 0 ? Normalized(ring.vecIn) : Normalized(ring.vecIn + ring.vecOut);
+    float angle = Angle(float3(0, 1, 0), normal);
+    if (angle > FLT_EPSILON)
+    {
+      Quat q(Cross(float3(0, 1, 0), normal), angle);
+      RotateVertexes(model[meshId], ring.vertexesIds, q, ring.center);
+    }
+  }
+}
+
+
+void lpng::GenerateObjectBaseTree::TreeRoot(Branch& branch, size_t meshId)
 {
   if (branch.level == 0)
   {
@@ -136,16 +152,5 @@ void lpng::GenerateObjectBaseTree::RelaxBranch(Branch& branch, size_t meshId)
     ring.vertexesIds = GetVertexesIds(mesh, ring.facesIds);
     ScaleVertexes(mesh, float3(ring.rad / p_ring.rad, 1.f, ring.rad / p_ring.rad), ring.vertexesIds);
     branch.rings.insert(branch.rings.begin(), std::move(ring));
-  }
-  for (size_t i = 0; i < branch.rings.size(); ++i)
-  {
-    BranchRing& ring = branch.rings[i];
-    float3 normal = i == 0 ? Normalized(ring.vecIn) : Normalized(ring.vecIn + ring.vecOut);
-    float angle = Angle(float3(0, 1, 0), normal);
-    if (angle > FLT_EPSILON)
-    {
-      Quat q(Cross(float3(0, 1, 0), normal), angle);
-      RotateVertexes(model[meshId], ring.vertexesIds, q, ring.center);
-    }
   }
 }

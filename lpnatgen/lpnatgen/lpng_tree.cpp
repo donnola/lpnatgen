@@ -40,6 +40,7 @@ void lpng::GenerateObjectTree::GenerateMesh()
   }
   for (size_t i = 0; i < branches.size(); ++i)
   {
+    TreeRoot(branches[i], i);
     RelaxBranch(branches[i], i);
   }
   CalculateQuality();
