@@ -3,13 +3,19 @@
 #include "lpng_test.h"
 #include "lpng_stone.h"
 #include "lpng_bush.h"
+#include "lpng_fir.h"
 #include "lpng_rand.h"
 #include "raylib.h"
 #define DB_PERLIN_IMPL
 #include "db_perlin.hpp"
+#include "raymath.h"
+#define RLIGHTS_IMPLEMENTATION
+#include "rlights.h"
+#include "rlgl.h"
 
 #include <chrono>
 
+#define SHADOWMAP_RESOLUTION 8192
 
 static enum ObjectType
 {
@@ -17,10 +23,12 @@ static enum ObjectType
   STONE = 1,
   TREE = 2,
   BUSH = 3,
-  MAX_TYPE = 4
+  FIR = 4,
+  MAX_TYPE = 5
 };
 
 static lpng::TreeParams treeParams;
+static lpng::FirParams firParams;
 static lpng::TreeRebuildParams treeRebuildParams;
 static lpng::BushParams bushParams;
 static int stoneVertexCount = 40;
@@ -37,6 +45,8 @@ static Mesh GenLandscape(int size_x, int size_y, float cell_size, std::vector<st
 static void GenModels(std::vector<Model>& models, const std::vector<lpng::Mesh>& generated_model);
 static Mesh GenMesh(const lpng::Mesh& model);
 static bool SetModelParams(int type, std::unique_ptr<lpng::GenerateObject>& model_ptr);
+RenderTexture2D LoadShadowmapRenderTexture(int width, int height);
+void UnloadShadowmapRenderTexture(RenderTexture2D target);
 
 
 int main(void)
@@ -58,11 +68,48 @@ int main(void)
   camera.projection = CAMERA_PERSPECTIVE;  
 
   std::filesystem::path dir_path = std::filesystem::current_path();
-  lpng::ModelMaterial::CreateModelTexture(dir_path / "resources");
-  modelBaseTex = LoadTexture("resources/obj.tga");
-  modelWoodTex = LoadTexture("resources/wood.tga");
-  modelCrownTex = LoadTexture("resources/crown.tga");
-  modelStoneTex = LoadTexture("resources/stone.tga");
+  lpng::ModelMaterial::CreateModelTexture(dir_path / "resources/textures");
+  modelBaseTex = LoadTexture("resources/textures/obj.tga");
+  modelWoodTex = LoadTexture("resources/textures/wood.tga");
+  modelCrownTex = LoadTexture("resources/textures/crown.tga");
+  modelStoneTex = LoadTexture("resources/textures/stone.tga");
+
+  Shader shadowShader = LoadShader("resources/shaders/lighting.vs", "resources/shaders/shadowmap.fs");
+  shadowShader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocation(shadowShader, "matModel");
+  shadowShader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(shadowShader, "viewPos");
+  Vector3 lightDir = Vector3Normalize({ -1, -3, -2 });
+  Color lightColor = Color{ 224, 180, 135, 255 };
+  Vector4 lightColorNormalized = ColorNormalize(lightColor);
+  int lightDirLocShadow = GetShaderLocation(shadowShader, "lightDir");
+  int lightColLocShadow = GetShaderLocation(shadowShader, "lightColor");
+  SetShaderValue(shadowShader, lightDirLocShadow, &lightDir, SHADER_UNIFORM_VEC3);
+  SetShaderValue(shadowShader, lightColLocShadow, &lightColorNormalized, SHADER_UNIFORM_VEC4);
+  int ambientLocShadow = GetShaderLocation(shadowShader, "ambient");
+  float ambient[4] = { 0.1f, 0.1f, 0.1f, 1.0f };
+  SetShaderValue(shadowShader, ambientLocShadow, ambient, SHADER_UNIFORM_VEC4);
+  int lightVPLocShadow = GetShaderLocation(shadowShader, "lightVP");
+  int shadowMapLocShadow = GetShaderLocation(shadowShader, "shadowMap");
+  int shadowMapResolution = SHADOWMAP_RESOLUTION;
+  SetShaderValue(shadowShader, GetShaderLocation(shadowShader, "shadowMapResolution"), &shadowMapResolution, SHADER_UNIFORM_INT);
+  float fogDensity = 0.03f;
+  int fogDensityLocShadow = GetShaderLocation(shadowShader, "fogDensity");
+  SetShaderValue(shadowShader, fogDensityLocShadow, &fogDensity, SHADER_UNIFORM_FLOAT);
+
+  Shader fogShader = LoadShader("resources/shaders/lighting.vs", "resources/shaders/fog.fs");
+  fogShader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(fogShader, "viewPos");
+  fogShader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocation(fogShader, "matModel");
+  int ambientLoc = GetShaderLocation(fogShader, "ambient");
+  float ambientColor[] = { 0.2f, 0.23f, 0.27f, 1.0f };
+  SetShaderValue(fogShader, ambientLoc, ambientColor, SHADER_UNIFORM_VEC4);
+  int fogDensityLoc = GetShaderLocation(fogShader, "fogDensity");
+  SetShaderValue(fogShader, fogDensityLoc, &fogDensity, SHADER_UNIFORM_FLOAT);
+
+  CreateLight(LIGHT_DIRECTIONAL, Vector3Zero(), Vector3{ 0, -1, 0 }, Color{ 80, 20, 0, 255 }, shadowShader);
+  CreateLight(LIGHT_DIRECTIONAL, Vector3Zero(), Vector3{ 0, 1, 1 }, Color{ 54, 70, 128, 255 }, shadowShader);
+
+  CreateLight(LIGHT_DIRECTIONAL, Vector3Zero(), Vector3{ -1, -3, -2 }, Color{ 224, 180, 135, 255 }, fogShader);
+  CreateLight(LIGHT_DIRECTIONAL, Vector3Zero(), Vector3{ 0, -1, 0 }, Color{ 80, 20, 0, 255 }, fogShader);
+  CreateLight(LIGHT_DIRECTIONAL, Vector3Zero(), Vector3{ 0, 1, 3 }, Color{ 54, 70, 128, 255 }, fogShader);
 
   // LOAD MODEL
   int models_count = 500;
@@ -84,14 +131,15 @@ int main(void)
   }
   modelPtr.reset();
   
-
+  // GENERATE LANDSCAPE
   int size_x = 100;
   int size_y = 100;
   float cell_size = 1.f;
+  Vector3 water_pos = { 0, -2.5, 0 };
+  Model water = LoadModelFromMesh(GenMeshPlane(float(size_x) * cell_size, float(size_y) * cell_size, 4, 3));
   std::vector<std::vector<float>> height_map;
   Model landscape = LoadModelFromMesh(GenLandscape(size_x, size_y, cell_size, height_map));
   std::vector<std::vector<bool>> free(height_map.size(), std::vector<bool>(height_map.front().size(), true));
-  Vector3 water_pos = { 0, -2.8, 0 };
   for (int i = 0; i < size_x; ++i)
   {
     for (int j = 0; j < size_y; ++j)
@@ -102,8 +150,6 @@ int main(void)
       }
     }
   }
-  Model water = LoadModelFromMesh(GenMeshPlane(float(size_x)*cell_size, float(size_y) * cell_size, 4, 3));
-  
   std::vector<Vector3> models_pos;
   for (int i = 0; i < models.size(); ++i)
   {
@@ -119,28 +165,73 @@ int main(void)
       {
         UnloadModel(models[i][j]);
       }
-      models_pos.erase(models_pos.begin()+i);
+      models_pos.erase(models_pos.begin() + i);
       --i;
     }
   }
+  
+  // SET MODEL SHADERS
+  landscape.materials[0].shader = shadowShader;
+  water.materials[0].shader = fogShader;
+  for (int i = 0; i < models.size(); ++i)
+  {
+    for (int j = 0; j < models[i].size(); ++j)
+    {
+      models[i][j].materials[0].shader = shadowShader;
+    }
+  }
 
+  RenderTexture2D shadowMap = LoadShadowmapRenderTexture(SHADOWMAP_RESOLUTION, SHADOWMAP_RESOLUTION);
+  Camera3D lightCam = { 0 };
+  lightCam.position = Vector3Scale(lightDir, -200.0f);
+  lightCam.target = Vector3Scale(lightDir, 200.0f);
+  // Use an orthographic projection for directional lights
+  lightCam.projection = CAMERA_ORTHOGRAPHIC;
+  lightCam.up = { 0.0f, 1.0f, 0.0f };
+  lightCam.fovy = 180.0f;
+  
   while (!WindowShouldClose())
   {  
     UpdateCamera(&camera, CAMERA_FREE);
-
+    Vector3 cameraPos = camera.position;
+    SetShaderValue(shadowShader, shadowShader.locs[SHADER_LOC_VECTOR_VIEW], &cameraPos, SHADER_UNIFORM_VEC3);
+    SetShaderValue(fogShader, fogShader.locs[SHADER_LOC_VECTOR_VIEW], &cameraPos, SHADER_UNIFORM_VEC3);
     BeginDrawing();
     {
-      ClearBackground(SKYBLUE);
-      BeginMode3D(camera);
-      DrawModel(water, water_pos, 1.0f, DARKBLUE);
-      DrawModel(landscape, {0, 0, 0}, 1.0f, { 15, 75, 25, 255 });
-      DrawModelWires(landscape, { 0, 0, 0 }, 1.0f, BLACK);
+      Matrix lightView;
+      Matrix lightProj;
+      BeginTextureMode(shadowMap);
+      ClearBackground(WHITE);
+      BeginMode3D(lightCam);
+      lightView = rlGetMatrixModelview();
+      lightProj = rlGetMatrixProjection();
+      DrawModel(landscape, { 0, 0, 0 }, 1.0f, { 15, 75, 25, 255 });
       for (int i = 0; i < models.size(); ++i)
       {
         for (int j = 0; j < models[i].size(); ++j)
         {
           DrawModel(models[i][j], models_pos[i], 1.0f, WHITE);
-          DrawModelWires(models[i][j], models_pos[i], 1.0f, BLACK);
+        }
+      }
+      EndMode3D();
+      EndTextureMode();
+
+      Matrix lightViewProj = MatrixMultiply(lightView, lightProj);
+      ClearBackground(SKYBLUE);
+      SetShaderValueMatrix(shadowShader, lightVPLocShadow, lightViewProj);
+      rlEnableShader(shadowShader.id);
+      int slot = 10; // Can be anything 0 to 15, but 0 will probably be taken up
+      rlActiveTextureSlot(10);
+      rlEnableTexture(shadowMap.depth.id);
+      rlSetUniform(shadowMapLocShadow, &slot, SHADER_UNIFORM_INT, 1);
+      BeginMode3D(camera);
+      DrawModel(water, water_pos, 1.0f, DARKBLUE);
+      DrawModel(landscape, {0, 0, 0}, 1.0f, { 15, 75, 25, 255 });
+      for (int i = 0; i < models.size(); ++i)
+      {
+        for (int j = 0; j < models[i].size(); ++j)
+        {
+          DrawModel(models[i][j], models_pos[i], 1.0f, WHITE);
         }
       }
       EndMode3D();
@@ -156,12 +247,14 @@ int main(void)
       UnloadModel(models[i][j]);
     }
   }
+  UnloadShader(shadowShader);
   UnloadModel(water);
   UnloadModel(landscape);
   UnloadTexture(modelBaseTex);
   UnloadTexture(modelWoodTex);
   UnloadTexture(modelCrownTex);
   UnloadTexture(modelStoneTex);
+  UnloadShadowmapRenderTexture(shadowMap);
   CloseWindow();
 
   return 0;
@@ -238,7 +331,7 @@ static bool SetModelParams(int type, std::unique_ptr<lpng::GenerateObject>& mode
   case STONE:
   {
     lpng::GenerateObjectStone* stone_ptr = new lpng::GenerateObjectStone();
-    float x_k = float(fast_lpng_rand(500, 1200)) / 1000.f;
+    float x_k = float(fast_lpng_rand(700, 1200)) / 1000.f;
     float y = float(fast_lpng_rand(900, 1500)) / 1000.f;
     model_size = {y * x_k, y, y * x_k};
     stone_ptr->SetVertexCount(stoneVertexCount);
@@ -273,6 +366,19 @@ static bool SetModelParams(int type, std::unique_ptr<lpng::GenerateObject>& mode
     res = true;
     break;
   }
+  case FIR:
+  {
+    lpng::GenerateObjectFir* fir_ptr = new lpng::GenerateObjectFir();
+    firParams.height = float(fast_lpng_rand(4000, 6000)) / 1000.f;
+    firParams.firstRad = float(fast_lpng_rand(200, 400)) / 1000.f;
+    model_size.x = 2 * firParams.firstRad;
+    model_size.z = 2 * firParams.firstRad;
+    model_size.y = firParams.height;
+    fir_ptr->SetFirParams(firParams);
+    model_ptr.reset(fir_ptr);
+    res = true;
+    break;
+  }
   default:
     break;
   }
@@ -292,13 +398,14 @@ static Mesh GenLandscape(int size_x, int size_y, float cell_size, std::vector<st
   landscape.vertexCount = landscape.triangleCount * 3;
   landscape.vertices = (float*)MemAlloc(landscape.vertexCount * 3 * sizeof(float));
   landscape.normals = (float*)MemAlloc(landscape.vertexCount * 3 * sizeof(float));
-
+  int x_offset = fast_lpng_rand(0, 150);
+  int y_offset = fast_lpng_rand(0, 150);
   for (int x = 0; x < size_x; ++x)
   {
     std::vector<float> noise;
     for (int y = 0; y < size_y; ++y)
     {
-      float n = db::perlin(double(x) / 12.0, double(y) / 12.0);
+      float n = db::perlin(double(x + x_offset) / 12.0, double(y + y_offset) / 12.0);
       float v = db::lerp(0.f, 12.f, n);
       noise.push_back(v);
     }
@@ -407,4 +514,49 @@ static bool SetModelsPos(float cell_size, const std::vector<std::vector<float>>&
     }
   }
   return false;
+}
+
+
+RenderTexture2D LoadShadowmapRenderTexture(int width, int height)
+{
+  RenderTexture2D target = { 0 };
+
+  target.id = rlLoadFramebuffer(width, height); // Load an empty framebuffer
+  target.texture.width = width;
+  target.texture.height = height;
+
+  if (target.id > 0)
+  {
+    rlEnableFramebuffer(target.id);
+
+    // Create depth texture
+    // We don't need a color texture for the shadowmap
+    target.depth.id = rlLoadTextureDepth(width, height, false);
+    target.depth.width = width;
+    target.depth.height = height;
+    target.depth.format = 19;       //DEPTH_COMPONENT_24BIT?
+    target.depth.mipmaps = 1;
+
+    // Attach depth texture to FBO
+    rlFramebufferAttach(target.id, target.depth.id, RL_ATTACHMENT_DEPTH, RL_ATTACHMENT_TEXTURE2D, 0);
+
+    // Check if fbo is complete with attachments (valid)
+    if (rlFramebufferComplete(target.id)) TRACELOG(LOG_INFO, "FBO: [ID %i] Framebuffer object created successfully", target.id);
+
+    rlDisableFramebuffer();
+  }
+  else TRACELOG(LOG_WARNING, "FBO: Framebuffer object can not be created");
+
+  return target;
+}
+
+
+void UnloadShadowmapRenderTexture(RenderTexture2D target)
+{
+  if (target.id > 0)
+  {
+    // NOTE: Depth texture/renderbuffer is automatically
+    // queried and deleted before deleting framebuffer
+    rlUnloadFramebuffer(target.id);
+  }
 }
