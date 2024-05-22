@@ -40,11 +40,11 @@ static Texture2D modelStoneTex;
 
 static Vector2 mousePoint = { 0.0f, 0.0f };
 
-static bool SetModelsPos(float cell_size, const std::vector<std::vector<float>>& height_map, std::vector<std::vector<bool>>& free, Vector3& p);
-static Mesh GenLandscape(int size_x, int size_y, float cell_size, std::vector<std::vector<float>>& height_map);
-static void GenModels(std::vector<Model>& models, const std::vector<lpng::Mesh>& generated_model);
 static Mesh GenMesh(const lpng::Mesh& model);
+static void GenModels(std::vector<Model>& models, const std::vector<lpng::Mesh>& generated_model);
 static bool SetModelParams(int type, std::unique_ptr<lpng::GenerateObject>& model_ptr);
+static Mesh GenLandscape(int size_x, int size_y, float cell_size, std::vector<std::vector<float>>& height_map);
+static bool SetModelsPos(float cell_size, const std::vector<std::vector<float>>& height_map, std::vector<std::vector<bool>>& free, Vector3& p);
 RenderTexture2D LoadShadowmapRenderTexture(int width, int height);
 void UnloadShadowmapRenderTexture(RenderTexture2D target);
 
@@ -248,6 +248,7 @@ int main(void)
     }
   }
   UnloadShader(shadowShader);
+  UnloadShader(fogShader);
   UnloadModel(water);
   UnloadModel(landscape);
   UnloadTexture(modelBaseTex);
@@ -493,10 +494,10 @@ static Mesh GenLandscape(int size_x, int size_y, float cell_size, std::vector<st
 
 static bool SetModelsPos(float cell_size, const std::vector<std::vector<float>>& height_map, std::vector<std::vector<bool>>& free, Vector3& p)
 {
-  int i = 0;
+  int k = 0;
   int size_x = height_map.size();
   int size_y = height_map.front().size();
-  while (i <= 10)
+  while (k <= 10)
   {
     int x = fast_lpng_rand(4, size_x - 3);
     int y = fast_lpng_rand(4, size_y - 3);
@@ -506,7 +507,7 @@ static bool SetModelsPos(float cell_size, const std::vector<std::vector<float>>&
       {
         for (int j = -1; j < 2; ++j)
         {
-          free[x + i][y + j] = false;
+          free[std::clamp(x + i, 0, size_x - 1)][std::clamp(y + j, 0, size_y - 1)] = false;
         }
       }
       p = { float(x) * cell_size - float(size_x) * cell_size / 2.f, height_map[x][y], float(y) * cell_size - float(size_y) * cell_size / 2.f };
@@ -529,18 +530,14 @@ RenderTexture2D LoadShadowmapRenderTexture(int width, int height)
   {
     rlEnableFramebuffer(target.id);
 
-    // Create depth texture
-    // We don't need a color texture for the shadowmap
     target.depth.id = rlLoadTextureDepth(width, height, false);
     target.depth.width = width;
     target.depth.height = height;
-    target.depth.format = 19;       //DEPTH_COMPONENT_24BIT?
+    target.depth.format = 19;
     target.depth.mipmaps = 1;
 
-    // Attach depth texture to FBO
     rlFramebufferAttach(target.id, target.depth.id, RL_ATTACHMENT_DEPTH, RL_ATTACHMENT_TEXTURE2D, 0);
 
-    // Check if fbo is complete with attachments (valid)
     if (rlFramebufferComplete(target.id)) TRACELOG(LOG_INFO, "FBO: [ID %i] Framebuffer object created successfully", target.id);
 
     rlDisableFramebuffer();
@@ -555,8 +552,6 @@ void UnloadShadowmapRenderTexture(RenderTexture2D target)
 {
   if (target.id > 0)
   {
-    // NOTE: Depth texture/renderbuffer is automatically
-    // queried and deleted before deleting framebuffer
     rlUnloadFramebuffer(target.id);
   }
 }

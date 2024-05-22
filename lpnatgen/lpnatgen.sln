@@ -5,7 +5,12 @@ VisualStudioVersion = 17.5.33530.505
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lpnatgen", "lpnatgen\lpnatgen.vcxproj", "{45681B8A-75E2-4EB4-8CB0-39698BD53BA1}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "example", "example\example.vcxproj", "{305287CE-DD4A-4E27-87F7-1CBF5376F915}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "example1", "example1\example1.vcxproj", "{305287CE-DD4A-4E27-87F7-1CBF5376F915}"
+	ProjectSection(ProjectDependencies) = postProject
+		{45681B8A-75E2-4EB4-8CB0-39698BD53BA1} = {45681B8A-75E2-4EB4-8CB0-39698BD53BA1}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "example2", "example2\example2.vcxproj", "{16598FA3-F4DA-4848-9A85-CFE7DBA1A161}"
 	ProjectSection(ProjectDependencies) = postProject
 		{45681B8A-75E2-4EB4-8CB0-39698BD53BA1} = {45681B8A-75E2-4EB4-8CB0-39698BD53BA1}
 	EndProjectSection
@@ -34,6 +39,14 @@ Global
 		{305287CE-DD4A-4E27-87F7-1CBF5376F915}.Release|x64.Build.0 = Release|x64
 		{305287CE-DD4A-4E27-87F7-1CBF5376F915}.Release|x86.ActiveCfg = Release|Win32
 		{305287CE-DD4A-4E27-87F7-1CBF5376F915}.Release|x86.Build.0 = Release|Win32
+		{16598FA3-F4DA-4848-9A85-CFE7DBA1A161}.Debug|x64.ActiveCfg = Debug|x64
+		{16598FA3-F4DA-4848-9A85-CFE7DBA1A161}.Debug|x64.Build.0 = Debug|x64
+		{16598FA3-F4DA-4848-9A85-CFE7DBA1A161}.Debug|x86.ActiveCfg = Debug|Win32
+		{16598FA3-F4DA-4848-9A85-CFE7DBA1A161}.Debug|x86.Build.0 = Debug|Win32
+		{16598FA3-F4DA-4848-9A85-CFE7DBA1A161}.Release|x64.ActiveCfg = Release|x64
+		{16598FA3-F4DA-4848-9A85-CFE7DBA1A161}.Release|x64.Build.0 = Release|x64
+		{16598FA3-F4DA-4848-9A85-CFE7DBA1A161}.Release|x86.ActiveCfg = Release|Win32
+		{16598FA3-F4DA-4848-9A85-CFE7DBA1A161}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
