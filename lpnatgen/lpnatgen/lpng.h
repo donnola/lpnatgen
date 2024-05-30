@@ -36,7 +36,7 @@ namespace lpng
     virtual void GenerateMesh() = 0;
     void AddObject(Mesh& mesh);
     void GenerateTextureCoords();
-    void PolygonDecomposition();
+    void ModelPolygonDecomposition();
     void GenerateNormals();
     float3 objectSize = float3(1,1,1);
     std::vector<Mesh> model;

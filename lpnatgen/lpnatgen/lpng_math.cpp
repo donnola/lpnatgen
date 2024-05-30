@@ -628,7 +628,7 @@ void lpng::MoveObj(Mesh& mesh, const float3& vec)
 }
 
 
-void lpng::DecomposeObj(Mesh& mesh)
+void lpng::DecomposeMesh(Mesh& mesh)
 {
   std::vector<Face> new_faces;
   for (Face& f : mesh.faces)
@@ -685,17 +685,6 @@ std::vector<lpng::float3> lpng::CalculateSmoothObjNormals(const Mesh& mesh)
   for (float3& n : normals)
     Normalize(n);
   return normals;
-}
-
-
-void lpng::SplitFaceMithPoint(std::vector<Face>& faces, const int faceId, const int pointId)
-{
-  if (faceId == -1 || pointId == -1)
-    return;
-  const Face& f = faces[faceId];
-  for (size_t i = 0; i < f.vi.size(); ++i)
-    faces.push_back(Face({ f.vi[i], f.vi[(i + 1) % f.vi.size()], pointId }));
-  faces.erase(faces.begin() + faceId);
 }
 
 

@@ -182,10 +182,9 @@ namespace lpng
 
   void MoveFaces(Mesh& mesh, const std::vector<int>& facesIds, const float3& vector);
   void MoveObj(Mesh& mesh, const float3& vec);
-  void DecomposeObj(Mesh& mesh);
+  void DecomposeMesh(Mesh& mesh);
   std::vector<float3> CalculateObjNormals(const Mesh& mesh);
   std::vector<float3> CalculateSmoothObjNormals(const Mesh& mesh);
-  void SplitFaceMithPoint(std::vector<Face>& faces, const int faceId, const int pointId);
   double DistFromPointToFace(const float3& point, const float3& a, const float3& b, const float3& c);
   
   void SetPeripheryEdges(

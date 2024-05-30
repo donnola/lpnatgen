@@ -42,6 +42,8 @@ uniform sampler2D shadowMap;
 
 uniform int shadowMapResolution;
 
+const float shadowIntensity = 0.85;
+
 void main()
 {
     // Texel color fetching from texture sampler
@@ -104,18 +106,25 @@ void main()
             }
         }
     }
-    finalColor = mix(finalColor, vec4(0, 0, 0, 1), float(shadowCounter) / float(numSamples));
+    finalColor = mix(finalColor, vec4(0, 0, 0, 1), float(shadowCounter) / float(numSamples) * shadowIntensity);
 
     // Add ambient lighting whether in shadow or not
     finalColor += texelColor*(ambient/10.0)*colDiffuse;
 
     float dist = length(viewPos - fragPosition);
 
-    const vec4 fogColor = vec4(0.5, 0.5, 0.5, 1.0);
+    vec3 fogDir = (fragPosition - viewPos) / dist;
+
+    vec4 fogColor = mix(vec4(0.85, 0.85, 0.9, 1.0), vec4(0.5, 0.7, 1.0, 1.0), smoothstep(-0.25, 0.35, fogDir.y));
+    fogColor += fogDir.z * 0.1;
+    fogColor *= mix(vec4(1.2, 1.2, 1.2, 1.0), vec4(0.3, 0.4, 0.5, 1.0), smoothstep(-0.25, 1.0, fogDir.y));
+    
     //const float fogDensity = 0.16;
 
     // Exponential fog
     float fogFactor = 1.0/exp((dist*fogDensity)*(dist*fogDensity));
+
+    fogFactor *= mix(0.5, 1.0, smoothstep(0.0, 3.5, fragPosition.y));
 
     // Linear fog (less nice)
     //const float fogStart = 2.0;
