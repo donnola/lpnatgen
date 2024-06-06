@@ -58,7 +58,7 @@ int main(void)
   InitWindow(screenWidth, screenHeight, "Example : lpng object generation");
   SetTargetFPS(60);
   DisableCursor();
-  fast_lpng_rand(int(std::time(0)));
+  fast_lpng_rand(int(std::time(nullptr)));
 
   Camera3D camera = { 0 };
   camera.position = { 40.0f, 40.0f, 40.0f };
@@ -236,6 +236,7 @@ int main(void)
       }
       EndMode3D();
       DrawText(TextFormat("MODELS GEN TIME: %lld ms", models_gen_time), 10, 710, 22, MAROON);
+      DrawText(TextFormat("MODEL GEN TIME: %lf ms", float(models_gen_time) / float(models.size())), 10, 732, 22, MAROON);
     }
     EndDrawing();
   }

@@ -86,10 +86,10 @@ void lpng::GenerateObjectBush::GenerateCrown()
 
 void lpng::GenerateObjectBush::ModifyCrown(Mesh& crown, const float3& c)
 {
-  std::vector<float3> vertexes = crown.vertexCoords;
-  std::sort(vertexes.begin(), vertexes.end(), [](const float3& a, const float3& b) { return a.y < b.y; });
-  int quant_id = vertexes.size() * 0.6;
-  float3 quantile = vertexes[quant_id];
+  std::vector<float3> vertices = crown.vertexCoords;
+  std::sort(vertices.begin(), vertices.end(), [](const float3& a, const float3& b) { return a.y < b.y; });
+  int quant_id = vertices.size() * 0.6;
+  float3 quantile = vertices[quant_id];
   for (float3& v : crown.vertexCoords)
   {
     float k = fast_lpng_rand(1050, 1200) / 1000.f;;

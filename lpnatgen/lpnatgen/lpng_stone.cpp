@@ -7,10 +7,10 @@
 
 void lpng::GenerateObjectStone::ModifyStone(Mesh& stone)
 {
-  std::vector<float3> vertexes = stone.vertexCoords;
-  std::sort(vertexes.begin(), vertexes.end(), [](const float3& a, const float3& b) { return a.y < b.y; });
-  int quant_id = vertexes.size() * 0.4 - 1;
-  float3 quantile = vertexes[quant_id];
+  std::vector<float3> vertices = stone.vertexCoords;
+  std::sort(vertices.begin(), vertices.end(), [](const float3& a, const float3& b) { return a.y < b.y; });
+  int quant_id = vertices.size() * 0.4 - 1;
+  float3 quantile = vertices[quant_id];
   while (quant_id > 1)
   {
     for (float3& v : stone.vertexCoords)
@@ -20,7 +20,7 @@ void lpng::GenerateObjectStone::ModifyStone(Mesh& stone)
         v.y = quantile.y - n * 0.2;
     }
     quant_id /= 2;
-    quantile = vertexes[quant_id];
+    quantile = vertices[quant_id];
   }
   float max_vertex = stone.vertexCoords[0].y;
   float min_vertex = stone.vertexCoords[0].y;

@@ -85,7 +85,7 @@ void lpng::GenerateObjectBaseTree::GenerateBranch(Branch& branch, const float3& 
     mesh.faces.push_back(Face({ i + 1, int((i + 1) % branch.edgeBase) + 1, rootId }));
     ring.facesIds.push_back(mesh.faces.size() - 1);
   }
-  ring.vertexesIds = GetVertexesIds(mesh, ring.facesIds);
+  ring.verticesIds = GetVerticesIds(mesh, ring.facesIds);
   branch.rings.push_back(std::move(ring));
 
   while (branch.rings.back().curLength < branch.length)
@@ -107,8 +107,8 @@ void lpng::GenerateObjectBaseTree::GenerateBranch(Branch& branch, const float3& 
       ring.facesIds = Extrude(mesh, p_ring.facesIds, ring.vecIn * seg_len);
       p_ring.facesIds.clear();
     }
-    ring.vertexesIds = GetVertexesIds(mesh, ring.facesIds);
-    ScaleVertexes(mesh, float3(ring.rad / p_ring.rad, 1.f, ring.rad / p_ring.rad), ring.vertexesIds);
+    ring.verticesIds = GetVerticesIds(mesh, ring.facesIds);
+    ScaleVertices(mesh, float3(ring.rad / p_ring.rad, 1.f, ring.rad / p_ring.rad), ring.verticesIds);
     branch.rings.push_back(std::move(ring));
   }
 
@@ -127,7 +127,7 @@ void lpng::GenerateObjectBaseTree::RelaxBranch(const Branch& branch, size_t mesh
     if (angle > FLT_EPSILON)
     {
       Quat q(Cross(float3(0, 1, 0), normal), angle);
-      RotateVertexes(model[meshId], ring.vertexesIds, q, ring.center);
+      RotateVertices(model[meshId], ring.verticesIds, q, ring.center);
     }
   }
 }
@@ -149,8 +149,8 @@ void lpng::GenerateObjectBaseTree::TreeRoot(Branch& branch, size_t meshId)
     Mesh& mesh = model[meshId];
     ring.facesIds = Extrude(mesh, p_ring.facesIds, -seg_len * p_ring.vecIn);
     p_ring.facesIds.clear();
-    ring.vertexesIds = GetVertexesIds(mesh, ring.facesIds);
-    ScaleVertexes(mesh, float3(ring.rad / p_ring.rad, 1.f, ring.rad / p_ring.rad), ring.vertexesIds);
+    ring.verticesIds = GetVerticesIds(mesh, ring.facesIds);
+    ScaleVertices(mesh, float3(ring.rad / p_ring.rad, 1.f, ring.rad / p_ring.rad), ring.verticesIds);
     branch.rings.insert(branch.rings.begin(), std::move(ring));
   }
 }

@@ -372,7 +372,7 @@ double lpng::Angle(const lpng::float2& l, const lpng::float2& r)
   double m = sqrtf(MagnitudeSq(l) * MagnitudeSq(r));
   if (ABSOLUTE_CMP(m, 0))
     return -1;
-  double a = std::clamp(Dot(l, r) / m, -1.0 , 1.0);
+  double a = std::clamp(Dot(l, r) / m, -1.0, 1.0);
   return acos(a);
 }
 
@@ -538,15 +538,15 @@ lpng::float3 lpng::FaceNormal(const Mesh& mesh, const Face& f)
 }
 
 
-std::vector<int> lpng::GetVertexesIds(const Mesh& mesh, const std::vector<int>& facesIds)
+std::vector<int> lpng::GetVerticesIds(const Mesh& mesh, const std::vector<int>& facesIds)
 {
-  std::unordered_set<int> vertexes_ids;
+  std::unordered_set<int> vertices_ids;
   for (int id : facesIds)
   {
     for (int v : mesh.faces[id].vi)
-      vertexes_ids.insert(v - 1);
+      vertices_ids.insert(v - 1);
   }
-  return { vertexes_ids.begin(), vertexes_ids.end() };
+  return { vertices_ids.begin(), vertices_ids.end() };
 }
 
 
@@ -564,45 +564,45 @@ void lpng::ScaleObj(Mesh& mesh, const float3& vec, const float3& O)
 }
 
 
-void lpng::ScaleVertexes(Mesh& mesh, const float3& vec, const std::vector<int>& vertexesIds)
+void lpng::ScaleVertices(Mesh& mesh, const float3& vec, const std::vector<int>& verticesIds)
 {
   float3 mean_point;
-  for (int id : vertexesIds)
+  for (int id : verticesIds)
     mean_point += mesh.vertexCoords[id];
-  mean_point /= vertexesIds.size();
-  for (int id : vertexesIds)
+  mean_point /= verticesIds.size();
+  for (int id : verticesIds)
     mesh.vertexCoords[id] = (mesh.vertexCoords[id] - mean_point) * vec + mean_point;
 }
 
 
-void lpng::ScaleVertexes(Mesh& mesh, const float3& vec, const std::vector<int>& vertexesIds, const float3& O)
+void lpng::ScaleVertices(Mesh& mesh, const float3& vec, const std::vector<int>& verticesIds, const float3& O)
 {
-  for (int id : vertexesIds)
+  for (int id : verticesIds)
     mesh.vertexCoords[id] = (mesh.vertexCoords[id] - O) * vec + O;
 }
 
 
 void lpng::ScaleFaces(Mesh& mesh, const float3& vec, const std::vector<int>& facesIds)
 {
-  ScaleVertexes(mesh, vec, GetVertexesIds(mesh, facesIds));
+  ScaleVertices(mesh, vec, GetVerticesIds(mesh, facesIds));
 }
 
 
 void lpng::ScaleFaces(Mesh& mesh, const float3& vec, const std::vector<int>& facesIds, const float3& O)
 {
-  ScaleVertexes(mesh, vec, GetVertexesIds(mesh, facesIds), O);
+  ScaleVertices(mesh, vec, GetVerticesIds(mesh, facesIds), O);
 }
 
 
 void lpng::RotateFaces(Mesh& mesh, const std::vector<int>& facesIds, const Quat& quat, const float3& O)
 {
-  RotateVertexes(mesh, GetVertexesIds(mesh, facesIds), quat, O);
+  RotateVertices(mesh, GetVerticesIds(mesh, facesIds), quat, O);
 }
 
 
-void lpng::RotateVertexes(Mesh& mesh, const std::vector<int>& vertexesIds, const Quat& quat, const float3& O)
+void lpng::RotateVertices(Mesh& mesh, const std::vector<int>& verticesIds, const Quat& quat, const float3& O)
 {
-  for (int pId : vertexesIds)
+  for (int pId : verticesIds)
   {
     float3& p = mesh.vertexCoords[pId];
     p -= O;
@@ -614,7 +614,7 @@ void lpng::RotateVertexes(Mesh& mesh, const std::vector<int>& vertexesIds, const
 
 void lpng::MoveFaces(Mesh& mesh, const std::vector<int>& facesIds, const float3& vector)
 {
-  for (int vi : GetVertexesIds(mesh, facesIds))
+  for (int vi : GetVerticesIds(mesh, facesIds))
   {
     mesh.vertexCoords[vi] += vector;
   }
@@ -740,7 +740,7 @@ std::vector<int> lpng::ExtrudeWithCap(Mesh& mesh, const std::vector<int>& facesI
     {
       if (!extruded_vertex_ids.contains(v))
       {
-        mesh.vertexCoords.emplace_back(mesh.vertexCoords[v-1] + vec);
+        mesh.vertexCoords.emplace_back(mesh.vertexCoords[v - 1] + vec);
         extruded_vertex_ids[v] = mesh.vertexCoords.size();
       }
       v = extruded_vertex_ids[v];
@@ -750,7 +750,7 @@ std::vector<int> lpng::ExtrudeWithCap(Mesh& mesh, const std::vector<int>& facesI
     extruded_faces_ids.push_back(mesh.faces.size() - 1);
   }
 
-  for (const Edge& e: periphery_edges)
+  for (const Edge& e : periphery_edges)
   {
     mesh.faces.push_back(Face({ e.first, e.second, extruded_vertex_ids[e.second] }));
     mesh.faces.push_back(Face({ e.first, extruded_vertex_ids[e.second],  extruded_vertex_ids[e.first] }));
@@ -832,15 +832,15 @@ void lpng::FilterNearestPoints(std::vector<float3>& points, float d)
 }
 
 
-void lpng::DeleteUnusedVertexes(Mesh& mesh)
+void lpng::DeleteUnusedVertices(Mesh& mesh)
 {
-  std::unordered_set<int> used_vertexes_id;
+  std::unordered_set<int> used_vertices_id;
   int max_used = 0;
   for (const Face& f : mesh.faces)
   {
     for (int v : f.vi)
     {
-      used_vertexes_id.insert(v - 1);
+      used_vertices_id.insert(v - 1);
       if (v - 1 > max_used)
         max_used = v - 1;
     }
@@ -849,7 +849,7 @@ void lpng::DeleteUnusedVertexes(Mesh& mesh)
   {
     if (i > max_used)
       mesh.vertexCoords.erase(mesh.vertexCoords.begin() + i);
-    else if (auto it = used_vertexes_id.find(i); it == used_vertexes_id.end())
+    else if (auto it = used_vertices_id.find(i); it == used_vertices_id.end())
     {
       for (Face& f : mesh.faces)
       {
@@ -894,13 +894,15 @@ void lpng::CupFromEdges(const Mesh& mesh, std::vector<Face>& faces, std::vector<
     float min_angle = 7;
     int e = 0;
     float3 normal;
-    int f_id = FindFaceWithEdge(mesh.faces, edges[0]);
+    int f_id = FindFaceWithEdge(faces, edges[0]);
     if (f_id >= 0)
-      normal = FaceNormal(mesh, mesh.faces[f_id]);
+    {
+      normal = FaceNormal(mesh, faces[f_id]);
+    }
     else
     {
-      f_id = FindFaceWithEdge(faces, edges[0]);
-      normal = FaceNormal(mesh, faces[f_id]);
+      f_id = FindFaceWithEdge(mesh.faces, edges[0]);
+      normal = FaceNormal(mesh, mesh.faces[f_id]);
     }
     for (int e1 = 1; e1 < edges.size() - 1; ++e1)
     {
@@ -919,16 +921,14 @@ void lpng::CupFromEdges(const Mesh& mesh, std::vector<Face>& faces, std::vector<
     {
       Edge new_edge(edges[0].first, edges[e].second);
       edges.erase(edges.begin() + e);
-      edges.erase(edges.begin());
-      edges.insert(edges.begin(), new_edge);
+      edges[0] = new_edge;
       CupFromEdges(mesh, faces, edges);
     }
     else if (e == edges.size() - 2)
     {
       Edge new_edge(edges[e].second, edges[0].second);
       edges.erase(edges.begin() + e + 1);
-      edges.erase(edges.begin());
-      edges.insert(edges.begin(), new_edge);
+      edges[0] = new_edge;
       CupFromEdges(mesh, faces, edges);
     }
     else
@@ -941,7 +941,6 @@ void lpng::CupFromEdges(const Mesh& mesh, std::vector<Face>& faces, std::vector<
       edges1.push_back(new_edge1);
       edges2.insert(edges2.end(), edges.begin() + e + 1, edges.end());
       edges2.push_back(new_edge2);
-      edges.erase(edges.begin());
       CupFromEdges(mesh, faces, edges1);
       CupFromEdges(mesh, faces, edges2);
     }
@@ -949,49 +948,53 @@ void lpng::CupFromEdges(const Mesh& mesh, std::vector<Face>& faces, std::vector<
   else
   {
     faces.push_back(Face({ edges[0].first, edges[0].second, edges[1].second }));
-    edges.clear();
   }
   return;
 }
 
 
-void lpng::FilterMeshWithPoints(Mesh& mesh, const std::unordered_set<size_t>& vertexes_ids)
+void lpng::FilterMeshWithPoints(Mesh& mesh, const std::unordered_set<size_t>& vertices_ids)
 {
-  std::unordered_set<size_t> error_vertexes;
+  std::unordered_set<size_t> error_vertices;
   for (int i = 0; i < mesh.vertexCoords.size(); ++i)
   {
-    if (auto it = vertexes_ids.find(i); it == vertexes_ids.end())
+    if (auto it = vertices_ids.find(i); it == vertices_ids.end())
     {
       std::vector<size_t> faces_ids = FindFacesInMesh(mesh, i + 1);
       if (faces_ids.size() < 3)
       {
-        error_vertexes.insert(i);
+        error_vertices.insert(i);
         continue;
       }
       std::sort(faces_ids.begin(), faces_ids.end(), std::greater<size_t>());
-      std::vector<Edge> edges;
-      for (size_t j : faces_ids)
+      std::vector<Edge> edges(faces_ids.size());
+      for (int j = 0; j < faces_ids.size(); ++j)
       {
-        const Face& f = mesh.faces[j];
+        const Face& f = mesh.faces[faces_ids[j]];
         int v_id = std::find(f.vi.begin(), f.vi.end(), i + 1) - f.vi.begin();
-        edges.emplace_back(f.vi[(v_id + 1) % f.vi.size()], f.vi[(v_id + 2) % f.vi.size()]);
+        edges[j] = {f.vi[(v_id + 1) % f.vi.size()], f.vi[(v_id + 2) % f.vi.size()]};
       }
-      std::vector<Edge> prev_edges = edges;
       if (!SortEdges(edges))
       {
-        error_vertexes.insert(i);
+        error_vertices.insert(i);
         continue;
       }
       std::vector<Face> new_faces;
       CupFromEdges(mesh, new_faces, edges);
-      mesh.faces.insert(mesh.faces.end(), new_faces.begin(), new_faces.end());
-      for (int j : faces_ids)
+      for (int j = 0; j < new_faces.size(); ++j)
       {
-        mesh.faces.erase(mesh.faces.begin() + j);
+        mesh.faces[faces_ids[j]] = std::move(new_faces[j]);
       }
+      int k = 1;
+      for (int j = new_faces.size(); j < faces_ids.size(); ++j)
+      {
+        mesh.faces[faces_ids[j]] = std::move(mesh.faces[mesh.faces.size() - k]);
+        ++k;
+      }
+      mesh.faces.resize(mesh.faces.size() - k + 1);
     }
   }
-  DeleteUnusedVertexes(mesh);
+  DeleteUnusedVertices(mesh);
 }
 
 

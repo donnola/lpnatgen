@@ -60,7 +60,7 @@ int main(void)
   InitWindow(screenWidth, screenHeight, "Example : lpng object generation");
   SetTargetFPS(60);
   DisableCursor();
-  fast_lpng_rand(int(std::time(0)));
+  fast_lpng_rand(int(std::time(nullptr)));
 
   Camera3D camera = { 0 };
   camera.position = { 40.0f, 40.0f, 40.0f };
@@ -97,21 +97,7 @@ int main(void)
   int fogDensityLocShadow = GetShaderLocation(shadowShader, "fogDensity");
   SetShaderValue(shadowShader, fogDensityLocShadow, &fogDensity, SHADER_UNIFORM_FLOAT);
 
-//  CreateLight(LIGHT_POINT, Vector3{ 3, 6, 3 }, Vector3{ 0, -1, 0 }, Color{ 80, 20, 0, 255 }, shadowShader);
   CreateLight(LIGHT_POINT, Vector3{ -3, 6, -3 }, Vector3{ 0, 1, 1 }, Color{ 54, 70, 128, 255 }, shadowShader);
-
-
-  /*Model skybox = LoadModelFromMesh(GenMeshCube(1.0, 1.0, 1.0));
-  // inverse normals and vertex index order for skybox, makes it inside out
-  for (int i = 0; i < skybox.meshCount; ++i)
-  {
-    for (int j = 0; j < skybox.meshes[i].triangleCount; ++j)
-    {
-      unsigned short tmp = skybox.meshes[i].indices[j * 3];
-      skybox.meshes[i].indices[j * 3] = skybox.meshes[i].indices[j * 3 + 2];
-      skybox.meshes[i].indices[j * 3 + 2] = tmp;
-    }
-  }*/
 
   // create double-sided box
   Model skybox = LoadModelFromMesh(GenMeshCube(1.0, 1.0, 1.0));
@@ -138,7 +124,7 @@ int main(void)
   shuffle(bypass_map.begin(), bypass_map.end(), std::mt19937(std::random_device()()));
 
   // LOAD MODEL
-  int models_count = 580;
+  int models_count = 600;
   long long models_gen_time = 0;
   std::vector<Vector3> models_pos;
   std::vector<float> models_scale;
@@ -236,6 +222,7 @@ int main(void)
       DrawModel(skybox, { 0.0f, 0.0f, 0.0f }, -1000.0f, { 255, 255, 255, 255 });
       EndMode3D();
       DrawText(TextFormat("MODELS GEN TIME: %lld ms", models_gen_time), 10, 710, 22, MAROON);
+      DrawText(TextFormat("MODEL GEN TIME: %lf ms", float(models_gen_time) / float(models.size())), 10, 732, 22, MAROON);
     }
     EndDrawing();
   }

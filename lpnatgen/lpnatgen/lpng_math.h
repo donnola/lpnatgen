@@ -3,6 +3,7 @@
 #include <vector>
 #include <functional>
 #include <unordered_set>
+//#include <set>
 
 
 namespace lpng
@@ -107,9 +108,10 @@ namespace lpng
     size_t vti;
     size_t vni;
 
-    Vertex(size_t a, size_t b, size_t c) : vi(a), vti(b), vni(c) {}
-    Vertex(size_t a, size_t b) : vi(a), vti(b), vni(-1) {}
+    Vertex() : vi(0), vti(0), vni(0) {}
     Vertex(size_t a) : vi(a), vti(-1), vni(-1) {}
+    Vertex(size_t a, size_t b) : vi(a), vti(b), vni(-1) {}
+    Vertex(size_t a, size_t b, size_t c) : vi(a), vti(b), vni(c) {}
   };
 
   struct Face
@@ -118,9 +120,11 @@ namespace lpng
     std::vector<int> vti;
     std::vector<int> vni;
 
+    Face() {}
     Face(std::vector<int> a) : vi(a) {}
     Face(std::vector<int> a, std::vector<int> b) : vi(a), vti(b) {}
     Face(std::vector<int> a, std::vector<int> b, std::vector<int> c) : vi(a), vti(b), vni(c) {}
+
   };
 
   using Edge = std::pair<int, int>;
@@ -168,17 +172,18 @@ namespace lpng
 
   int FindFaceWithEdge(const std::vector<Face>& faces, const Edge& e);
   std::vector<size_t> FindFacesInMesh(const Mesh& mesh, const size_t& v_id);
+  //std::vector<size_t> FindFacesInMesh(const Mesh& mesh, const size_t& v_id, const std::set<int>& face_ignore = {});
   float3 FaceNormal(const Mesh& mesh, const Face& f);
 
-  std::vector<int> GetVertexesIds(const Mesh& mesh, const std::vector<int>& facesIds);
+  std::vector<int> GetVerticesIds(const Mesh& mesh, const std::vector<int>& facesIds);
   void ScaleObj(Mesh& mesh, const float3& vec);
   void ScaleObj(Mesh& mesh, const float3& vec, const float3& O);
-  void ScaleVertexes(Mesh& mesh, const float3& vec, const std::vector<int>& vertexesIds);
-  void ScaleVertexes(Mesh& mesh, const float3& vec, const std::vector<int>& vertexesIds, const float3& O);
+  void ScaleVertices(Mesh& mesh, const float3& vec, const std::vector<int>& verticesIds);
+  void ScaleVertices(Mesh& mesh, const float3& vec, const std::vector<int>& verticesIds, const float3& O);
   void ScaleFaces(Mesh& mesh, const float3& vec, const std::vector<int>& facesIds);
   void ScaleFaces(Mesh& mesh, const float3& vec, const std::vector<int>& facesIds, const float3& O);
   void RotateFaces(Mesh& mesh, const std::vector<int>& facesIds, const Quat& quat, const float3& O);
-  void RotateVertexes(Mesh& mesh, const std::vector<int>& vertexesIds, const Quat& quat, const float3& O);
+  void RotateVertices(Mesh& mesh, const std::vector<int>& verticesIds, const Quat& quat, const float3& O);
 
   void MoveFaces(Mesh& mesh, const std::vector<int>& facesIds, const float3& vector);
   void MoveObj(Mesh& mesh, const float3& vec);
@@ -196,10 +201,10 @@ namespace lpng
  
   std::vector<float3> GenerateEllipsoidUniformPoints(const float3& size, int pointsNum = 10);
   void FilterNearestPoints(std::vector<float3>& points, float d = 0.07);
-  void DeleteUnusedVertexes(Mesh& mesh);
+  void DeleteUnusedVertices(Mesh& mesh);
   bool SortEdges(std::vector<Edge>& edges);
   void CupFromEdges(const Mesh& mesh, std::vector<Face>& faces, std::vector<Edge> edges);
-  void FilterMeshWithPoints(Mesh& mesh, const std::unordered_set<size_t>& vertexes_ids);
+  void FilterMeshWithPoints(Mesh& mesh, const std::unordered_set<size_t>& vertices_ids);
 
   std::vector<float2> GetNDirections(int n);
   float3 GenOutVec(const float3& vecIn, int fromAngle, int toAngle);

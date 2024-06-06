@@ -20,6 +20,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "example3", "example3\exampl
 		{45681B8A-75E2-4EB4-8CB0-39698BD53BA1} = {45681B8A-75E2-4EB4-8CB0-39698BD53BA1}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "profiler_stress_test", "profiler_stress_test\profiler_stress_test.vcxproj", "{C7F923DB-E66D-44F2-8051-27FF6DB8727F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{45681B8A-75E2-4EB4-8CB0-39698BD53BA1} = {45681B8A-75E2-4EB4-8CB0-39698BD53BA1}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -60,6 +65,14 @@ Global
 		{40AD15FC-0A06-4D36-984E-5F32FF0783BD}.Release|x64.Build.0 = Release|x64
 		{40AD15FC-0A06-4D36-984E-5F32FF0783BD}.Release|x86.ActiveCfg = Release|Win32
 		{40AD15FC-0A06-4D36-984E-5F32FF0783BD}.Release|x86.Build.0 = Release|Win32
+		{C7F923DB-E66D-44F2-8051-27FF6DB8727F}.Debug|x64.ActiveCfg = Debug|x64
+		{C7F923DB-E66D-44F2-8051-27FF6DB8727F}.Debug|x64.Build.0 = Debug|x64
+		{C7F923DB-E66D-44F2-8051-27FF6DB8727F}.Debug|x86.ActiveCfg = Debug|Win32
+		{C7F923DB-E66D-44F2-8051-27FF6DB8727F}.Debug|x86.Build.0 = Debug|Win32
+		{C7F923DB-E66D-44F2-8051-27FF6DB8727F}.Release|x64.ActiveCfg = Release|x64
+		{C7F923DB-E66D-44F2-8051-27FF6DB8727F}.Release|x64.Build.0 = Release|x64
+		{C7F923DB-E66D-44F2-8051-27FF6DB8727F}.Release|x86.ActiveCfg = Release|Win32
+		{C7F923DB-E66D-44F2-8051-27FF6DB8727F}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -64,7 +64,7 @@ void lpng::GenerateObjectFir::GenerateCrownPart(float heightStart, float baseRad
     mesh.faces.push_back(Face({ i + 1, int((i + 1) % crown.edgeBase) + 1, rootId }));
     ring.facesIds.push_back(mesh.faces.size() - 1);
   }
-  ring.vertexesIds = GetVertexesIds(mesh, ring.facesIds);
+  ring.verticesIds = GetVerticesIds(mesh, ring.facesIds);
   crown.rings.push_back(std::move(ring));
   float last_seg_len = crown.length / 5.f;
   while (crown.rings.back().curLength < crown.length)
@@ -87,8 +87,8 @@ void lpng::GenerateObjectFir::GenerateCrownPart(float heightStart, float baseRad
       ring.facesIds = Extrude(mesh, p_ring.facesIds, ring.vecIn * seg_len);
       p_ring.facesIds.clear();
     }
-    ring.vertexesIds = GetVertexesIds(mesh, ring.facesIds);
-    ScaleVertexes(mesh, float3(ring.rad / p_ring.rad, 1.f, ring.rad / p_ring.rad), ring.vertexesIds);
+    ring.verticesIds = GetVerticesIds(mesh, ring.facesIds);
+    ScaleVertices(mesh, float3(ring.rad / p_ring.rad, 1.f, ring.rad / p_ring.rad), ring.verticesIds);
     crown.rings.push_back(std::move(ring));
   }
   crowns.push_back(std::move(crown));
@@ -142,7 +142,7 @@ void lpng::GenerateObjectFir::RelaxCrown(const Crown& crown, size_t meshId)
     if (angle > FLT_EPSILON)
     {
       Quat q(Cross(float3(0, 1, 0), normal), angle);
-      RotateVertexes(model[meshId], ring.vertexesIds, q, ring.center);
+      RotateVertices(model[meshId], ring.verticesIds, q, ring.center);
     }
     
   }

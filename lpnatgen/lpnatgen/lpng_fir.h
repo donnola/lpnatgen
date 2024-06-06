@@ -29,7 +29,7 @@ namespace lpng
     float rad;
     float curLength;
     std::vector<int> facesIds;
-    std::vector<int> vertexesIds;
+    std::vector<int> verticesIds;
   };
 
   struct Crown
