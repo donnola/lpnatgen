@@ -112,9 +112,9 @@ int main(void)
   std::vector<std::vector<bool>> free(landscape_height_map.size(), std::vector<bool>(landscape_height_map.front().size(), true));
 
   std::vector<std::pair<int, int>> bypass_map;
-  for (int i = 5; i < size_x; ++i)
+  for (int i = 5; i < size_x - 5; ++i)
   {
-    for (int j = 5; j < size_y; ++j)
+    for (int j = 5; j < size_y - 5; ++j)
     {
       bypass_map.emplace_back(i, j);
     }

@@ -103,10 +103,9 @@ int main(void)
   Model skybox = LoadModelFromMesh(GenMeshCube(1.0, 1.0, 1.0));
 
   // GENERATE LANDSCAPE
-  int size_x = 100;
-  int size_y = 100;
+  int size_x = 200;
+  int size_y = 200;
   float cell_size = 1.0f;
-  Vector3 water_pos = { 0, -2.5, 0 };
   std::vector<std::vector<float>> height_map;
   GenHeightMap(size_x, size_y, cell_size, height_map);
   std::vector<std::vector<float>> landscape_height_map;
@@ -114,9 +113,9 @@ int main(void)
   std::vector<std::vector<bool>> free(landscape_height_map.size(), std::vector<bool>(landscape_height_map.front().size(), true));
 
   std::vector<std::pair<int, int>> bypass_map;
-  for (int i = 5; i < size_x; ++i)
+  for (int i = 5; i < size_x - 5; ++i)
   {
-    for (int j = 5; j < size_y; ++j)
+    for (int j = 5; j < size_y - 5; ++j)
     {
       bypass_map.emplace_back(i, j);
     }
@@ -124,7 +123,7 @@ int main(void)
   shuffle(bypass_map.begin(), bypass_map.end(), std::mt19937(std::random_device()()));
 
   // LOAD MODEL
-  int models_count = 600;
+  int models_count = 2000;
   long long models_gen_time = 0;
   std::vector<Vector3> models_pos;
   std::vector<float> models_scale;
@@ -173,7 +172,7 @@ int main(void)
   // Use an orthographic projection for directional lights
   lightCam.projection = CAMERA_ORTHOGRAPHIC;
   lightCam.up = { 0.0f, 1.0f, 0.0f };
-  lightCam.fovy = 100.0f;
+  lightCam.fovy = 180.0f;
 
   while (!WindowShouldClose())
   {
@@ -222,7 +221,7 @@ int main(void)
       DrawModel(skybox, { 0.0f, 0.0f, 0.0f }, -1000.0f, { 255, 255, 255, 255 });
       EndMode3D();
       DrawText(TextFormat("MODELS GEN TIME: %lld ms", models_gen_time), 10, 710, 22, MAROON);
-      DrawText(TextFormat("MODEL GEN TIME: %lf ms", float(models_gen_time) / float(models.size())), 10, 732, 22, MAROON);
+      DrawText(TextFormat("MODEL GEN TIME: %lf ms, MODELS COUNT: %lld", float(models_gen_time) / float(models.size()), models.size()), 10, 732, 22, MAROON);
     }
     EndDrawing();
   }
