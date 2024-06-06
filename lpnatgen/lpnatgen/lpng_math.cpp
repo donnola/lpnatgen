@@ -845,23 +845,25 @@ void lpng::DeleteUnusedVertices(Mesh& mesh)
         max_used = v - 1;
     }
   }
+  mesh.vertexCoords.resize(max_used + 1);
+  int k = 0;
   for (int i = mesh.vertexCoords.size() - 1; i >= 0; --i)
   {
-    if (i > max_used)
-      mesh.vertexCoords.erase(mesh.vertexCoords.begin() + i);
-    else if (auto it = used_vertices_id.find(i); it == used_vertices_id.end())
+    if (auto it = used_vertices_id.find(i); it == used_vertices_id.end())
     {
+      ++k;
+      mesh.vertexCoords[i] = mesh.vertexCoords[mesh.vertexCoords.size() - k];
       for (Face& f : mesh.faces)
       {
-        for (int& v : f.vi)
+        auto v_it = std::find(f.vi.begin(), f.vi.end(), mesh.vertexCoords.size() - k + 1);
+        if (v_it != f.vi.end())
         {
-          if (v - 1 > i)
-            v -= 1;
+          f.vi[v_it - f.vi.begin()] = i + 1;
         }
       }
-      mesh.vertexCoords.erase(mesh.vertexCoords.begin() + i);
     }
   }
+  mesh.vertexCoords.resize(mesh.vertexCoords.size() - k);
 }
 
 
@@ -877,7 +879,8 @@ bool lpng::SortEdges(std::vector<Edge>& edges)
     if (e_it != edges.end())
     {
       sorted_edges.push_back(*e_it);
-      edges.erase(e_it);
+      edges[e_it - edges.begin()] = edges.back();
+      edges.resize(edges.size() - 1);
     }
     else
       return false;
@@ -1041,7 +1044,8 @@ lpng::float3 lpng::GenOutVec(std::vector<float2>& dirs, const float3& vecIn, int
 {
   int d_id = fast_lpng_rand(0, dirs.size());
   float2 dir = dirs[d_id];
-  dirs.erase(dirs.begin() + d_id);
+  dirs[d_id] = std::move(dirs.back());
+  dirs.resize(dirs.size() - 1);
   float3 vec = float3(dir.x, 0, dir.y);
   Normalize(vec);
   int branch_angle = fast_lpng_rand(fromAngle, toAngle);

@@ -316,8 +316,8 @@ static bool SetModelParams(int type, std::unique_ptr<lpng::GenerateObject>& mode
   case STONE:
   {
     lpng::GenerateObjectStone* stone_ptr = new lpng::GenerateObjectStone();
-    float x_k = float(fast_lpng_rand(1700, 2800)) / 1000.f;
-    float y = float(fast_lpng_rand(200, 600)) / 1000.f;
+    float x_k = float(fast_lpng_rand(1300, 2000)) / 1000.f;
+    float y = float(fast_lpng_rand(300, 700)) / 1000.f;
     model_size = { y * x_k, y, y * x_k };
     stone_ptr->SetVertexCount(stoneVertexCount);
     model_ptr.reset(stone_ptr);
