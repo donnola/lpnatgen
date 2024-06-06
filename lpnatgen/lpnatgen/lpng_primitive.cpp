@@ -4,6 +4,8 @@
 
 
 lpng::Sphere* lpng::Sphere::p_instance = nullptr;
+std::mutex lpng::Sphere::mutex_;
+const float lpng::Sphere::size_coef = 10;
 
 static struct CleanUp
 {
@@ -60,15 +62,6 @@ lpng::Sphere::Sphere()
   sphere.faces.push_back(Face({ 11, 9, 5 }));
 
   for (int i = 1; i < 3; ++i)
-  {
-    Subdiv();
-  }
-}
-
-
-void lpng::Sphere::RaiseToMinSubdiv(size_t min_point_count)
-{
-  while (vertex_num < min_point_count)
   {
     Subdiv();
   }

@@ -805,12 +805,12 @@ std::vector<lpng::float3> lpng::GenerateEllipsoidUniformPoints(const float3& siz
     Normalize(p);
     p *= rad;
   }
-  FilterNearesPoints(points);
+  FilterNearestPoints(points);
   return points;
 }
 
 
-void lpng::FilterNearesPoints(std::vector<float3>& points, float d)
+void lpng::FilterNearestPoints(std::vector<float3>& points, float d)
 {
   std::vector<float3> new_points;
   new_points.push_back(std::move(points[0]));

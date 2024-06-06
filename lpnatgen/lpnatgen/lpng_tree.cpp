@@ -134,7 +134,6 @@ void lpng::GenerateObjectTree::InitClusters()
 void lpng::GenerateObjectTree::GenerateCrown()
 {
   InitClusters();
-  Sphere* sphere = Sphere::GetInstance();
   for (CrownCluster& cluster : crownClusters)
   {
     cluster.center;
@@ -165,7 +164,7 @@ void lpng::GenerateObjectTree::GenerateCrown()
     cluster.rad = v_r * k;
     v *= k;
     std::unordered_set<size_t> points;
-    Mesh crown = sphere->GetSphere();
+    Mesh crown = Sphere::GetMeshWithMinSubdiv(treeParams.crownVertexNum * 3);
     for (int i : cluster.branchIds)
     {
       if (points.size() == treeParams.crownVertexNum)
@@ -186,11 +185,11 @@ void lpng::GenerateObjectTree::GenerateCrown()
     }
     while (points.size() < treeParams.crownVertexNum)
     {
-      points.insert(fast_lpng_rand(0, int(sphere->GetVertexCount())));
+      points.insert(fast_lpng_rand(0, crown.vertexCoords.size()));
     }
     FilterMeshWithPoints(crown, points);
     ModifyCrown(crown, cluster.center);
-    ScaleObj(crown, v / sphere->GetSizeCoef());
+    ScaleObj(crown, v / Sphere::size_coef);
     MoveObj(crown, cluster.center);
     crown.matType = MaterialTypes::CROWN;
     

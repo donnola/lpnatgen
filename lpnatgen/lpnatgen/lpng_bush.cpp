@@ -69,15 +69,14 @@ void lpng::GenerateObjectBush::GenerateCrown()
   crown_size.z = crown_rad * (fast_lpng_rand(950, 1050) / 1000.f);
   crown_size.y = std::max(min_h, (crown_size.x + crown_size.z) / 7.f);
 
-  Sphere* sphere = Sphere::GetInstance();
   std::unordered_set<size_t> points;
-  Mesh crown = sphere->GetSphere();
+  Mesh crown = Sphere::GetMeshWithMinSubdiv(bushParams.crownVertexNum * 3);
   while (points.size() < bushParams.crownVertexNum)
   {
-    points.insert(fast_lpng_rand(0, sphere->GetVertexCount()));
+    points.insert(fast_lpng_rand(0, crown.vertexCoords.size()));
   }
   FilterMeshWithPoints(crown, points);
-  ScaleObj(crown, crown_size / sphere->GetSizeCoef());
+  ScaleObj(crown, crown_size / Sphere::size_coef);
   MoveObj(crown, crown_center);
   crown.matType = MaterialTypes::CROWN;
   ModifyCrown(crown, crown_center);

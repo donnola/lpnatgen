@@ -1,6 +1,7 @@
 #pragma once
 #include "lpng_math.h"
 #include <unordered_set>
+#include <mutex>
 
 
 namespace lpng
@@ -11,48 +12,44 @@ namespace lpng
     static Sphere* p_instance;
     Sphere();
     Sphere(const Sphere&) = default;
+    ~Sphere() {}
     Sphere& operator=(Sphere&) = default;
     Mesh sphere;
     size_t vertex_num = 12;
-    const float size_coef = 10;
     size_t smooth_level = 0;
+    static std::mutex mutex_;
+    void Subdiv();
   public:
-    ~Sphere() {}
-
-    static Sphere* GetInstance()
-    {
-      if (!p_instance)
-        p_instance = new Sphere();
-      return p_instance;
-    }
-
-    static bool IsInstanced()
-    {
-      return !!p_instance;
-    }
-
     static void Destroy()
     {
-      delete p_instance;
-      p_instance = nullptr;
+      std::lock_guard<std::mutex> lock(mutex_);
+      if (!p_instance)
+      {
+        delete p_instance;
+        p_instance = nullptr;
+      }
     }
 
-    const Mesh& GetSphere() const
+    static Mesh GetSphere()
     {
-      return sphere;
+      std::lock_guard<std::mutex> lock(mutex_);
+      if (!p_instance)
+        p_instance = new Sphere();
+      return p_instance->sphere;
     }
 
-    size_t GetVertexCount() const
+    static const float size_coef;
+
+    static Mesh GetMeshWithMinSubdiv(size_t min_point_count)
     {
-      return vertex_num;
+      std::lock_guard<std::mutex> lock(mutex_);
+      if (!p_instance)
+        p_instance = new Sphere();
+      while (p_instance->vertex_num < min_point_count)
+      {
+        p_instance->Subdiv();
+      }
+      return p_instance->sphere;
     }
-
-    float GetSizeCoef() const
-    {
-      return size_coef;
-    }
-
-    void RaiseToMinSubdiv(size_t min_point_count);
-    void Subdiv();
   };
 }

@@ -410,7 +410,7 @@ int main(void)
   inputFirCrownMinCount.box_name = "min";
   inputFirCrownMaxCount.box_name = "max";
 
-  std::filesystem::path dir_path = std::filesystem::current_path();
+  static std::filesystem::path dir_path = std::filesystem::current_path();
   lpng::ModelMaterial::CreateModelTexture(dir_path / "resources");
   modelBaseTex = LoadTexture("resources/obj.tga");
   modelWoodTex = LoadTexture("resources/wood.tga");

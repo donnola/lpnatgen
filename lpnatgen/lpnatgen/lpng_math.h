@@ -195,7 +195,7 @@ namespace lpng
   std::vector<int> Extrude(Mesh& mesh, const std::vector<int>& facesIds, const float3& vec);
  
   std::vector<float3> GenerateEllipsoidUniformPoints(const float3& size, int pointsNum = 10);
-  void FilterNearesPoints(std::vector<float3>& points, float d = 0.07);
+  void FilterNearestPoints(std::vector<float3>& points, float d = 0.07);
   void DeleteUnusedVertexes(Mesh& mesh);
   bool SortEdges(std::vector<Edge>& edges);
   void CupFromEdges(const Mesh& mesh, std::vector<Face>& faces, std::vector<Edge> edges);

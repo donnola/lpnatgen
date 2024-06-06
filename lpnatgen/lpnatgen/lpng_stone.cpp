@@ -44,19 +44,15 @@ void lpng::GenerateObjectStone::GenerateMesh()
     return;
   }
   std::unordered_set<size_t> points;
-  Sphere* sphere = Sphere::GetInstance();
-  if (sphere->GetVertexCount() < pointsCount * 3)
-  {
-    sphere->RaiseToMinSubdiv(pointsCount * 3);
-  }
+  Mesh stone = Sphere::GetMeshWithMinSubdiv(pointsCount * 3);
   while (points.size() < pointsCount)
   {
-    points.insert(fast_lpng_rand(0, sphere->GetVertexCount()));
+    points.insert(fast_lpng_rand(0, stone.vertexCoords.size()));
   }
-  Mesh stone = sphere->GetSphere();
+  
   FilterMeshWithPoints(stone, points);
   
-  ScaleObj(stone, objectSize / (sphere->GetSizeCoef() * 2));
+  ScaleObj(stone, objectSize / (Sphere::size_coef * 2));
   
   stone.matType = MaterialTypes::STONE;
   ModifyStone(stone);
