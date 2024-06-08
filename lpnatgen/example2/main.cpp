@@ -122,7 +122,7 @@ int main(void)
   shuffle(bypass_map.begin(), bypass_map.end(), std::mt19937(std::random_device()()));
 
   // LOAD MODEL
-  int models_count = 80;
+  int models_count = 50;
   long long models_gen_time = 0;
   std::vector<Vector3> models_pos;
   std::vector<std::vector<Model>> models;
@@ -309,8 +309,8 @@ static bool SetModelParams(int type, std::unique_ptr<lpng::GenerateObject>& mode
   case STONE:
   {
     lpng::GenerateObjectStone* stone_ptr = new lpng::GenerateObjectStone();
-    float x_k = float(fast_lpng_rand(900, 1200)) / 1000.f;
-    float y = float(fast_lpng_rand(200, 600)) / 1000.f;
+    float x_k = float(fast_lpng_rand(1300, 2000)) / 1000.f;
+    float y = float(fast_lpng_rand(300, 700)) / 1000.f;
     model_size = { y * x_k, y, y * x_k };
     stone_ptr->SetVertexCount(stoneVertexCount);
     model_ptr.reset(stone_ptr);
@@ -321,7 +321,7 @@ static bool SetModelParams(int type, std::unique_ptr<lpng::GenerateObject>& mode
   case BUSH:
   {
     lpng::GenerateObjectBush* bush_ptr = new lpng::GenerateObjectBush();
-    bushParams.height = C;
+    bushParams.height = C * 0.8;
     model_size.x = 2 * bushParams.firstRad;
     model_size.z = 2 * bushParams.firstRad;
     model_size.y = bushParams.height;
@@ -334,7 +334,7 @@ static bool SetModelParams(int type, std::unique_ptr<lpng::GenerateObject>& mode
   case TREE:
   {
     lpng::GenerateObjectTree* tree_ptr = new lpng::GenerateObjectTree();
-    treeParams.height = std::clamp(C * 0.6f, 5.f, 8.f);
+    treeParams.height = std::clamp(C * 0.6f, 3.f, 5.f);
     treeParams.firstRad = float(fast_lpng_rand(250, 400)) / 1000.f;
     model_size.x = 2 * treeParams.firstRad;
     model_size.z = 2 * treeParams.firstRad;
@@ -347,7 +347,7 @@ static bool SetModelParams(int type, std::unique_ptr<lpng::GenerateObject>& mode
   case FIR:
   {
     lpng::GenerateObjectFir* fir_ptr = new lpng::GenerateObjectFir();
-    firParams.height = std::clamp(C * 0.6f, 5.f, 8.f);
+    firParams.height = std::clamp(C * 0.6f, 3.f, 5.f);
     firParams.firstRad = float(fast_lpng_rand(200, 400)) / 1000.f;
     firParams.baseCrownRadMinCoefStart = 5.f;
     firParams.baseCrownRadMaxCoefStart = 7.f;
