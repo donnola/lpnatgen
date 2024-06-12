@@ -473,7 +473,7 @@ int main(void)
       if (GuiButton(btnCopySeedBounds, copySeedText.c_str())) 
       {
         char buffer[16];
-        _itoa(modelSeed, buffer, 10);
+        _ultoa(modelSeed, buffer, 10);
         SetClipboardText(buffer);
       }
 
