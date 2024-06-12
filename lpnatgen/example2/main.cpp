@@ -63,7 +63,7 @@ int main(void)
   fast_lpng_rand(int(std::time(nullptr)));
 
   Camera3D camera = { 0 };
-  camera.position = { 40.0f, 40.0f, 40.0f };
+  camera.position = { 10.0f, 10.0f, 10.0f };
   camera.target = { 0.0f, 0.0f, 0.0f };
   camera.up = { 0.0f, 1.0f, 0.0f };
   camera.fovy = 45.0f;
@@ -100,6 +100,8 @@ int main(void)
   CreateLight(LIGHT_POINT, Vector3{ 3, 6, 3 }, Vector3{ 0, -1, 0 }, Color{ 80, 20, 0, 255 }, shadowShader);
   CreateLight(LIGHT_POINT, Vector3{ -3, 6, -3 }, Vector3{ 0, 1, 1 }, Color{ 54, 70, 128, 255 }, shadowShader);
 
+  Model skybox = LoadModelFromMesh(GenMeshCube(1.0, 1.0, 1.0));
+  
   // GENERATE LANDSCAPE
   int size_x = 100;
   int size_y = 100;
@@ -152,6 +154,7 @@ int main(void)
   modelPtr.reset();
 
   // SET MODEL SHADERS
+  skybox.materials[0].shader = shadowShader;
   landscape.materials[0].shader = shadowShader;
   for (int i = 0; i < models.size(); ++i)
   {
@@ -212,6 +215,7 @@ int main(void)
           DrawModel(models[i][j], models_pos[i], 1.0f, WHITE);
         }
       }
+      DrawModel(skybox, { 0.0f, 0.0f, 0.0f }, -1000.0f, { 255, 255, 255, 255 });
       EndMode3D();
       DrawText(TextFormat("MODELS GEN TIME: %lld ms", models_gen_time), 10, 710, 22, MAROON);
       DrawText(TextFormat("MODEL GEN TIME: %lf ms", float(models_gen_time) / float(models.size())), 10, 732, 22, MAROON);
@@ -227,6 +231,7 @@ int main(void)
     }
   }
   UnloadShader(shadowShader);
+  UnloadModel(skybox);
   UnloadModel(landscape);
   UnloadTexture(modelBaseTex);
   UnloadTexture(modelWoodTex);

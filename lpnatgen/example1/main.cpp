@@ -111,6 +111,8 @@ int main(void)
   CreateLight(LIGHT_DIRECTIONAL, Vector3Zero(), Vector3{ 0, -1, 0 }, Color{ 80, 20, 0, 255 }, fogShader);
   CreateLight(LIGHT_DIRECTIONAL, Vector3Zero(), Vector3{ 0, 1, 3 }, Color{ 54, 70, 128, 255 }, fogShader);
 
+  Model skybox = LoadModelFromMesh(GenMeshCube(1.0, 1.0, 1.0));
+  
   // LOAD MODEL
   int models_count = 500;
   std::vector<std::vector<Model>> models;
@@ -171,6 +173,7 @@ int main(void)
   }
   
   // SET MODEL SHADERS
+  skybox.materials[0].shader = shadowShader;
   landscape.materials[0].shader = shadowShader;
   water.materials[0].shader = fogShader;
   for (int i = 0; i < models.size(); ++i)
@@ -234,6 +237,7 @@ int main(void)
           DrawModel(models[i][j], models_pos[i], 1.0f, WHITE);
         }
       }
+      DrawModel(skybox, { 0.0f, 0.0f, 0.0f }, -1000.0f, { 255, 255, 255, 255 });
       EndMode3D();
       DrawText(TextFormat("MODELS GEN TIME: %lld ms", models_gen_time), 10, 710, 22, MAROON);
       DrawText(TextFormat("MODEL GEN TIME: %lf ms", float(models_gen_time) / float(models.size())), 10, 732, 22, MAROON);
@@ -250,6 +254,7 @@ int main(void)
   }
   UnloadShader(shadowShader);
   UnloadShader(fogShader);
+  UnloadModel(skybox);
   UnloadModel(water);
   UnloadModel(landscape);
   UnloadTexture(modelBaseTex);

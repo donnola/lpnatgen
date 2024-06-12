@@ -234,6 +234,7 @@ int main(void)
     }
   }
   UnloadShader(shadowShader);
+  UnloadModel(skybox);
   UnloadModel(landscape);
   UnloadTexture(modelBaseTex);
   UnloadTexture(modelWoodTex);
