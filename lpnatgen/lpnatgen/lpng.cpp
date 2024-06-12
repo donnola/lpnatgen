@@ -6,7 +6,7 @@
 
 const std::vector<lpng::Mesh>& lpng::GenerateObject::GetModel()
 {
-  ModelPolygonDecomposition();
+  Triangulation();
   return model;
 }
 
@@ -18,7 +18,7 @@ void lpng::GenerateObject::Generate()
   else
     seed = get_lpng_seed();
   GenerateMesh();
-  ModelPolygonDecomposition();
+  Triangulation();
   GenerateNormals();
   GenerateTextureCoords();
 }
@@ -69,7 +69,7 @@ void lpng::GenerateObject::GenerateTextureCoords()
 }
 
 
-void lpng::GenerateObject::ModelPolygonDecomposition()
+void lpng::GenerateObject::Triangulation()
 {
   for (Mesh& mesh : model)
   {
