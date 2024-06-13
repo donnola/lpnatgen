@@ -13,7 +13,6 @@
 #include "rlights.h"
 #include "rlgl.h"
 
-#include <chrono>
 #include <random>
 
 #define SHADOWMAP_RESOLUTION 8192

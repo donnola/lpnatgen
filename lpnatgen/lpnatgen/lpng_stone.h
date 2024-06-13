@@ -13,6 +13,6 @@ namespace lpng
   private:
     void GenerateMesh() override;
     void ModifyStone(Mesh& stone);
-    size_t pointsCount = 40;
+    size_t pointsCount = 50;
   };
 }

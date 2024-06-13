@@ -16,7 +16,7 @@ namespace lpng
     int baseBranchMaxCount = 5;
     int childrenMinCount = 5;
     int childrenMaxCount = 8;
-    int crownVertexNum = 45;
+    int crownVertexNum = 50;
   };
 
   class GenerateObjectBush : public GenerateObjectBaseTree

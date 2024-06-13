@@ -997,7 +997,6 @@ void lpng::FilterMeshWithPoints(Mesh& mesh, const std::unordered_set<size_t>& ve
       mesh.faces.resize(mesh.faces.size() - k + 1);
     }
   }
-  DeleteUnusedVertices(mesh);
 }
 
 

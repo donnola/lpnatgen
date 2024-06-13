@@ -13,8 +13,6 @@
 #include "rlights.h"
 #include "rlgl.h"
 
-#include <chrono>
-
 #define SHADOWMAP_RESOLUTION 8192
 
 static enum ObjectType

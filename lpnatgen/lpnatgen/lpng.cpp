@@ -18,6 +18,10 @@ void lpng::GenerateObject::Generate()
   else
     seed = get_lpng_seed();
   GenerateMesh();
+  for (Mesh& m : model)
+  {
+    DeleteUnusedVertices(m);
+  }
   Triangulation();
   GenerateNormals();
   GenerateTextureCoords();
