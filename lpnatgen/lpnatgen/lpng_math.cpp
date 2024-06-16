@@ -628,7 +628,7 @@ void lpng::MoveObj(Mesh& mesh, const float3& vec)
 }
 
 
-void lpng::DecomposeMesh(Mesh& mesh)
+void lpng::TriangulateMesh(Mesh& mesh)
 {
   std::vector<Face> new_faces;
   for (Face& f : mesh.faces)

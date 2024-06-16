@@ -77,7 +77,7 @@ void lpng::GenerateObject::Triangulation()
 {
   for (Mesh& mesh : model)
   {
-    DecomposeMesh(mesh);
+    TriangulateMesh(mesh);
   }
 }
 
