@@ -732,28 +732,32 @@ std::vector<int> lpng::ExtrudeWithCap(Mesh& mesh, const std::vector<int>& facesI
   SetPeripheryEdges(mesh, facesIds, periphery_edges);
   std::unordered_map<int, int> extruded_vertex_ids;
   std::vector<int> extruded_faces_ids;
-
   for (int fi : facesIds)
   {
-    Face new_face = mesh.faces[fi];
-    for (int& v : new_face.vi)
+    for (int v : mesh.faces[fi].vi)
     {
       if (!extruded_vertex_ids.contains(v))
       {
         mesh.vertexCoords.emplace_back(mesh.vertexCoords[v - 1] + vec);
         extruded_vertex_ids[v] = mesh.vertexCoords.size();
       }
+    }
+  }
+  for (const Edge& e : periphery_edges)
+  {
+    mesh.faces.push_back(Face({ e.first, e.second, extruded_vertex_ids[e.second] }));
+    mesh.faces.push_back(Face({ e.first, extruded_vertex_ids[e.second],  extruded_vertex_ids[e.first] }));
+  }
+  for (int fi : facesIds)
+  {
+    Face new_face = mesh.faces[fi];
+    for (int& v : new_face.vi)
+    {
       v = extruded_vertex_ids[v];
     }
     std::reverse(mesh.faces[fi].vi.begin(), mesh.faces[fi].vi.end());
     mesh.faces.push_back(new_face);
     extruded_faces_ids.push_back(mesh.faces.size() - 1);
-  }
-
-  for (const Edge& e : periphery_edges)
-  {
-    mesh.faces.push_back(Face({ e.first, e.second, extruded_vertex_ids[e.second] }));
-    mesh.faces.push_back(Face({ e.first, extruded_vertex_ids[e.second],  extruded_vertex_ids[e.first] }));
   }
   return extruded_faces_ids;
 }
@@ -762,16 +766,12 @@ std::vector<int> lpng::ExtrudeWithCap(Mesh& mesh, const std::vector<int>& facesI
 std::vector<int> lpng::Extrude(Mesh& mesh, const std::vector<int>& facesIds, const float3& vec)
 {
   std::vector<int> extruded_faces_ids = ExtrudeWithCap(mesh, facesIds, vec);
-  std::vector<Face> new_faces;
-  for (size_t i = 0; i < mesh.faces.size(); ++i)
+  for (int i = 0; i < facesIds.size(); ++i)
   {
-    if (std::find(facesIds.begin(), facesIds.end(), i) == facesIds.end())
-      new_faces.push_back(std::move(mesh.faces[i]));
+    mesh.faces[facesIds[i]] = std::move(mesh.faces[extruded_faces_ids[i]]);
   }
-  mesh.faces = std::move(new_faces);
-  for (int& f_id : extruded_faces_ids)
-    f_id -= facesIds.size();
-  return extruded_faces_ids;
+  mesh.faces.resize(mesh.faces.size() - facesIds.size());
+  return facesIds;
 }
 
 

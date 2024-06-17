@@ -31,7 +31,7 @@ namespace lpng
     float2 disp = float2(3, 3.5);
     float balance = 0.1;
     float centered = 0.1;
-    int rebuildNum = 5;
+    int rebuildNum = 0;
   };
 
   struct CrownCluster

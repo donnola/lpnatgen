@@ -84,7 +84,6 @@ static void SetModel(int type, std::unique_ptr<lpng::GenerateObject>& model_ptr)
   {
     lpng::GenerateObjectStone* stone_ptr = new lpng::GenerateObjectStone();
     model_size = { 4, 4, 4 };
-    stone_ptr->SetVertexCount(stoneVertexCount);
     model_ptr.reset(stone_ptr);
     res = true;
     break;
