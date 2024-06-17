@@ -261,8 +261,7 @@ void lpng::ModelMaterial::CreateModelMaterial(const std::filesystem::path& save_
     ofs << "newmtl " << mat.second << "\n";
     ofs << "illum 1\n";
     ofs << "Kd 1.00 1.00 1.00\n";
-    ofs << "Ka 0.00 0.00 0.00\n";
-    ofs << "Tf 1.00 1.00 1.00\n";
+    ofs << "Ka 1.00 1.00 1.00\n";
     ofs << "Ni 1.00\n";
     ofs << "Tr 1.00\n";
     ofs << "map_Kd " << TextureNames.at(mat.first) << "\n";
