@@ -702,6 +702,7 @@ void lpng::SetPeripheryEdges(
   std::vector<Edge>& peripheryEdges
 )
 {
+  std::unordered_map<Edge, int, EdgeHash, EdgeEqual> edge_count;
   peripheryEdges.clear();
   for (int f1_id : facesIds)
   {
@@ -710,17 +711,20 @@ void lpng::SetPeripheryEdges(
     {
       int e1 = f_i.vi[j];
       int e2 = f_i.vi[(j + 1) % f_i.vi.size()];
-      bool isEdgeHasNeighbor = false;
-      for (int f2_id : facesIds)
+      ++edge_count[Edge(e1, e2)];
+    }
+  }
+  for (int f1_id : facesIds)
+  {
+    const Face& f_i = mesh.faces[f1_id];
+    for (size_t j = 0; j < f_i.vi.size(); j++)
+    {
+      int e1 = f_i.vi[j];
+      int e2 = f_i.vi[(j + 1) % f_i.vi.size()];
+      if (edge_count[Edge(e1, e2)] == 1)
       {
-        if (isEdgeHasNeighbor)
-          break;
-        if (f2_id == f1_id)
-          continue;
-        isEdgeHasNeighbor = IsEdgeInFace({ e1, e2 }, mesh.faces[f2_id]);
-      }
-      if (!isEdgeHasNeighbor)
         peripheryEdges.emplace_back(e1, e2);
+      }
     }
   }
 }

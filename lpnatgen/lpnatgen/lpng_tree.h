@@ -10,7 +10,6 @@ namespace lpng
   {
     float3 C;
     float3 mean;
-    float3 D3;
     float D = 0;
   };
 

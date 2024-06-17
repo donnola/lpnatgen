@@ -36,21 +36,20 @@ void lpng::GenerateObjectTree::GenerateMesh()
     float3 vec_in;
     InitBranch(parent_id, branch, point_start, vec_in);
     GenerateBranch(branch, point_start, vec_in, vec_in);
-    branches[parent_id].childsIds.push_back(branches.size() - 1);
   }
   for (size_t i = 0; i < branches.size(); ++i)
   {
     TreeRoot(branches[i], i);
     RelaxBranch(branches[i], i);
   }
-  CalculateQuality();
   if (buildId < rebuildParams.rebuildNum)
   {   
+    CalculateQuality();
     bool nead_rebuild_tree = false;
     bool is_balanced = Magnitude(float2(quality.C.x, quality.C.z)) <= rebuildParams.balance;
     bool is_centered = Magnitude(float2(quality.mean.x, quality.mean.z)) <= rebuildParams.centered;
     bool is_spreading = quality.D > rebuildParams.disp.x && quality.D < rebuildParams.disp.y;
-    nead_rebuild_tree = !is_balanced || !is_centered || !is_spreading || branches[0].childsIds.size() < children_count / 3;
+    nead_rebuild_tree = !is_balanced || !is_centered || !is_spreading;
     if (nead_rebuild_tree)
     {
       ClearTree();
@@ -64,25 +63,21 @@ void lpng::GenerateObjectTree::GenerateMesh()
 
 void lpng::GenerateObjectTree::CalculateQuality()
 {
-  size_t i = 0;
   float weight = 0;
   for (const Branch& branch : branches)
   {
-    ++i;
     weight += branch.rings[0].rad;
     quality.C += branch.rings.back().center * branch.rings[0].rad;
     quality.mean += branch.rings.back().center;
   }
   quality.C /= weight;
-  quality.mean /= i;
+  quality.mean /= branches.size();
   for (const Branch& branch : branches)
   {
     float3 t = branch.rings.back().center - quality.mean;
-    quality.D3 += t * t;
-    quality.D += MagnitudeSq(t);
+    quality.D += MagnitudeSq(float2(t.x, t.z));
   }
-  quality.D3 /= i;
-  quality.D /= i;
+  quality.D /= branches.size();
 }
 
 

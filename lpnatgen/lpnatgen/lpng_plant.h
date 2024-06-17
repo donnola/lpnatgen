@@ -19,14 +19,13 @@ namespace lpng
   struct Branch
   {
     std::vector<BranchRing> rings;
-    std::vector<int> childsIds;
     std::vector<float2> freeDirections;
     float length = 0;
     float baseRad = 0;
     float lastRad = 0;
+    int edgeBase = 0;
     int level = 0;
     size_t weight = 0;
-    int edgeBase = 0;
   };
 
   class GenerateObjectBaseTree : public GenerateObject

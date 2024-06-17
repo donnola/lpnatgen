@@ -33,7 +33,6 @@ void lpng::GenerateObjectBush::GenerateMesh()
     float3 vec_in;
     InitBranch(parent_id, branch, point_start, vec_in);
     GenerateBranch(branch, point_start, vec_in, vec_in);
-    branches[parent_id].childsIds.push_back(branches.size() - 1);
   }
   for (size_t i = 0; i < branches.size(); ++i)
   {
