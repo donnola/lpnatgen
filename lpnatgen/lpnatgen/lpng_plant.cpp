@@ -12,7 +12,7 @@ int lpng::GenerateObjectBaseTree::SelectWeightedBranch()
   }
   if (weight_sum == 0)
     return -1;
-  size_t w = fast_lpng_rand(0, weight_sum);
+  size_t w = fast_lpng_rand(1, weight_sum + 1);
   size_t w_cum = 0;
   for (size_t i = 0; i < branches.size(); ++i)
   {

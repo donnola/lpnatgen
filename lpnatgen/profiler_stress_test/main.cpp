@@ -28,7 +28,7 @@ static void SetModel(int type, std::unique_ptr<lpng::GenerateObject>& model_ptr)
 void test(ObjectType type)
 {
   std::unique_ptr<lpng::GenerateObject> modelPtr{ std::make_unique<lpng::GenerateObjectTest>() };
-  int model_count = 10000;
+  int model_count = 100000;
   float vertex_count = 0;
   float triangle_count = 0;
   long long models_gen_time = 0;
@@ -59,17 +59,17 @@ void test(ObjectType type)
 int main(void)
 {
   fast_lpng_rand(int(std::time(nullptr)));
-  //for (int i = STONE; i < MAX_TYPE; ++i)
-  //{
-  //  test(ObjectType(i));
-  //}
-  std::unique_ptr<lpng::GenerateObject> modelPtr{ std::make_unique<lpng::GenerateObjectTest>() };
-  int model_type = TREE;
-  for (int i = 0; i < 10000000; ++i)
+  for (int i = STONE; i < MAX_TYPE; ++i)
   {
-    SetModelParams(model_type, modelPtr);
-    modelPtr->Generate();
-  } 
+    test(ObjectType(i));
+  }
+  //std::unique_ptr<lpng::GenerateObject> modelPtr{ std::make_unique<lpng::GenerateObjectTest>() };
+  //int model_type = TREE;
+  //for (int i = 0; i < 10000000; ++i)
+  //{
+  //  SetModelParams(model_type, modelPtr);
+  //  modelPtr->Generate();
+  //} 
 }
 
 static void SetModel(int type, std::unique_ptr<lpng::GenerateObject>& model_ptr)
