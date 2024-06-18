@@ -50,7 +50,9 @@ namespace lpng
   struct Quat
   {
     float x, y, z, w;
-    // d - rad
+     
+    // param vec(x, y, z) - rotation axis vector
+    // param d - angle (rad)
     Quat(float a, float b, float c, float d);
     Quat(float3 vec, float d);
     Quat() 
