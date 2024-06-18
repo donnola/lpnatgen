@@ -856,7 +856,7 @@ void lpng::DeleteUnusedVertices(Mesh& mesh)
     if (auto it = used_vertices_id.find(i); it == used_vertices_id.end())
     {
       ++k;
-      mesh.vertexCoords[i] = mesh.vertexCoords[mesh.vertexCoords.size() - k];
+      mesh.vertexCoords[i] = std::move(mesh.vertexCoords[mesh.vertexCoords.size() - k]);
       for (Face& f : mesh.faces)
       {
         auto v_it = std::find(f.vi.begin(), f.vi.end(), mesh.vertexCoords.size() - k + 1);
