@@ -131,7 +131,6 @@ void lpng::GenerateObjectTree::GenerateCrown()
   InitClusters();
   for (CrownCluster& cluster : crownClusters)
   {
-    cluster.center;
     float3 v = Normalized(float3(1, 1, 1)) * cluster.rad;
     for (int i : cluster.branchIds)
     {
